@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Manage Users</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="flex min-h-screen bg-gray-800 text-gray-100">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-900/90 text-white p-6 flex flex-col justify-between transform transition-transform duration-300 lg:translate-x-0 -translate-x-full z-50 backdrop-blur-md shadow-2xl">
+    <!-- Top Section -->
+    <div>
+      <div class="mb-6 text-center border-b border-white/20 pb-4">
+        <h4 class="text-3xl font-extrabold text-blue-400">Admin Panel</h4>
+        <small class="text-white/60">Borrowing Management</small>
+      </div>
+      <nav class="flex flex-col space-y-3">
+        <a href="{{ url_for('admin') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <i data-lucide="list" class="w-5 h-5 mr-3"></i> All Requests
+        </a>
+        <a href="{{ url_for('manage_item') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <i data-lucide="package" class="w-5 h-5 mr-3"></i> Manage Items
+        </a>
+        <a href="{{ url_for('manage_user') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition bg-white/10">
+          <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage Users
+        </a>
+        <a href="{{ url_for('inventory') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> PC Parts Inventory
+        </a>
+      </nav>
+    </div>
+
+    <!-- Logout Button at Bottom -->
+    <form method="post" action="{{ url_for('login_bp.logout') }}">
+      <button type="submit" class="flex items-center justify-center w-full px-4 py-3 mt-4 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-lg">
+        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+      </button>
+    </form>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-0 lg:ml-64 p-6 space-y-6 transition-all duration-300">
+    <!-- Top Navbar -->
+    <div class="flex items-center justify-between bg-gray-900 rounded-xl shadow-lg p-4">
+      <button id="sidebarToggle" class="lg:hidden text-gray-100">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <h2 class="text-2xl font-bold text-blue-400">Manage Users</h2>
+      <div></div> <!-- Removed logout from top -->
+    </div>
+
+    <!-- Add User Form -->
+    <div class="bg-gray-900 rounded-2xl shadow-2xl p-6">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-400">
+        <i data-lucide="user-plus" class="w-5 h-5"></i> Add New User
+      </h3>
+      <form method="post" action="" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <input type="text" name="name" placeholder="Full Name" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="email" name="email" placeholder="Email" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="text" name="role" placeholder="Role (Admin/User)" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md transition">Add User</button>
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-gray-900 rounded-2xl shadow-2xl p-6">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-400">
+        <i data-lucide="users" class="w-5 h-5"></i> Users List
+      </h3>
+      {% if users|length == 0 %}
+        <div class="bg-gray-700 text-gray-300 p-4 rounded-lg text-center">
+          No users found.
+        </div>
+      {% else %}
+        <div class="overflow-x-auto rounded-xl">
+          <table class="min-w-full border border-gray-700 text-sm text-gray-100">
+            <thead class="bg-gray-800 text-gray-300">
+              <tr>
+                
+                <th class="px-4 py-2 text-left border-b border-gray-700">Faculty Name</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Username</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Email</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Role</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Created At</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr class="hover:bg-gray-700">
+              
+                <td class="px-4 py-2 border-b border-gray-700">{{ user.faculty_name }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ user.username }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ user.email }}</td>
+                 <td class="px-4 py-2 border-b border-gray-700">
+                  {% if user.is_admin == 1 %}
+                    Admin
+                  {% else %}
+                    Staff
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ user.created_at }}</td>
+                
+            <td class="px-4 py-2 border-b border-gray-700 space-x-2">
+                  <form action="" method="get" class="inline">
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm">Edit</button>
+                  </form>
+                  <form action="" method="post" class="inline">
+                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm">Delete</button>
+                  </form>
+                  </td>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('sidebarToggle');
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

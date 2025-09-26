@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - PC Parts Inventory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="flex min-h-screen bg-gray-800 text-gray-100">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-900/90 text-white p-6 flex flex-col justify-between transform transition-transform duration-300 lg:translate-x-0 -translate-x-full z-50 backdrop-blur-md shadow-2xl">
+    <div>
+      <div class="mb-6 text-center border-b border-white/20 pb-4">
+        <h4 class="text-3xl font-extrabold text-blue-400">NCMIS</h4>
+        <small class="text-white/60">Admin Panel</small>
+      </div>
+      <nav class="flex flex-col space-y-3">
+        <a href="{{ url_for('admin') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <span data-lucide="list" class="w-5 h-5 mr-3"></span> All Requests
+        </a>
+        <a href="{{ url_for('manage_item') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <span data-lucide="package" class="w-5 h-5 mr-3"></span> Manage Items
+        </a>
+        <a href="{{ url_for('manage_user') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition">
+          <span data-lucide="users" class="w-5 h-5 mr-3"></span> Manage Users
+        </a>
+        <a href="{{ url_for('inventory') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-blue-600/30 transition bg-white/10">
+          <span data-lucide="cpu" class="w-5 h-5 mr-3"></span> PC Parts Inventory
+        </a>
+      </nav>
+    </div>
+    <form method="post" action="{{ url_for('login_bp.logout') }}">
+      <button type="submit" class="flex items-center justify-center w-full px-4 py-3 mt-4 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-lg">
+        <span data-lucide="log-out" class="w-5 h-5 mr-2"></span> Logout
+      </button>
+    </form>
+  </aside>
+
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-0 lg:ml-64 p-6 space-y-6 transition-all duration-300">
+    <!-- Navbar -->
+    <div class="flex items-center justify-between bg-gray-900 rounded-xl shadow-lg p-4">
+      <button id="sidebarToggle" class="lg:hidden text-gray-100">
+        <!-- Menu Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <h2 class="text-2xl font-bold text-blue-400">PC Parts Inventory</h2>
+    </div>
+
+    <!-- Add Part Form -->
+    <div class="bg-gray-900 rounded-2xl shadow-2xl p-6">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-400">
+        <span data-lucide="plus-square" class="w-5 h-5"></span>
+        Add New PC Part
+      </h3>
+      <form method="post" action="" class="grid grid-cols-1 sm:grid-cols-7 gap-4">
+        <input type="text" name="part_name" placeholder="Part Name" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="text" name="brand_model" placeholder="Brand / Model" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="text" name="serial_number" placeholder="Serial Number" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="number" name="quantity" placeholder="Quantity" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="number" step="0.01" name="acquisition_cost" placeholder="Acquisition Cost" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <input type="date" name="date_acquired" class="border border-gray-700 rounded px-3 py-2 w-full bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-400">
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md transition">Add Part</button>
+      </form>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="bg-gray-900 rounded-2xl shadow-2xl p-6">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-400">
+        <span data-lucide="cpu" class="w-5 h-5"></span>
+        PC Parts List
+      </h3>
+      {% if pc_parts|length == 0 %}
+        <div class="bg-gray-700 text-gray-300 p-4 rounded-lg text-center">
+          No PC parts found.
+        </div>
+      {% else %}
+        <div class="overflow-x-auto rounded-xl">
+          <table class="min-w-full border border-gray-700 text-sm text-gray-100">
+            <thead class="bg-gray-800 text-gray-300">
+              <tr>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Part Name</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Brand / Model</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Serial Number</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Quantity</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Acquisition Cost</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Current Value</th>
+                <th class="px-4 py-2 text-left border-b border-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for part in pc_parts %}
+              {% set years = ((now() - part.date_acquired).days // 365) %}
+              {% set current_value = part.acquisition_cost * (0.98 ** years) %}
+              <tr class="hover:bg-gray-700">
+                <td class="px-4 py-2 border-b border-gray-700">{{ part.part_name }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ part.brand_model }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ part.serial_number }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">{{ part.quantity }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">${{ part.acquisition_cost | round(2) }}</td>
+                <td class="px-4 py-2 border-b border-gray-700">${{ current_value | round(2) }}</td>
+                <td class="px-4 py-2 border-b border-gray-700 space-x-2">
+                  <form action="{{ url_for('edit_pc_part', id=part.id) }}" method="get" class="inline">
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm">Edit</button>
+                  </form>
+                  <form action="{{ url_for('delete_pc_part', id=part.id) }}" method="post" class="inline">
+                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
+
+    // Render Lucide icons
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
