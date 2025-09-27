@@ -11,33 +11,44 @@ userborrow_bp = Blueprint('userborrow_bp', __name__, url_prefix='/borrow')
 
 @userborrow_bp.route('/', methods=['GET', 'POST'])
 def borrow_page():
-    print(">>> borrow_page route was hit")
     if request.method == 'POST':
-        conn = get_db_connection()
-        user_id = session.get('user_id')
+        last_name = request.form['last_name']
+        first_name = request.form['first_name']
+        middle_initial = request.form['middle_initial']
+        student_id = request.form['student_id']
         device_id = request.form['item_id']
-        borrow_date = request.form['borrow_date']
-        borrow_time = request.form['borrow_time']
-        return_time = request.form['return_time']
         reason = request.form['reason']
+        borrow_date = datetime.now().strftime('%Y-%m-%d')
 
+        conn = get_db_connection()
         with conn.cursor() as cur:
+            # Insert student if not exists
+            cur.execute("""
+                INSERT IGNORE INTO students (student_id, last_name, first_name, middle_initial)
+                VALUES (%s, %s, %s, %s)
+            """, (student_id, last_name, first_name, middle_initial))
+            # Insert borrow request
             cur.execute("""
                 INSERT INTO borrow_requests
-                  (user_id, device_id, borrow_date, reason, status)
-                VALUES (%s,%s,%s,%s,'Pending')
-            """, (user_id, device_id, borrow_date, reason))
+                  (student_id, last_name, first_name, middle_initial, device_id, borrow_date, reason, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
+            """, (student_id, last_name, first_name, middle_initial, device_id, borrow_date, reason))
         conn.commit()
         conn.close()
-
         flash('Request submitted!')
         return redirect(url_for('userborrow_bp.borrow_page'))
 
-    # ✅ get available devices as dictionaries
     items = get_available_devices()
-    print("DEBUG available items:", items)
+    # Fetch students for the table
+    students = []
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM students")
+        students = cur.fetchall()
+    conn.close()
     now = datetime.now()
-    return render_template('main.html', items=items, now=now)
+    return render_template('main.html', items=items, students=students, now=now)
+
 
 @userborrow_bp.route('/decline/<int:borrow_id>', methods=['POST'])
 def cancel_request(borrow_id):

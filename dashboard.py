@@ -87,6 +87,7 @@ def get_borrow_requests():
                        d.item_name AS device_name,
                        br.borrow_date,
                        br.return_date,
+                       br.reason,           -- <-- Add this line
                        br.status
                 FROM borrow_requests br
                 JOIN users u ON br.user_id = u.user_id

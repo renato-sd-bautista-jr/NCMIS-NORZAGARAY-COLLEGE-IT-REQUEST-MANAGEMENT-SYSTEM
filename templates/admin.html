@@ -131,53 +131,40 @@
 
 <!-- Add Request Modal -->
 <div id="requestModal"
-     class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 w-full max-w-md">
-    <h2 class="text-xl font-semibold mb-4">Add Borrow Request</h2>
+     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+    <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center gap-2">
+      <i data-lucide="plus-circle" class="w-6 h-6"></i>
+      Add Borrow Request
+    </h2>
 
-    <form action="/add_request" method="post" class="space-y-4">
+    <form action="{{ url_for('userborrow_bp.borrow_page') }}" method="post" class="space-y-5">
       <div>
-        <label class="block text-sm font-medium">User</label>
-        <select name="user_id" class="w-full border rounded p-2">
+        <label class="block text-sm font-medium mb-1 text-gray-200">User</label>
+        <select name="student_id" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
           {% for u in users %}
-            <option value="{{ u.user_id }}">
-              {{ u.username }} - {{ u.faculty_name }}
-            </option>
+            <option value="{{ u.student_id }}">{{ u.username }} - {{ u.faculty_name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Device</label>
-        <select name="device_id" class="w-full border rounded p-2">
+        <label class="block text-sm font-medium mb-1 text-gray-200">Item</label>
+        <select name="item_id" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
           {% for d in devices %}
-            <option value="{{ d.device_id }}">
-              {{ d.item_name }} - {{ d.brand_model }}
-            </option>
+            <option value="{{ d.id }}">{{ d.name }} - {{ d.serial_number }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Borrow Date</label>
-        <input type="date" name="borrow_date" class="w-full border rounded p-2">
+        <label class="block text-sm font-medium mb-1 text-gray-200">Reason/Purpose</label>
+        <input type="text" name="reason" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium">Return Date</label>
-        <input type="date" name="return_date" class="w-full border rounded p-2">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium">Reason/Purpose</label>
-        <input type="date" name="reason" class="w-full border rounded p-2">
-      </div>
-
-      <div class="flex justify-end space-x-2">
-        <button type="button" id="closeRequestModal"
-                class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
-        <button type="submit"
-                class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button type="button" id="closeRequestModal" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl transition">Cancel</button>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold shadow transition">Save</button>
       </div>
     </form>
   </div>
