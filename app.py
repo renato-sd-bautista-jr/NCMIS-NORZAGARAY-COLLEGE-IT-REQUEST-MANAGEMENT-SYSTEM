@@ -4,7 +4,7 @@ from manage_user import get_user
 from dashboard import get_concern_stats, get_borrow_requests,get_all_users,get_all_available_devices
 from login import login_bp
 from borrrow import approve_borrow_request, decline_borrow_request, mark_returned_borrow_request
-
+from userborrow import get_available_units
 from db import get_db_connection
 from userborrow import userborrow_bp
 
@@ -27,6 +27,7 @@ def main():
 
     from userborrow import get_available_devices, get_available_units
     raw_items = get_available_devices()
+    
     items = [
         {
             'id': i['id'],
@@ -50,10 +51,38 @@ def admin():
     if not session.get('is_admin'):
         return redirect(url_for('login_bp.logout'))
 
+    # still use your stats helpers if you want
     stats = get_concern_stats()
-    requests = get_borrow_requests()
     users = get_all_users()
     devices = get_all_available_devices()
+    units = get_available_units()
+
+    # do the borrow requests join here instead of get_borrow_requests()
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("""
+           SELECT
+            br.borrow_id,
+            br.student_id,
+            CONCAT(br.first_name, ' ', br.middle_initial, '. ', br.last_name) AS borrower_name,
+
+            -- Build device display string right in SQL
+            du.accession_id,
+            d.item_name,
+            d.brand_model,
+            du.serial_number,
+
+            br.borrow_date,
+            br.return_date,
+            br.reason,
+            br.status
+        FROM borrow_requests br
+        JOIN devices_units du ON br.device_id = du.accession_id
+        JOIN devices d ON du.device_id = d.device_id
+        ORDER BY br.borrow_date DESC
+        """)
+        requests = cur.fetchall()
+    conn.close()
 
     return render_template(
         'admin.html',
@@ -64,8 +93,9 @@ def admin():
         requests=requests,
         users=users,
         devices=devices
-
+        ,units=units
     )
+
 # @app.route('/concernlist')
 # def concernlist():
 #     if 'user_id' not in session:
@@ -85,20 +115,37 @@ def manage_user():
 def inventory():
     return render_template('inventory.html')
 
-@app.route('/manage-item', methods=['GET', 'POST'])
+@app.route('/manage-item', methods=['GET','POST'])
 def manage_item():
-    if 'user_id' not in session:  # block unauthorized users
-        return redirect(url_for('login_bp.login'))
-
     if request.method == 'POST':
-        device_name = request.form.get('item_name')
+        item_name = request.form['item_name']
+        brand_model = request.form.get('brand_model')
+        department_id = request.form.get('department_id')
+        serial_number = request.form.get('serial_number')
         quantity = request.form.get('quantity')
-        department_id = request.form.get('department_id') or 1  # default dept
-        add_device(device_name, quantity, department_id)
+        device_type = request.form.get('device_type')
+        status = request.form.get('status', 'Available')
+
+        add_device(item_name, brand_model, department_id, serial_number, quantity, device_type, status)
         return redirect(url_for('manage_item'))
 
     items = get_devices_with_details()
-    return render_template('manage_item.html', items=items)
+    departments = get_departments()  # load your dept dropdown
+    return render_template('manage_item.html', items=items, departments=departments)
+
+def get_departments():
+    """
+    Fetch all departments from the database.
+    Returns a list of dicts with keys: department_id, department_name.
+    """
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
+            departments = cur.fetchall()
+    finally:
+        conn.close()
+    return departments
 
 
 @app.route('/edit-item/<int:id>', methods=['GET', 'POST'])

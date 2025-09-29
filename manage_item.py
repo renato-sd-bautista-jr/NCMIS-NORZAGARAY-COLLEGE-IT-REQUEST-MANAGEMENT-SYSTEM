@@ -5,34 +5,32 @@ def get_devices_with_details():
     conn = get_db_connection()
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT d.device_id,
+            SELECT du.accession_id,
+                   du.serial_number,
+                   du.status AS unit_status,
+                   d.device_id,
                    d.item_name,
                    d.brand_model,
-                   d.serial_number,
-                   d.quantity,
-                   d.device_type,
-                   d.status,
-                   dep.department_name
-            FROM devices d
-            JOIN departments dep ON d.department_id = dep.department_id
+                   dept.department_name
+            FROM devices_units du
+            JOIN devices d ON du.device_id = d.device_id
+            LEFT JOIN departments dept ON d.department_id = dept.department_id
+            ORDER BY d.item_name, du.accession_id
         """)
-        return cur.fetchall()
-    
+        rows = cur.fetchall()
+    conn.close()
+    return rows
 
 
-    
-
-def add_device(device_name, quantity, department_id):
+def add_device(item_name, brand_model, department_id, serial_number, quantity, device_type, status):
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO devices (device_name, quantity, department_id)
-                VALUES (%s, %s, %s)
-                """,
-                (device_name, quantity, department_id)
-            )
+            cursor.execute("""
+                INSERT INTO devices
+                (item_name, brand_model, department_id, serial_number, quantity, device_type, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (item_name, brand_model, department_id, serial_number, quantity, device_type, status))
             conn.commit()
     finally:
         conn.close()
