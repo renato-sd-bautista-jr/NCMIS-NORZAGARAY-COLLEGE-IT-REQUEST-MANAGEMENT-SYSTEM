@@ -25,18 +25,24 @@ def main():
     if session.get('is_admin'):
         return redirect(url_for('admin'))
 
-    from userborrow import get_available_devices
+    from userborrow import get_available_devices, get_available_units
     raw_items = get_available_devices()
     items = [
-    {
-        'id': i['id'],
-        'name': i['name'],
-        'serial_number': i['serial_number'],
-        'department': i['department']      # add this
-    }
-    for i in raw_items
-]
-    return render_template('main.html', username=session.get('username'), items=items)
+        {
+            'id': i['id'],
+            'name': i['name'],
+            'serial_number': i['serial_number'],
+            'department': i['department']
+        }
+        for i in raw_items
+    ]
+    units = get_available_units()  # ← add this
+    return render_template(
+        'main.html',
+        username=session.get('username'),
+        items=items,
+        units=units           # ← pass it here too
+    )
 @app.route('/admin')
 def admin():
     if 'user_id' not in session:
