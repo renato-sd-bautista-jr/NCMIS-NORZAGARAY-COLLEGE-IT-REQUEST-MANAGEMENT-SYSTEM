@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 27, 2025 at 11:43 PM
+-- Generation Time: Sep 29, 2025 at 05:40 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,7 +29,10 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `borrow_requests` (
   `borrow_id` int(11) NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
+  `student_id` varchar(20) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `middle_initial` varchar(5) DEFAULT NULL,
   `device_id` int(11) NOT NULL,
   `borrow_date` date NOT NULL,
   `return_date` date DEFAULT NULL,
@@ -41,11 +44,9 @@ CREATE TABLE `borrow_requests` (
 -- Dumping data for table `borrow_requests`
 --
 
-INSERT INTO `borrow_requests` (`borrow_id`, `user_id`, `device_id`, `borrow_date`, `return_date`, `reason`, `status`) VALUES
-(1, 10, 1, '2025-09-21', NULL, '', 'Pending'),
-(2, 9, 3, '2025-09-21', NULL, '', 'Pending'),
-(3, 10, 1, '3233-03-04', '2025-09-27', 'asd', 'Returned'),
-(4, 10, 4, '0000-00-00', NULL, 'e', 'Pending');
+INSERT INTO `borrow_requests` (`borrow_id`, `student_id`, `last_name`, `first_name`, `middle_initial`, `device_id`, `borrow_date`, `return_date`, `reason`, `status`) VALUES
+(8, '2021-0442', 'Bautista', 'Renato', 'SD', 4, '2025-09-29', NULL, 're', 'Approved'),
+(9, '2021-0442', 'Bautista', 'Renato', 'SD', 1, '2025-09-29', NULL, '33', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -172,15 +173,46 @@ INSERT INTO `devices` (`device_id`, `item_name`, `brand_model`, `department_id`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `device_units`
+-- Table structure for table `devices_units`
 --
 
-CREATE TABLE `device_units` (
+CREATE TABLE `devices_units` (
   `accession_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL,
   `serial_number` varchar(100) DEFAULT NULL,
   `status` enum('Available','Borrowed','Damaged','Disposed') DEFAULT 'Available'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `devices_units`
+--
+
+INSERT INTO `devices_units` (`accession_id`, `device_id`, `serial_number`, `status`) VALUES
+(1, 4, 'PRJ-001', 'Borrowed'),
+(2, 4, 'PRJ-002', 'Available'),
+(3, 4, 'PRJ-003', 'Available'),
+(4, 4, 'PRJ-004', 'Borrowed'),
+(5, 4, 'PRJ-005', 'Available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `students`
+--
+
+CREATE TABLE `students` (
+  `student_id` varchar(20) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `first_name` varchar(50) NOT NULL,
+  `middle_initial` varchar(5) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`student_id`, `last_name`, `first_name`, `middle_initial`) VALUES
+('2021-0442', 'Bautista', 'Renato', 'SD');
 
 -- --------------------------------------------------------
 
@@ -216,7 +248,6 @@ INSERT INTO `users` (`user_id`, `username`, `faculty_name`, `email`, `password`,
 --
 ALTER TABLE `borrow_requests`
   ADD PRIMARY KEY (`borrow_id`),
-  ADD KEY `fk_borrow_user` (`user_id`),
   ADD KEY `fk_borrow_device` (`device_id`);
 
 --
@@ -252,11 +283,17 @@ ALTER TABLE `devices`
   ADD KEY `department_id` (`department_id`);
 
 --
--- Indexes for table `device_units`
+-- Indexes for table `devices_units`
 --
-ALTER TABLE `device_units`
+ALTER TABLE `devices_units`
   ADD PRIMARY KEY (`accession_id`),
   ADD KEY `device_id` (`device_id`);
+
+--
+-- Indexes for table `students`
+--
+ALTER TABLE `students`
+  ADD PRIMARY KEY (`student_id`);
 
 --
 -- Indexes for table `users`
@@ -273,7 +310,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `borrow_requests`
 --
 ALTER TABLE `borrow_requests`
-  MODIFY `borrow_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `borrow_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `concerns`
@@ -300,10 +337,10 @@ ALTER TABLE `devices`
   MODIFY `device_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `device_units`
+-- AUTO_INCREMENT for table `devices_units`
 --
-ALTER TABLE `device_units`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `devices_units`
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -319,8 +356,7 @@ ALTER TABLE `users`
 -- Constraints for table `borrow_requests`
 --
 ALTER TABLE `borrow_requests`
-  ADD CONSTRAINT `fk_borrow_device` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_borrow_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_borrow_device` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `concern_devices`
@@ -336,10 +372,10 @@ ALTER TABLE `devices`
   ADD CONSTRAINT `devices_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
 
 --
--- Constraints for table `device_units`
+-- Constraints for table `devices_units`
 --
-ALTER TABLE `device_units`
-  ADD CONSTRAINT `device_units_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
+ALTER TABLE `devices_units`
+  ADD CONSTRAINT `devices_units_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
