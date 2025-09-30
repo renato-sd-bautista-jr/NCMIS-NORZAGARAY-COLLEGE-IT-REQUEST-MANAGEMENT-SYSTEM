@@ -26,11 +26,23 @@ def add_device(item_name, brand_model, department_id, serial_number, quantity, d
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
+            # Insert into devices (main info)
             cursor.execute("""
                 INSERT INTO devices
-                (item_name, brand_model, department_id, serial_number, quantity, device_type, status)
+                    (item_name, brand_model, department_id, serial_number, quantity, device_type, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (item_name, brand_model, department_id, serial_number, quantity, device_type, status))
+            
+            # Get the auto-increment device_id
+            device_id = cursor.lastrowid
+
+            # Insert into devices_units (per unit tracking)
+            for i in range(int(quantity)):
+                cursor.execute("""
+                    INSERT INTO devices_units (device_id, serial_number, status)
+                    VALUES (%s, %s, %s)
+                """, (device_id, serial_number if i == 0 else None, status))
+
             conn.commit()
     finally:
         conn.close()

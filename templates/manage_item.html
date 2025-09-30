@@ -70,30 +70,132 @@
     </h2>
 
     <form method="post" action="{{ url_for('manage_item') }}" class="space-y-5">
+      <!-- Device Name -->
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-200">Device Name</label>
-        <input type="text" name="device_name" required
+        <input type="text" name="item_name" required
                class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
       </div>
 
+      <!-- Brand/Model -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Brand / Model</label>
+        <input type="text" name="brand_model"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      </div>
+
+      <!-- Serial Number -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Serial Number</label>
+        <input type="text" name="serial_number"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      </div>
+
+      <!-- Quantity -->
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-200">Quantity</label>
         <input type="number" name="quantity" min="1" required
                class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
       </div>
 
+      <!-- Device Type -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Device Type</label>
+        <input type="text" name="device_type"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      </div>
+
+      <!-- Department -->
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-200">Department</label>
-        <select name="department_id" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <select name="department_id" required
+                class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
           {% for dept in departments %}
             <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
           {% endfor %}
         </select>
       </div>
 
+      <!-- Status -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Status</label>
+        <select name="status" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="Available">Available</option>
+          <option value="Borrowed">Borrowed</option>
+          <option value="Damaged">Damaged</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
       <div class="flex justify-end space-x-2 pt-2">
         <button type="button" id="closeAddItemModal" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl transition">Cancel</button>
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold shadow transition">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Device Modal -->
+<div id="editItemModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+    <h2 class="text-2xl font-bold mb-6 text-yellow-400 flex items-center gap-2">
+      <i data-lucide="edit-3" class="w-6 h-6"></i>
+      Edit Device
+    </h2>
+
+    <form id="editItemForm" method="post">
+      <input type="hidden" name="accession_id" id="edit_accession_id">
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Device Name</label>
+        <input type="text" name="item_name" id="edit_item_name" required
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Brand/Model</label>
+        <input type="text" name="brand_model" id="edit_brand_model"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Serial Number</label>
+        <input type="text" name="serial_number" id="edit_serial_number"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Department</label>
+        <select name="department_id" id="edit_department_id"
+                class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+          {% for dept in departments %}
+            <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Device Type</label>
+        <input type="text" name="device_type" id="edit_device_type"
+               class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-200">Status</label>
+        <select name="status" id="edit_status"
+                class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white">
+          <option value="Available">Available</option>
+          <option value="Borrowed">Borrowed</option>
+          <option value="Damaged">Damaged</option>
+          <option value="Disposed">Disposed</option>
+        </select>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button type="button" id="closeEditItemModal"
+                class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl">Cancel</button>
+        <button type="submit"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl font-semibold">Save</button>
       </div>
     </form>
   </div>
@@ -155,13 +257,25 @@
       </span>
     </td>
     <td class="px-4 py-2 border-b space-x-2">
-      <form action="{{ url_for('edit_item', id=item.accession_id) }}" method="get" class="inline">
-        <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition">Edit</button>
-      </form>
-      <form action="{{ url_for('delete_item', id=item.accession_id) }}" method="post" class="inline" onsubmit="return confirm('Are you sure?');">
-        <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition">Delete</button>
-      </form>
-    </td>
+  <!-- Edit Button opens modal -->
+  <button type="button"
+          class="editBtn bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition"
+          data-id="{{ item.accession_id }}"
+          data-name="{{ item.item_name }}"
+          data-brand="{{ item.brand_model or '' }}"
+          data-serial="{{ item.serial_number or '' }}"
+          data-dept="{{ item.department_id }}"
+          data-type="{{ item.device_type or '' }}"
+          data-status="{{ item.unit_status }}">
+    Edit
+  </button>
+
+  <!-- Delete stays as a form -->
+  <form action="{{ url_for('delete_item', id=item.accession_id) }}" method="post" class="inline" onsubmit="return confirm('Are you sure?');">
+    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition">Delete</button>
+  </form>
+</td>
+
   </tr>
   {% endfor %}
 </tbody>
@@ -213,6 +327,32 @@
       sidebar.classList.add('-translate-x-full');
       overlay.classList.add('hidden');
     });
+
+   document.querySelectorAll(".editBtn").forEach(btn => {
+  btn.addEventListener("click", function () {
+    const accessionId = this.dataset.id;
+
+    // Fill modal with row data
+    document.getElementById("edit_accession_id").value = accessionId;
+    document.getElementById("edit_item_name").value = this.dataset.name;
+    document.getElementById("edit_brand_model").value = this.dataset.brand;
+    document.getElementById("edit_serial_number").value = this.dataset.serial;
+    document.getElementById("edit_department_id").value = this.dataset.dept;
+    document.getElementById("edit_device_type").value = this.dataset.type;
+    document.getElementById("edit_status").value = this.dataset.status;
+
+    // Point form action to backend
+    document.getElementById("editItemForm").action = `/edit-item/${accessionId}`;
+
+    // Show modal
+    document.getElementById("editItemModal").classList.remove("hidden");
+  });
+});
+
+// Close modal
+document.getElementById("closeEditItemModal").addEventListener("click", function () {
+  document.getElementById("editItemModal").classList.add("hidden");
+});
 
     // Modal toggle
   const addItemModal = document.getElementById('addItemModal');
