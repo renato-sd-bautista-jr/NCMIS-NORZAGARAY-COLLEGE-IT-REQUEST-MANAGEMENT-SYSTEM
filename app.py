@@ -1,4 +1,5 @@
-from flask import render_template, request, redirect, url_for, session,Flask,flash  
+from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint
+
 from manage_item import get_devices_with_details, add_device, get_departments
 from manage_user import get_user
 from dashboard import get_concern_stats, get_borrow_requests,get_all_users,get_all_available_devices,get_all_available_units
@@ -7,14 +8,23 @@ from borrrow import approve_borrow_request, decline_borrow_request, mark_returne
 from userborrow import get_available_units
 from db import get_db_connection
 from userborrow import userborrow_bp
-
+from manage_pc import (
+    manage_pc_bp,   # ✅ add this line
+    get_pc_inventory,
+    add_pc,
+    get_pc_by_id,
+    update_pc,
+    delete_pc,
+    
+    delete_pc_in_db
+)
 
 app = Flask(__name__)
 app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
 app.register_blueprint(login_bp)
 
 app.register_blueprint(userborrow_bp)
-
+app.register_blueprint(manage_pc_bp)
 from datetime import datetime
 
 
@@ -87,7 +97,9 @@ def manage_user():
 
 @app.route('/inventory')
 def inventory():
-    return render_template('inventory.html')
+    pc_list = get_pc_inventory()
+    return render_template('inventory.html', pc_list=pc_list)
+
 
 
 
@@ -99,7 +111,20 @@ def manage_item():
         departments = get_departments()
 
         return render_template('manage_item.html', items=items, departments=departments)
-    
+
+
+
+@app.route('/delete-pc/<pcid>', methods=['POST'])
+def delete_pc_route(pcid):
+    try:
+        from manage_pc import delete_pc_in_db
+        delete_pc_in_db(pcid)
+        flash("PC deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting PC: {e}", "danger")
+    return redirect(url_for('inventory'))
+
+
 @app.route('/add-device', methods=['POST'])
 def add_device_route():
     try:

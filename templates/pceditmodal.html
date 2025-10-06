@@ -1,0 +1,146 @@
+<div id="pcModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+  <div class="bg-gray-900 p-6 rounded-2xl w-full max-w-lg shadow-xl overflow-y-auto max-h-[90vh]">
+    <h3 id="modalTitle" class="text-xl font-semibold text-blue-400 mb-4">Add PC</h3>
+
+    <form id="pcForm" method="post" class="space-y-4">
+
+      <input type="hidden" id="modalPcId" name="pcid">
+
+      <!-- Basic PC Info -->
+      <div>
+        <label>PC Name</label>
+        <input type="text" id="modalPcName" name="pcname" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+      </div>
+
+      <div>
+        <label>Department ID</label>
+        <input type="text" id="modalDepartment" name="department_id" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+      </div>
+
+      <div>
+        <label>Status</label>
+        <select id="modalStatus" name="status" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Note</label>
+        <textarea id="modalNote" name="note" rows="2" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100"></textarea>
+      </div>
+
+      <!-- PC Parts Section -->
+      <div id="partsSection" class="mt-4">
+        <h4 class="text-lg font-semibold text-blue-400 mb-2">PC Parts</h4>
+        <div class="space-y-2">
+          <div>
+            <label>Monitor</label>
+            <input type="text" id="monitor" name="monitor" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>Motherboard</label>
+            <input type="text" id="motherboard" name="motherboard" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>RAM</label>
+            <input type="text" id="ram" name="ram" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>Storage</label>
+            <input type="text" id="storage" name="storage" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>GPU</label>
+            <input type="text" id="gpu" name="gpu" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>PSU</label>
+            <input type="text" id="psu" name="psu" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>Casing</label>
+            <input type="text" id="casing" name="casing" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+          <div>
+            <label>Other Parts</label>
+            <input type="text" id="other_parts" name="other_parts" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Add -->
+      <div id="batchAddSection" class="hidden">
+        <label>Number of identical PCs to add</label>
+        <input type="number" id="batchCount" name="batch_count" value="1" min="1" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" onclick="closePcModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Cancel</button>
+        <button id="modalSubmitBtn" type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm text-white">Add PC</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openPcModal(pcData) {
+  const modal = document.getElementById('pcModal');
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('pcForm');
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  const batchSection = document.getElementById('batchAddSection');
+
+  // Basic info
+  document.getElementById('modalPcId').value = pcData?.pcid || '';
+  document.getElementById('modalPcName').value = pcData?.pcname || '';
+  document.getElementById('modalDepartment').value = pcData?.department_id || '';
+  document.getElementById('modalStatus').value = pcData?.status || 'Active';
+  document.getElementById('modalNote').value = pcData?.note || '';
+
+  // PC Parts
+// Parts info — use first part if exists
+if (pcData?.parts?.length) {
+    const part = pcData.parts[0];  // first part
+    document.getElementById('monitor').value = part.monitor || '';
+    document.getElementById('motherboard').value = part.motherboard || '';
+    document.getElementById('ram').value = part.ram || '';
+    document.getElementById('storage').value = part.storage || '';
+    document.getElementById('gpu').value = part.gpu || '';
+    document.getElementById('psu').value = part.psu || '';
+    document.getElementById('casing').value = part.casing || '';
+    document.getElementById('other_parts').value = part.other_parts || '';
+} else {
+    // clear inputs for new PC
+    document.getElementById('monitor').value = '';
+    document.getElementById('motherboard').value = '';
+    document.getElementById('ram').value = '';
+    document.getElementById('storage').value = '';
+    document.getElementById('gpu').value = '';
+    document.getElementById('psu').value = '';
+    document.getElementById('casing').value = '';
+    document.getElementById('other_parts').value = '';
+}
+
+
+  // Adjust modal for Add vs Edit
+  if (pcData) {
+    title.textContent = "Edit PC";
+    form.action = "{{ url_for('manage_pc_bp.update_pc_with_parts') }}";
+    submitBtn.textContent = "Update PC";
+    batchSection.classList.add('hidden');
+  } else {
+    title.textContent = "Add New PC";
+    form.action = "{{ url_for('manage_pc_bp.add_pc_route')}}";
+    submitBtn.textContent = "Add PC";
+    batchSection.classList.remove('hidden');
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closePcModal() {
+  document.getElementById('pcModal').classList.add('hidden');
+}
+</script>
