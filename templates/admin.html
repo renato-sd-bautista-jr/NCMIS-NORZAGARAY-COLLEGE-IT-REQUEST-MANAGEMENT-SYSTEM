@@ -113,7 +113,7 @@
                 <th class="px-4 py-2 border-b border-gray-700" onclick="sortTable(2)">Borrow Date</th>
                 <th class="px-4 py-2 border-b border-gray-700" onclick="sortTable(3)">Return Date</th>
                 <th class="px-4 py-2 border-b border-gray-700" onclick="sortTable(4)">Reason/Purpose</th>
-                <th class="px-4 py-2 border-b border-gray-700" onclick="sortTable(4)">Status</th>
+                <th class="px-4 py-2 border-b border-gray-700" onclick="sortTable(5)">Status</th>
                 <th class="px-4 py-2 border-b border-gray-700">Actions</th>
               </tr>
             </thead>
@@ -130,6 +130,7 @@
     </div>
 
 <div id="requestModal"
+<<<<<<< HEAD
      class="hidden fixed inset-0 bg-black/60 items-center justify-center z-50">
   <div class="bg-gray-900 rounded-xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
     <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center gap-2">
@@ -186,6 +187,70 @@
         </button>
       </div>
     </form>
+=======
+     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+    <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center gap-2">
+      <i data-lucide="plus-circle" class="w-6 h-6"></i>
+      Add Borrow Request
+    </h2>
+
+    <form action="{{ url_for('userborrow_bp.borrow_page') }}" method="post" class="space-y-5">
+
+  <!-- Student ID -->
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-200">Student ID</label>
+    <input type="text" name="student_id" required
+           class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+  </div>
+
+  <!-- Last / First / Middle -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-200">Last Name</label>
+      <input type="text" name="last_name" required
+             class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-200">First Name</label>
+      <input type="text" name="first_name" required
+             class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-200">Middle Initial</label>
+      <input type="text" name="middle_initial" maxlength="2"
+             class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    </div>
+  </div>
+
+  <!-- Unit dropdown -->
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-200">Unit</label>
+    <select name="unit_id" class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      {% for u in units %}
+        <option value="{{ u.accession_id }}">
+          [ID {{ u.accession_id }}] {{ u.item_name }}
+          {% if u.brand_model %}- {{ u.brand_model }}{% endif %}
+          (Serial: {{ u.unit_serial }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Reason -->
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-200">Reason / Purpose</label>
+    <input type="text" name="reason" required
+           class="w-full border border-gray-700 rounded-xl px-4 py-2 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+  </div>
+
+  <div class="flex justify-end space-x-2 pt-2">
+    <button type="button" id="closeRequestModal" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl transition">Cancel</button>
+    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold shadow transition">Save</button>
+  </div>
+</form>
+
+>>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
   </div>
 </div>
 
@@ -233,54 +298,64 @@ document.addEventListener('DOMContentLoaded', () => {
   const rowsPerPage = 5;
 
   function renderTable() {
-    const tbody = document.querySelector('#requestsTable tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+  const tbody = document.querySelector('#requestsTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-    filteredRequests.slice(start, end).forEach(req => {
-      const tr = document.createElement('tr');
-      tr.className =
-        `hover:bg-gray-700 ${req.status !== 'Returned' &&
-        req.return_date < new Date().toISOString().split('T')[0]
-          ? 'bg-red-700/40'
-          : ''}`;
+  filteredRequests.slice(start, end).forEach(req => {
+  const tr = document.createElement('tr');
 
-      tr.innerHTML = `
-        <td class="px-4 py-2 border-b border-gray-700">${req.user_name}</td>
-        <td class="px-4 py-2 border-b border-gray-700">${req.device_name}</td>
-        <td class="px-4 py-2 border-b border-gray-700">${req.borrow_date}</td>
-        <td class="px-4 py-2 border-b border-gray-700">${req.return_date}</td>
-        <td class="px-4 py-2 border-b border-gray-700">${req.reason}</td>
-        <td class="px-4 py-2 border-b border-gray-700">
-          <span class="px-2 py-1 text-xs font-semibold rounded ${
-            req.status === 'Pending'
-              ? 'bg-yellow-200 text-yellow-800'
-              : req.status === 'Approved'
-              ? 'bg-green-200 text-green-800'
-              : req.status === 'Returned'
-              ? 'bg-blue-200 text-blue-800'
-              : 'bg-red-200 text-red-800'
-          }">${req.status}</span>
-        </td>
-        <td class="px-4 py-2 border-b border-gray-700 space-x-2">
-          ${req.status === 'Pending'
-            ? `<form action="/approve/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs shadow-sm">Approve</button>
-               </form>
-               <form action="/decline/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm">Decline</button>
-               </form>`
-            : req.status === 'Approved'
-            ? `<form action="/returned/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow-sm">Mark Returned</button>
-               </form>`
-            : ''}
-        </td>`;
-      tbody.appendChild(tr);
-    });
+  const today = new Date().toISOString().split('T')[0];
+  tr.className =
+    `hover:bg-gray-700 ${req.status !== 'Returned' && req.return_date && req.return_date < today
+      ? 'bg-red-700/40'
+      : ''}`;
+
+  // Build device string
+  const deviceString = `[ID ${req.accession_id}] ${req.item_name}` +
+    (req.brand_model ? ` - ${req.brand_model}` : '') +
+    (req.unit_serial ? ` (Serial: ${req.unit_serial})` : '');
+
+  tr.innerHTML = `
+    <td class="px-4 py-2 border-b border-gray-700">
+      <div class="font-semibold">${req.borrower_name}</div>
+      <div class="text-xs text-gray-400">ID: ${req.student_id}</div>
+    </td>
+    <td class="px-4 py-2 border-b border-gray-700">${deviceString}</td>
+    <td class="px-4 py-2 border-b border-gray-700">${req.borrow_date ?? ''}</td>
+    <td class="px-4 py-2 border-b border-gray-700">${req.return_date ?? ''}</td>
+    <td class="px-4 py-2 border-b border-gray-700">${req.reason ?? ''}</td>
+    <td class="px-4 py-2 border-b border-gray-700">
+      <span class="px-2 py-1 text-xs font-semibold rounded ${
+        req.status === 'Pending'
+          ? 'bg-yellow-200 text-yellow-800'
+          : req.status === 'Approved'
+          ? 'bg-green-200 text-green-800'
+          : req.status === 'Returned'
+          ? 'bg-blue-200 text-blue-800'
+          : 'bg-red-200 text-red-800'
+      }">${req.status}</span>
+    </td>
+    <td class="px-4 py-2 border-b border-gray-700 space-x-2">
+      ${req.status === 'Pending'
+        ? `<form action="/approve/${req.borrow_id}" method="post" class="inline">
+             <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs shadow-sm">Approve</button>
+           </form>
+           <form action="/decline/${req.borrow_id}" method="post" class="inline">
+             <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm">Decline</button>
+           </form>`
+        : req.status === 'Approved'
+        ? `<form action="/returned/${req.borrow_id}" method="post" class="inline">
+             <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow-sm">Mark Returned</button>
+           </form>`
+        : ''}
+    </td>`;
+  tbody.appendChild(tr);
+});
+
   }
 
   // Search & filter

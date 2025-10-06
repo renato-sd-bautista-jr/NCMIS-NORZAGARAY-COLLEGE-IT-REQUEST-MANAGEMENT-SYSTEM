@@ -11,33 +11,81 @@ userborrow_bp = Blueprint('userborrow_bp', __name__, url_prefix='/borrow')
 
 @userborrow_bp.route('/', methods=['GET', 'POST'])
 def borrow_page():
-    print(">>> borrow_page route was hit")
     if request.method == 'POST':
-        conn = get_db_connection()
-        user_id = session.get('user_id')
-        device_id = request.form['item_id']
-        borrow_date = request.form['borrow_date']
-        borrow_time = request.form['borrow_time']
-        return_time = request.form['return_time']
-        reason = request.form['reason']
+        last_name = request.form.get('last_name')
+        first_name = request.form.get('first_name')
+        middle_initial = request.form.get('middle_initial')
+        student_id = request.form.get('student_id')
+        reason = request.form.get('reason')
+        borrow_date = datetime.now().strftime('%Y-%m-%d')
 
+        # comes from <select name="unit_id" … value="{{ u.accession_id }}">
+        accession_id = request.form.get('unit_id')
+
+        if not accession_id:
+            flash('Please choose a device unit.')
+            return redirect(url_for('userborrow_bp.borrow_page'))
+
+        conn = get_db_connection()
         with conn.cursor() as cur:
+            # Insert student if new
+            cur.execute("""
+                INSERT IGNORE INTO students (student_id, last_name, first_name, middle_initial)
+                VALUES (%s, %s, %s, %s)
+            """, (student_id, last_name, first_name, middle_initial))
+
+            # Insert borrow request (note: device_id instead of accession_id)
             cur.execute("""
                 INSERT INTO borrow_requests
-                  (user_id, device_id, borrow_date, reason, status)
-                VALUES (%s,%s,%s,%s,'Pending')
-            """, (user_id, device_id, borrow_date, reason))
+                    (student_id, last_name, first_name, middle_initial,
+                     device_id, borrow_date, reason, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
+            """, (student_id, last_name, first_name, middle_initial,
+                  accession_id, borrow_date, reason))
+
+            # Update unit status
+            cur.execute("""
+                UPDATE devices_units
+                SET status='Borrowed'
+                WHERE accession_id=%s
+            """, (accession_id,))
+
         conn.commit()
         conn.close()
 
-        flash('Request submitted!')
+        flash(f'Request for unit {accession_id} submitted!')
+        print(f"DEBUG: Borrow request inserted for student {student_id} on unit {accession_id}")
+
         return redirect(url_for('userborrow_bp.borrow_page'))
 
-    # ✅ get available devices as dictionaries
+    # GET: load dropdown data
     items = get_available_devices()
-    print("DEBUG available items:", items)
+    units = get_available_units()
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM students")
+        students = cur.fetchall()
+    conn.close()
+
     now = datetime.now()
-    return render_template('main.html', items=items, now=now)
+    return render_template('main.html', items=items, units=units, students=students, now=now)
+
+def get_available_units():
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cur:
+        cur.execute("""
+            SELECT du.accession_id,
+                   du.serial_number AS unit_serial,
+                   d.item_name,
+                   d.brand_model
+            FROM devices_units du
+            JOIN devices d ON d.device_id = du.device_id
+            WHERE du.status = 'Available'
+        """)
+        units = cur.fetchall()
+    conn.close()
+    return units
+
 
 @userborrow_bp.route('/decline/<int:borrow_id>', methods=['POST'])
 def cancel_request(borrow_id):
@@ -69,6 +117,19 @@ def get_available_devices():
         devices = cur.fetchall()
     conn.close()
     return devices
+
+def get_stock_counts():
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cur:
+        cur.execute("""
+            SELECT item_name, COUNT(*) AS available_stock
+            FROM devices
+            WHERE status = 'Available'
+            GROUP BY item_name
+        """)
+        stocks = cur.fetchall()
+    conn.close()
+    return stocks
 
 
 @userborrow_bp.route('/return/<int:borrow_id>', methods=['POST'])
