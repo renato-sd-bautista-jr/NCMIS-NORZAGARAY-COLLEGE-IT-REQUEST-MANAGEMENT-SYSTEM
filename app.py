@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, session,Flask,flash  
-from manage_item import get_devices_with_details, add_device
+from manage_item import get_devices_with_details, add_device, get_departments
 from manage_user import get_user
 from dashboard import get_concern_stats, get_borrow_requests,get_all_users,get_all_available_devices
 from login import login_bp
@@ -48,7 +48,7 @@ def admin():
     requests = get_borrow_requests()
     users = get_all_users()
     devices = get_all_available_devices()
-
+   
     return render_template(
         'admin.html',
         total_requests=stats['total'],
@@ -79,30 +79,99 @@ def manage_user():
 def inventory():
     return render_template('inventory.html')
 
+
+
 @app.route('/manage-item', methods=['GET', 'POST'])
 def manage_item():
-    if 'user_id' not in session:  # block unauthorized users
-        return redirect(url_for('login_bp.login'))
+    if request.method == 'GET':
+        # Fetch all devices with their details
+        items = get_devices_with_details()
+        departments = get_departments()
 
-    if request.method == 'POST':
-        device_name = request.form.get('item_name')
+        return render_template('manage_item.html', items=items, departments=departments)
+    
+@app.route('/add-device', methods=['POST'])
+def add_device_route():
+    try:
+        item_name = request.form.get('item_name')
+        brand_model = request.form.get('brand_model')
+        department_id = request.form.get('department_id')
+        serial_number = request.form.get('serial_number')
         quantity = request.form.get('quantity')
-        department_id = request.form.get('department_id') or 1  # default dept
-        add_device(device_name, quantity, department_id)
+        device_type = request.form.get('device_type')
+        status = request.form.get('status')
+
+        if not item_name or not department_id or not status:
+            flash("Please fill in all required fields.", "danger")
+            return redirect(url_for('manage_item'))
+
+        from manage_item import add_device  # ensure function is imported
+        add_device(item_name, brand_model, department_id, serial_number, quantity, device_type, status)
+
+        flash("Device added successfully!", "success")
         return redirect(url_for('manage_item'))
 
-    items = get_devices_with_details()
-    return render_template('manage_item.html', items=items)
+    except Exception as e:
+        flash(f"Error adding device: {str(e)}", "danger")
+        return redirect(url_for('manage_item'))
 
 
-@app.route('/edit-item/<int:id>', methods=['GET', 'POST'])
-def edit_item(id):
-    # logic to edit the item goes here
-    return f"Edit item {id}"  # placeholder for now
+
+@app.route('/edit-item/<int:accession_id>', methods=['POST'])
+def edit_item(accession_id):
+    """Update both devices and devices_units tables"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_bp.login'))
+
+    try:
+        # Extract form data
+        item_name = request.form.get('item_name')
+        brand_model = request.form.get('brand_model')
+        serial_number = request.form.get('serial_number')
+        department_id = request.form.get('department_id')
+        device_type = request.form.get('device_type')
+        status = request.form.get('status')
+
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            # Update both tables using join logic
+            cur.execute("""
+                UPDATE devices d
+                JOIN devices_units du ON d.device_id = du.device_id
+                SET d.item_name = %s,
+                    d.brand_model = %s,
+                    d.department_id = %s,
+                    d.device_type = %s,
+                    du.serial_number = %s,
+                    du.status = %s
+                WHERE du.accession_id = %s
+            """, (item_name, brand_model, department_id, device_type, serial_number, status, accession_id))
+
+            conn.commit()
+
+        flash('Device updated successfully', 'success')
+        return redirect(url_for('manage_item'))
+
+    except Exception as e:
+        print(f"Error editing item {accession_id}: {e}")
+        flash("Error updating device", "error")
+        return redirect(url_for('manage_item'))
 
 @app.route('/delete-item/<int:id>', methods=['POST'])
 def delete_item(id):
-    # logic to delete the item goes here
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Delete from devices_units using accession_id
+        cursor.execute("DELETE FROM devices_units WHERE accession_id = %s", (id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print("Error deleting item:", e)
+
     return redirect(url_for('manage_item'))
 
 @app.route('/add_request', methods=['POST'])

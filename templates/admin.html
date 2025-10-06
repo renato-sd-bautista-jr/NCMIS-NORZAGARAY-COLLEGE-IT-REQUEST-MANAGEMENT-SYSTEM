@@ -129,16 +129,18 @@
       {% endif %}
     </div>
 
-<!-- Add Request Modal -->
 <div id="requestModal"
-     class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 w-full max-w-md">
-    <h2 class="text-xl font-semibold mb-4">Add Borrow Request</h2>
+     class="hidden fixed inset-0 bg-black/60 items-center justify-center z-50">
+  <div class="bg-gray-900 rounded-xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+    <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center gap-2">
+      <i data-lucide="plus-circle" class="w-6 h-6 text-blue-400"></i>
+      Add Borrow Request
+    </h2>
 
-    <form action="/add_request" method="post" class="space-y-4">
+    <form action="/add_request" method="post" class="space-y-5">
       <div>
-        <label class="block text-sm font-medium">User</label>
-        <select name="user_id" class="w-full border rounded p-2">
+        <label class="block text-sm font-semibold text-gray-200 mb-1">User</label>
+        <select name="user_id" class="w-full border border-gray-700 bg-gray-800 text-gray-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
           {% for u in users %}
             <option value="{{ u.user_id }}">
               {{ u.username }} - {{ u.faculty_name }}
@@ -148,8 +150,8 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Device</label>
-        <select name="device_id" class="w-full border rounded p-2">
+        <label class="block text-sm font-semibold text-gray-200 mb-1">Device</label>
+        <select name="device_id" class="w-full border border-gray-700 bg-gray-800 text-gray-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
           {% for d in devices %}
             <option value="{{ d.device_id }}">
               {{ d.item_name }} - {{ d.brand_model }}
@@ -159,25 +161,29 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Borrow Date</label>
-        <input type="date" name="borrow_date" class="w-full border rounded p-2">
+        <label class="block text-sm font-semibold text-gray-200 mb-1">Borrow Date</label>
+        <input type="date" name="borrow_date" class="w-full border border-gray-700 bg-gray-800 text-gray-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Return Date</label>
-        <input type="date" name="return_date" class="w-full border rounded p-2">
+        <label class="block text-sm font-semibold text-gray-200 mb-1">Return Date</label>
+        <input type="date" name="return_date" class="w-full border border-gray-700 bg-gray-800 text-gray-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Reason/Purpose</label>
-        <input type="date" name="reason" class="w-full border rounded p-2">
+        <label class="block text-sm font-semibold text-gray-200 mb-1">Reason/Purpose</label>
+        <input type="text" name="reason" placeholder="Enter reason or purpose" class="w-full border border-gray-700 bg-gray-800 text-gray-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
       </div>
 
-      <div class="flex justify-end space-x-2">
+      <div class="flex justify-end space-x-3 pt-2">
         <button type="button" id="closeRequestModal"
-                class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition">
+          Cancel
+        </button>
         <button type="submit"
-                class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition">
+          Save
+        </button>
       </div>
     </form>
   </div>

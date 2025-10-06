@@ -82,15 +82,17 @@ def get_borrow_requests():
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT br.borrow_id,
-                       u.username AS user_name,
-                       d.item_name AS device_name,
-                       br.borrow_date,
-                       br.return_date,
-                       br.status
+                SELECT 
+                    br.borrow_id,
+                    CONCAT(br.last_name, ', ', br.first_name, ' ', br.middle_initial) AS borrower_name,
+                    d.item_name,
+                    du.serial_number,
+                    br.borrow_date,
+                    br.return_date,
+                    br.status
                 FROM borrow_requests br
-                JOIN users u ON br.user_id = u.user_id
                 JOIN devices d ON br.device_id = d.device_id
+                LEFT JOIN devices_units du ON br.device_id = du.device_id
                 ORDER BY br.borrow_date DESC
             """)
             return cur.fetchall()
