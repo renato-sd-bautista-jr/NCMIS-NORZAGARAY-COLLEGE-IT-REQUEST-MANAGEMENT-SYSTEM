@@ -51,7 +51,7 @@ def get_all_available_units():
                    d.brand_model,
                    du.serial_number,
                    dep.department_name
-            FROM device_units du
+            FROM devices_units du
             JOIN devices d ON du.device_id = d.device_id
             JOIN departments dep ON d.department_id = dep.department_id
             WHERE du.status = 'Available'
@@ -84,27 +84,17 @@ def get_borrow_requests():
             cur.execute("""
                 SELECT 
                     br.borrow_id,
-<<<<<<< HEAD
                     CONCAT(br.last_name, ', ', br.first_name, ' ', br.middle_initial) AS borrower_name,
-=======
-                    CONCAT(br.last_name, ', ', br.first_name) AS borrower_name,
->>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
                     d.item_name,
                     du.serial_number,
                     br.borrow_date,
                     br.return_date,
                     br.status
                 FROM borrow_requests br
-<<<<<<< HEAD
                 JOIN devices d ON br.device_id = d.device_id
                 LEFT JOIN devices_units du ON br.device_id = du.device_id
-=======
-                JOIN devices_units du ON br.accession_id = du.accession_id
-                JOIN devices d ON du.device_id = d.device_id
->>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
                 ORDER BY br.borrow_date DESC
             """)
-            rows = cur.fetchall()
-            return rows
+            return cur.fetchall()
     finally:
         conn.close()

@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, session,Flask,flash  
 from manage_item import get_devices_with_details, add_device, get_departments
 from manage_user import get_user
-from dashboard import get_concern_stats, get_borrow_requests,get_all_users,get_all_available_devices
+from dashboard import get_concern_stats, get_borrow_requests,get_all_users,get_all_available_devices,get_all_available_units
 from login import login_bp
 from borrrow import approve_borrow_request, decline_borrow_request, mark_returned_borrow_request
 from userborrow import get_available_units
@@ -55,39 +55,9 @@ def admin():
     stats = get_concern_stats()
     users = get_all_users()
     devices = get_all_available_devices()
-<<<<<<< HEAD
+    units = get_all_available_units()
+    requests = get_borrow_requests()
    
-=======
-    units = get_available_units()
-
-    # do the borrow requests join here instead of get_borrow_requests()
-    conn = get_db_connection()
-    with conn.cursor() as cur:
-        cur.execute("""
-           SELECT
-            br.borrow_id,
-            br.student_id,
-            CONCAT(br.first_name, ' ', br.middle_initial, '. ', br.last_name) AS borrower_name,
-
-            -- Build device display string right in SQL
-            du.accession_id,
-            d.item_name,
-            d.brand_model,
-            du.serial_number,
-
-            br.borrow_date,
-            br.return_date,
-            br.reason,
-            br.status
-        FROM borrow_requests br
-        JOIN devices_units du ON br.device_id = du.accession_id
-        JOIN devices d ON du.device_id = d.device_id
-        ORDER BY br.borrow_date DESC
-        """)
-        requests = cur.fetchall()
-    conn.close()
-
->>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
     return render_template(
         'admin.html',
         total_requests=stats['total'],
@@ -96,7 +66,7 @@ def admin():
         resolved_requests=stats['resolved'],
         requests=requests,
         users=users,
-        devices=devices
+        devices=devices 
         ,units=units
     )
 
@@ -119,7 +89,6 @@ def manage_user():
 def inventory():
     return render_template('inventory.html')
 
-<<<<<<< HEAD
 
 
 @app.route('/manage-item', methods=['GET', 'POST'])
@@ -135,18 +104,11 @@ def manage_item():
 def add_device_route():
     try:
         item_name = request.form.get('item_name')
-=======
-@app.route('/manage-item', methods=['GET','POST'])
-def manage_item():
-    if request.method == 'POST':
-        item_name = request.form['item_name']
->>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
         brand_model = request.form.get('brand_model')
         department_id = request.form.get('department_id')
         serial_number = request.form.get('serial_number')
         quantity = request.form.get('quantity')
         device_type = request.form.get('device_type')
-<<<<<<< HEAD
         status = request.form.get('status')
 
         if not item_name or not department_id or not status:
@@ -162,30 +124,6 @@ def manage_item():
     except Exception as e:
         flash(f"Error adding device: {str(e)}", "danger")
         return redirect(url_for('manage_item'))
-=======
-        status = request.form.get('status', 'Available')
-
-        add_device(item_name, brand_model, department_id, serial_number, quantity, device_type, status)
-        return redirect(url_for('manage_item'))
-
-    items = get_devices_with_details()
-    departments = get_departments()  # load your dept dropdown
-    return render_template('manage_item.html', items=items, departments=departments)
-
-def get_departments():
-    """
-    Fetch all departments from the database.
-    Returns a list of dicts with keys: department_id, department_name.
-    """
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            departments = cur.fetchall()
-    finally:
-        conn.close()
-    return departments
->>>>>>> a0648f6a7a50e5e22ab8e8fe5236864e57a52156
 
 
 
