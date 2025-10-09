@@ -45,6 +45,7 @@ def add_pc_route():
     casing = request.form['casing']
     other_parts = request.form['other_parts']
 
+
     conn = get_db_connection()
     with conn.cursor() as cur:
         # Generate custom pcid
