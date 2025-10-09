@@ -47,13 +47,55 @@ def add_pc_route():
 
     conn = get_db_connection()
     with conn.cursor() as cur:
+        # Generate custom pcid
+        cur.execute("SELECT COUNT(*) AS cnt FROM pcs")
+        count = cur.fetchone()['cnt']
+        pcid = f"PC-{count + 1:03d}"
+
         # Insert into pcs
         cur.execute("""
-            INSERT INTO pcs (pcname, department_id, status, note)
-            VALUES (%s, %s, %s, %s)
-        """, (pcname, department_id, status, note))
-        pcid = cur.lastrowid
+            INSERT INTO pcs (pcid, pcname, department_id, status, note)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (pcid, pcname, department_id, status, note))
 
+        # Insert into pcparts
+        cur.execute("""
+            INSERT INTO pcparts (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts))
+
+        conn.commit()
+    conn.close()
+
+    flash("PC added successfully!", "success")
+    return redirect(url_for('inventory'))
+
+    pcname = request.form['pcname']
+    department_id = request.form['department_id']
+    status = request.form['status']
+    note = request.form['note']
+
+    monitor = request.form['monitor']
+    motherboard = request.form['motherboard']
+    ram = request.form['ram']
+    storage = request.form['storage']
+    gpu = request.form['gpu']
+    psu = request.form['psu']
+    casing = request.form['casing']
+    other_parts = request.form['other_parts']
+
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        # Insert into pcs
+
+        cur.execute("SELECT COUNT(*) AS cnt FROM pcs")
+        count = cur.fetchone()['cnt']
+        pcid = f"PC-{count+1:03d}"
+
+        cur.execute("""
+        INSERT INTO pcs (pcid, pcname, department_id, status, note)
+        VALUES (%s, %s, %s, %s, %s)
+        """, (pcid, pcname, department_id, status, note))
         # Insert into pcparts
         cur.execute("""
             INSERT INTO pcparts (monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
