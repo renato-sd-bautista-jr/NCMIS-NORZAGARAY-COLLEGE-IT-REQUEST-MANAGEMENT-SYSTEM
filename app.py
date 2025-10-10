@@ -18,6 +18,7 @@ from manage_pc import (
     
     delete_pc_in_db
 )
+import pymysql
 
 app = Flask(__name__)
 app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
@@ -87,6 +88,7 @@ def admin():
 #     return render_template('concernlist.html', username=session.get('username'))
 
 
+
 @app.route('/manage-user')
 def manage_user():
     if 'user_id' not in session:
@@ -98,9 +100,12 @@ def manage_user():
 @app.route('/inventory')
 def inventory():
     pc_list = get_pc_inventory()
-    return render_template('inventory.html', pc_list=pc_list)
 
+    # ✅ Import and call your get_departments function
+    from manage_item import get_departments
+    departments = get_departments()
 
+    return render_template('inventory.html', pc_list=pc_list, departments=departments)
 
 
 @app.route('/manage-item', methods=['GET', 'POST'])

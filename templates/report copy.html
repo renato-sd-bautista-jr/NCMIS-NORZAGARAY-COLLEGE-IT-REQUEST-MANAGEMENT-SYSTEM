@@ -1,0 +1,62 @@
+<!-- templates/reports.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-800 p-4 flex flex-col space-y-2">
+    <a href="{{ url_for('admin_dashboard') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {% if active_page == 'dashboard' %}bg-white/10{% endif %}">
+      <i data-lucide="list" class="w-5 h-5 mr-2"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin_items') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {% if active_page == 'items' %}bg-white/10{% endif %}">
+      <i data-lucide="package" class="w-5 h-5 mr-2"></i> Manage Items
+    </a>
+    <a href="{{ url_for('admin_users') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {% if active_page == 'users' %}bg-white/10{% endif %}">
+      <i data-lucide="users" class="w-5 h-5 mr-2"></i> Manage Users
+    </a>
+    <a href="{{ url_for('admin_inventory') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {% if active_page == 'inventory' %}bg-white/10{% endif %}">
+      <i data-lucide="cpu" class="w-5 h-5 mr-2"></i> Inventory
+    </a>
+    <a href="{{ url_for('admin_reports') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {% if active_page == 'reports' %}bg-white/10{% endif %}">
+      <i data-lucide="bar-chart-2" class="w-5 h-5 mr-2"></i> Reports
+    </a>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8">
+    <h1 class="text-3xl font-bold mb-6">Reports</h1>
+
+    <!-- Example report cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-gray-700 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Inventory Report</h2>
+        <p>Total items: 125</p>
+        <p>Low stock: 12</p>
+      </div>
+
+      <div class="bg-gray-700 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Borrow History</h2>
+        <p>Requests this month: 54</p>
+        <p>Overdue items: 3</p>
+      </div>
+
+      <div class="bg-gray-700 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">User Activity</h2>
+        <p>Active users: 34</p>
+        <p>New users: 5</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

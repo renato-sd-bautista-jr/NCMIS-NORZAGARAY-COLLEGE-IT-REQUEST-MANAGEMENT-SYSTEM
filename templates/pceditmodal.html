@@ -12,11 +12,15 @@
         <input type="text" id="modalPcName" name="pcname" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
       </div>
 
-      <div>
-        <label>Department ID</label>
-        <input type="text" id="modalDepartment" name="department_id" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
+     <div>
+        <label>Department</label>
+        <select id="modalDepartment" name="department_id" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" required>
+          <option value="">Select Department</option>
+          {% for dep in departments %}
+            <option value="{{ dep.department_id }}">{{ dep.department_name }}</option>
+          {% endfor %}
+        </select>
       </div>
-
       <div>
         <label>Status</label>
         <select id="modalStatus" name="status" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100">
@@ -83,58 +87,60 @@
     </form>
   </div>
 </div>
-
 <script>
-function openPcModal(pcData) {
+function openPcModal(pcData = null) {
   const modal = document.getElementById('pcModal');
   const title = document.getElementById('modalTitle');
   const form = document.getElementById('pcForm');
   const submitBtn = document.getElementById('modalSubmitBtn');
   const batchSection = document.getElementById('batchAddSection');
+  const deptSelect = document.getElementById('modalDepartment');
 
-  // Basic info
-  document.getElementById('modalPcId').value = pcData?.pcid || '';
-  document.getElementById('modalPcName').value = pcData?.pcname || '';
-  document.getElementById('modalDepartment').value = pcData?.department_id || '';
-  document.getElementById('modalStatus').value = pcData?.status || 'Active';
-  document.getElementById('modalNote').value = pcData?.note || '';
+  // Reset form before filling
+  form.reset();
 
-  // PC Parts
-// Parts info — use first part if exists
-if (pcData?.parts?.length) {
-    const part = pcData.parts[0];  // first part
-    document.getElementById('monitor').value = part.monitor || '';
-    document.getElementById('motherboard').value = part.motherboard || '';
-    document.getElementById('ram').value = part.ram || '';
-    document.getElementById('storage').value = part.storage || '';
-    document.getElementById('gpu').value = part.gpu || '';
-    document.getElementById('psu').value = part.psu || '';
-    document.getElementById('casing').value = part.casing || '';
-    document.getElementById('other_parts').value = part.other_parts || '';
-} else {
-    // clear inputs for new PC
-    document.getElementById('monitor').value = '';
-    document.getElementById('motherboard').value = '';
-    document.getElementById('ram').value = '';
-    document.getElementById('storage').value = '';
-    document.getElementById('gpu').value = '';
-    document.getElementById('psu').value = '';
-    document.getElementById('casing').value = '';
-    document.getElementById('other_parts').value = '';
-}
-
-
-  // Adjust modal for Add vs Edit
   if (pcData) {
+    // --- EDIT MODE ---
     title.textContent = "Edit PC";
     form.action = "{{ url_for('manage_pc_bp.update_pc_with_parts') }}";
+    console.log("Editing PC Data:", pcData);
     submitBtn.textContent = "Update PC";
     batchSection.classList.add('hidden');
+
+    // Basic info
+    document.getElementById('modalPcId').value = pcData.pcid || '';
+    document.getElementById('modalPcName').value = pcData.pcname || '';
+    document.getElementById('modalStatus').value = pcData.status || 'Active';
+    document.getElementById('modalNote').value = pcData.note || '';
+
+    // ✅ Select correct department (safe string match)
+    if (pcData.department_id != null) {
+      [...deptSelect.options].forEach(opt => {
+        opt.selected = (String(opt.value) === String(pcData.department_id));
+      });
+    } else {
+      deptSelect.selectedIndex = 0;
+    }
+
+    // --- PC Parts (flat fields) ---
+    document.getElementById('monitor').value = pcData.monitor || '';
+    document.getElementById('motherboard').value = pcData.motherboard || '';
+    document.getElementById('ram').value = pcData.ram || '';
+    document.getElementById('storage').value = pcData.storage || '';
+    document.getElementById('gpu').value = pcData.gpu || '';
+    document.getElementById('psu').value = pcData.psu || '';
+    document.getElementById('casing').value = pcData.casing || '';
+    document.getElementById('other_parts').value = pcData.other_parts || '';
+
   } else {
+    // --- ADD MODE ---
     title.textContent = "Add New PC";
-    form.action = "{{ url_for('manage_pc_bp.add_pc_route')}}";
+    form.action = "{{ url_for('manage_pc_bp.add_pc_route') }}";
     submitBtn.textContent = "Add PC";
     batchSection.classList.remove('hidden');
+
+    deptSelect.selectedIndex = 0;
+    clearParts();
   }
 
   modal.classList.remove('hidden');
@@ -142,5 +148,13 @@ if (pcData?.parts?.length) {
 
 function closePcModal() {
   document.getElementById('pcModal').classList.add('hidden');
+}
+
+function clearParts() {
+  const fields = ['monitor', 'motherboard', 'ram', 'storage', 'gpu', 'psu', 'casing', 'other_parts'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
 }
 </script>

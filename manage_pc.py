@@ -8,11 +8,28 @@ manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 def get_pc_inventory():
     conn = get_db_connection()
     with conn.cursor(pymysql.cursors.DictCursor) as cur:
-        cur.execute("SELECT * FROM pcs ORDER BY pcid")
+        cur.execute("""
+            SELECT 
+                p.pcid,
+                p.pcname,
+                p.department_id,
+                dep.department_name,
+                p.status,
+                p.note,
+                pa.monitor,
+                pa.motherboard,
+                pa.ram,
+                pa.storage,
+                pa.gpu,
+                pa.psu,
+                pa.casing,
+                pa.other_parts
+            FROM pcs p
+            LEFT JOIN departments dep ON p.department_id = dep.department_id
+            LEFT JOIN pcparts pa ON p.pcid = pa.pcid
+            ORDER BY p.pcid
+        """)
         pcs = cur.fetchall()
-        for pc in pcs:
-            cur.execute("SELECT * FROM pcparts WHERE pcid = %s", (pc["pcid"],))
-            pc["parts"] = cur.fetchall()
     conn.close()
     return pcs
 
@@ -21,14 +38,31 @@ def get_pc_by_id(pcid):
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT * FROM pcs WHERE pcid = %s", (pcid,))
-            pc = cur.fetchone()
-            return pc
+            cur.execute("""
+                SELECT 
+                    p.*,
+                    dep.department_name,
+                    pa.monitor,
+                    pa.motherboard,
+                    pa.ram,
+                    pa.storage,
+                    pa.gpu,
+                    pa.psu,
+                    pa.casing,
+                    pa.other_parts
+                FROM pcs p
+                LEFT JOIN departments dep ON p.department_id = dep.department_id
+                LEFT JOIN pcparts pa ON p.pcid = pa.pcid
+                WHERE p.pcid = %s
+            """, (pcid,))
+            return cur.fetchone()
     except Exception as e:
         print(f"Error fetching PC by ID: {e}")
         return None
     finally:
         conn.close()
+
+
 @manage_pc_bp.route('/add-pc', methods=['POST'])
 def add_pc_route():
     pcname = request.form['pcname']
@@ -47,21 +81,22 @@ def add_pc_route():
 
     conn = get_db_connection()
     with conn.cursor() as cur:
-        # Insert into pcs
+        # Insert into pcs first
         cur.execute("""
             INSERT INTO pcs (pcname, department_id, status, note)
             VALUES (%s, %s, %s, %s)
         """, (pcname, department_id, status, note))
-        pcid = cur.lastrowid
+        pcid = cur.lastrowid  # ✅ Get the new pcid
 
-        # Insert into pcparts
+        # Then insert into pcparts using that pcid
         cur.execute("""
-            INSERT INTO pcparts (monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
-            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (monitor, motherboard, ram, storage, gpu, psu, casing, other_parts))
-        conn.commit()
-    conn.close()
+            INSERT INTO pcparts (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts))
 
+        conn.commit()
+
+    conn.close()
     flash("PC added successfully!", "success")
     return redirect(url_for('inventory'))
 
@@ -99,8 +134,8 @@ def update_pc_with_parts():
         """, (monitor, motherboard, ram, storage, gpu, psu, casing, other_parts, pcid))
 
         conn.commit()
-    conn.close()
 
+    conn.close()
     flash("PC updated successfully!", "success")
     return redirect(url_for('inventory'))
 
@@ -175,5 +210,33 @@ def add_multiple_pcs(pcname, pcid, department_id, status, note, quantity):
                     VALUES (%s, %s, %s, %s, %s)
                 """, (f"{pcname}-{i+1}", f"{pcid}-{i+1}", department_id, status, note))
             conn.commit()
+    finally:
+        conn.close()
+
+@manage_pc_bp.route('/manage-pc')
+def manage_pc_page():
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
+            departments = cur.fetchall()
+
+            cur.execute("""
+                SELECT pcs.*, d.department_name
+                FROM pcs
+                LEFT JOIN departments d ON pcs.department_id = d.department_id
+                ORDER BY pcs.pcid
+            """)
+            pc_list = cur.fetchall()
+
+            for pc in pc_list:
+                cur.execute("SELECT * FROM pcparts WHERE pcid = %s", (pc["pcid"],))
+                pc["parts"] = cur.fetchall()
+
+        return render_template(
+            'inventory.html',
+            pc_list=pc_list,
+            departments=departments
+        )
     finally:
         conn.close()
