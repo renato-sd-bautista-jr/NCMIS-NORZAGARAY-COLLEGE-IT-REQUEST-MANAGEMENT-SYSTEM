@@ -8,6 +8,7 @@ from borrrow import approve_borrow_request, decline_borrow_request, mark_returne
 from userborrow import get_available_units
 from db import get_db_connection
 from userborrow import userborrow_bp
+from qr_functions import qrcode_bp
 from manage_pc import (
     manage_pc_bp,   # ✅ add this line
     get_pc_inventory,
@@ -26,6 +27,8 @@ app.register_blueprint(login_bp)
 
 app.register_blueprint(userborrow_bp)
 app.register_blueprint(manage_pc_bp)
+app.register_blueprint(qrcode_bp)
+
 from datetime import datetime
 
 
@@ -116,7 +119,6 @@ def manage_item():
         departments = get_departments()
 
         return render_template('manage_item.html', items=items, departments=departments)
-
 
 
 @app.route('/delete-pc/<pcid>', methods=['POST'])

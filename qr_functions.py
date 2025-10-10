@@ -1,15 +1,24 @@
 import io
 import base64
 import qrcode
-from flask import Blueprint, send_file, jsonify, request
+from flask import Blueprint, send_file, jsonify, request, render_template
 
-# Create the Flask Blueprint
-qr_bp = Blueprint('qr', __name__)
+# Create the blueprint properly (fixed name mismatch)
+qrcode_bp = Blueprint('qrcode_bp', __name__, template_folder='templates')
 
 # -------------------------------
-# 1️⃣ Generate QR from JSON data
+# 1️⃣ Route: Render QR Generator Page
 # -------------------------------
-@qr_bp.route('/generate_qr', methods=['POST'])
+@qrcode_bp.route('/qrcodegenerator')
+def qrcode_generator_page():
+    """Render the QR Code Generator HTML page."""
+    return render_template('qrcodegenerator.html')
+
+
+# -------------------------------
+# 2️⃣ Generate QR from JSON data
+# -------------------------------
+@qrcode_bp.route('/generate_qr', methods=['POST'])
 def generate_qr():
     """
     Accepts JSON data and returns a generated QR code image.
@@ -25,14 +34,14 @@ def generate_qr():
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
 
-        # Build the QR code content string
+        # Build QR code content
         qr_content = (
             f"Name: {data.get('name', 'N/A')}\n"
             f"Category: {data.get('category', 'N/A')}\n"
             f"Serial: {data.get('serial', 'N/A')}"
         )
 
-        # Create the QR Code object
+        # Create QR code
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -42,10 +51,8 @@ def generate_qr():
         qr.add_data(qr_content)
         qr.make(fit=True)
 
-        # Generate image
+        # Generate image in memory
         img = qr.make_image(fill_color="black", back_color="white")
-
-        # Convert to in-memory file
         img_io = io.BytesIO()
         img.save(img_io, "PNG")
         img_io.seek(0)
@@ -62,9 +69,9 @@ def generate_qr():
 
 
 # -------------------------------
-# 2️⃣ Generate QR from query string
+# 3️⃣ Generate QR from query string (?text=...)
 # -------------------------------
-@qr_bp.route('/qr', methods=['GET'])
+@qrcode_bp.route('/qr', methods=['GET'])
 def qr_from_query():
     """
     Example usage:
@@ -83,9 +90,9 @@ def qr_from_query():
 
 
 # -------------------------------
-# 3️⃣ Bulk QR generation (returns base64)
+# 4️⃣ Bulk QR generation (returns base64)
 # -------------------------------
-@qr_bp.route('/generate_bulk_qr', methods=['POST'])
+@qrcode_bp.route('/generate_bulk_qr', methods=['POST'])
 def generate_bulk_qr():
     """
     Accepts a list of items and returns their QR data as base64 strings.
