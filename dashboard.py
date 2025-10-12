@@ -89,6 +89,7 @@ def get_borrow_requests():
                     du.serial_number,
                     br.borrow_date,
                     br.return_date,
+                    br.reason,
                     br.status
                 FROM borrow_requests br
                 JOIN devices d ON br.device_id = d.device_id

@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - NCMIS</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Borrowing System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 font-inter">
+<body class="flex min-h-screen bg-gray-100 text-gray-900">
 
   <!-- Sidebar -->
   <aside id="sidebar" class="fixed top-0 left-0 w-64 h-full bg-gray-900 text-gray-100 shadow-xl z-40 lg:translate-x-0 -translate-x-full transition-transform duration-300 flex flex-col justify-between">
-
     <!-- Top -->
     <div>
       <div class="flex items-center justify-center h-20 border-b border-gray-700">
@@ -22,19 +21,15 @@
         <a href="{{ url_for('admin') }}" class="flex items-center px-4 py-3 rounded-lg transition {% if request.endpoint == 'admin' %} bg-blue-600 text-white shadow-lg {% else %} hover:bg-blue-600/70 hover:shadow-md {% endif %}">
           <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
         </a>
-
         <a href="{{ url_for('manage_item') }}" class="flex items-center px-4 py-3 rounded-lg transition {% if request.endpoint == 'manage_item' %} bg-blue-600 text-white shadow-lg {% else %} hover:bg-blue-600/70 hover:shadow-md {% endif %}">
           <i data-lucide="package" class="w-5 h-5 mr-3"></i> Manage Items
         </a>
-
         <a href="{{ url_for('manage_user') }}" class="flex items-center px-4 py-3 rounded-lg transition {% if request.endpoint == 'manage_user' %} bg-blue-600 text-white shadow-lg {% else %} hover:bg-blue-600/70 hover:shadow-md {% endif %}">
           <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage Users
         </a>
-
         <a href="{{ url_for('inventory') }}" class="flex items-center px-4 py-3 rounded-lg transition {% if request.endpoint == 'inventory' %} bg-blue-600 text-white shadow-lg {% else %} hover:bg-blue-600/70 hover:shadow-md {% endif %}">
           <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
         </a>
-
         <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}" class="flex items-center px-4 py-3 rounded-lg transition {% if request.endpoint == 'qrcode_bp.qrcode_generator_page' %} bg-blue-600 text-white shadow-lg {% else %} hover:bg-blue-600/70 hover:shadow-md {% endif %}">
           <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
         </a>
@@ -52,291 +47,186 @@
   </aside>
 
   <!-- Overlay for mobile -->
-  <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 hidden z-30 lg:hidden" onclick="toggleSidebar()"></div>
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
   <!-- Main Content -->
-  <main class="lg:ml-64 transition-all duration-300">
+  <main class="flex-1 ml-0 lg:ml-64 p-6 space-y-6 transition-all duration-300">
 
-    <!-- Header -->
-    <header class="flex items-center justify-between bg-white shadow p-4 sticky top-0 z-20">
-      <div class="flex items-center gap-3">
-        <button id="sidebarToggle" class="lg:hidden p-2 rounded-md hover:bg-gray-100">
-          <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
-        <h2 class="text-2xl font-bold text-blue-600">Admin Dashboard</h2>
-      </div>
-    </header>
-
-    <!-- Main Section -->
-    <section class="p-6 space-y-6">
-
-      <!-- Dashboard Stats -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-  <!-- Total Requests -->
-  <div class="bg-white text-gray-800 rounded-2xl shadow-lg p-5 flex justify-between items-center">
-    <div>
-      <p class="text-gray-500">Total Requests</p>
-      <h3 class="text-2xl font-bold text-blue-700">{{ total_requests }}</h3>
+    <!-- Navbar -->
+    <div class="flex items-center justify-between bg-white rounded-xl shadow-md p-4 border border-gray-200">
+      <button id="sidebarToggle" class="lg:hidden text-gray-600">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <h2 class="text-2xl font-bold text-blue-700">Admin Dashboard</h2>
+      <div></div>
     </div>
-    <i data-lucide="list" class="w-8 h-8 text-blue-700"></i>
-  </div>
 
-  <!-- Pending Requests -->
-  <div class="bg-white text-gray-800 rounded-2xl shadow-lg p-5 flex justify-between items-center">
-    <div>
-      <p class="text-gray-500">Pending Requests</p>
-      <h3 class="text-2xl font-bold text-yellow-500">{{ pending_requests }}</h3>
-    </div>
-    <i data-lucide="clock" class="w-8 h-8 text-yellow-500"></i>
-  </div>
-
-  <!-- Returned Items -->
-  <div class="bg-white text-gray-800 rounded-2xl shadow-lg p-5 flex justify-between items-center">
-    <div>
-      <p class="text-gray-500">Returned Items</p>
-      <h3 class="text-2xl font-bold text-green-600">{{ returned_items }}</h3>
-    </div>
-    <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
-  </div>
-
-  <!-- Total Users -->
-  <div class="bg-white text-gray-800 rounded-2xl shadow-lg p-5 flex justify-between items-center">
-    <div>
-      <p class="text-gray-500">Total Users</p>
-      <h3 class="text-2xl font-bold text-purple-600">{{ total_users }}</h3>
-    </div>
-    <i data-lucide="users" class="w-8 h-8 text-purple-600"></i>
-  </div>
-</div>
-
-
-      <!-- Search & Filter -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <input type="text" id="searchInput" placeholder="Search requests..." class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 w-full sm:w-1/3 shadow-sm focus:ring-2 focus:ring-blue-400">
-        <select id="statusFilter" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 w-full sm:w-1/4 shadow-sm focus:ring-2 focus:ring-blue-400">
-          <option value="">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Returned">Returned</option>
-        </select>
-      </div>
-
-      <!-- Borrow Requests -->
-      <div class="bg-white rounded-2xl shadow-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-semibold text-blue-600 flex items-center gap-2">
-            <i data-lucide="list" class="w-5 h-5"></i> Borrow Requests
-          </h3>
-          <button id="openRequestModal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-            + Add Request
-          </button>
+    <!-- Dashboard Metrics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-200 flex items-center justify-between">
+        <div>
+          <p class="text-gray-600">Total Requests</p>
+          <h3 class="text-2xl font-bold text-blue-600">{{ total_requests }}</h3>
         </div>
-
-        {% if requests|length == 0 %}
-          <div class="text-gray-500 text-center py-4">No requests found.</div>
-        {% else %}
-          <div class="overflow-x-auto">
-            <table id="requestsTable" class="min-w-full text-sm text-gray-900 border border-gray-200 rounded-lg">
-              <thead class="bg-gray-200 text-gray-700">
-                <tr>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(0)">Student</th>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(1)">Item</th>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(2)">Borrow Date</th>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(3)">Return Date</th>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(4)">Reason</th>
-                  <th class="px-4 py-2 text-left cursor-pointer" onclick="sortTable(5)">Status</th>
-                  <th class="px-4 py-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        {% endif %}
+        <i data-lucide="list" class="w-10 h-10 text-blue-600"></i>
       </div>
-    </section>
+
+      <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-200 flex items-center justify-between">
+        <div>
+          <p class="text-gray-600">Pending Requests</p>
+          <h3 class="text-2xl font-bold text-yellow-500">{{ pending_requests }}</h3>
+        </div>
+        <i data-lucide="clock" class="w-10 h-10 text-yellow-500"></i>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-200 flex items-center justify-between">
+        <div>
+          <p class="text-gray-600">Returned Items</p>
+          <h3 class="text-2xl font-bold text-green-600">{{ returned_items }}</h3>
+        </div>
+        <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-200 flex items-center justify-between">
+        <div>
+          <p class="text-gray-600">Total Users</p>
+          <h3 class="text-2xl font-bold text-purple-600">{{ total_users }}</h3>
+        </div>
+        <i data-lucide="users" class="w-10 h-10 text-purple-600"></i>
+      </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <input id="searchInput" type="text" placeholder="Search requests..." class="border border-gray-300 rounded-xl px-4 py-2 w-full sm:w-1/3 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      <select id="statusFilter" class="border border-gray-300 rounded-xl px-4 py-2 w-full sm:w-1/4 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+        <option value="">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Returned">Returned</option>
+      </select>
+    </div>
+
+    <!-- Borrow Requests Header -->
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-semibold flex items-center gap-3 text-blue-700">
+        <i data-lucide="list" class="w-5 h-5"></i> Borrow Requests
+      </h3>
+      <button id="openRequestModal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-md transition">
+        + Add Request
+      </button>
+    </div>
+
+    <!-- Requests Table -->
+    <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+      {% if requests|length == 0 %}
+        <div class="bg-gray-100 text-gray-500 p-4 rounded-lg text-center">No requests found.</div>
+      {% else %}
+        <div class="overflow-x-auto rounded-xl">
+          <table id="requestsTable" class="min-w-full border border-gray-300 text-sm text-gray-800">
+            <thead class="bg-gray-100 text-gray-700 cursor-pointer">
+              <tr>
+                <th class="px-4 py-2 text-left border-b" onclick="sortTable(0)">Student</th>
+                <th class="px-4 py-2 text-left border-b" onclick="sortTable(1)">Item</th>
+                <th class="px-4 py-2 text-left border-b" onclick="sortTable(2)">Borrow Date</th>
+                <th class="px-4 py-2 text-left border-b" onclick="sortTable(3)">Return Date</th>
+                <th class="px-4 py-2 text-left border-b">Reason/Purpose</th>
+                <th class="px-4 py-2 text-left border-b">Status</th>
+                <th class="px-4 py-2 text-left border-b">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+  {% for r in requests %}
+  <tr class="border-b hover:bg-gray-50">
+    <td class="px-4 py-2">{{ r.borrower_name }}</td>
+    <td class="px-4 py-2">{{ r.item_name }}</td>
+    <td class="px-4 py-2">{{ r.borrow_date }}</td>
+    <td class="px-4 py-2">{{ r.return_date }}</td>
+    <td class="px-4 py-2">{{ r.reason }}</td>
+    <td class="px-4 py-2">
+      {% if r.status == 'Pending' %}
+        <span class="text-yellow-600 font-medium">Pending</span>
+      {% elif r.status == 'Approved' %}
+        <span class="text-green-600 font-medium">Approved</span>
+      {% elif r.status == 'Returned' %}
+        <span class="text-blue-600 font-medium">Returned</span>
+      {% else %}
+        <span class="text-gray-600">{{ r.status }}</span>
+      {% endif %}
+    </td>
+    <td class="px-4 py-2 space-x-1">
+      {% if r.status == 'Pending' %}
+        <form action="{{ url_for('approve', borrow_id=r.borrow_id) }}" method="post" class="inline">
+          <button type="submit" class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 text-sm">Approve</button>
+        </form>
+        <form action="{{ url_for('decline', borrow_id=r.borrow_id) }}" method="post" class="inline">
+          <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm">Decline</button>
+        </form>
+      {% elif r.status == 'Approved' %}
+        <form action="{{ url_for('returned', borrow_id=r.borrow_id) }}" method="post" class="inline">
+          <button type="submit" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-sm">Mark Returned</button>
+        </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+          </table>
+        </div>
+        <div class="flex justify-end mt-4 space-x-2">
+          <button id="prevPage" class="px-3 py-1 bg-gray-100 border rounded-lg hover:bg-gray-200 text-sm">Previous</button>
+          <button id="nextPage" class="px-3 py-1 bg-gray-100 border rounded-lg hover:bg-gray-200 text-sm">Next</button>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Add Request Modal -->
+    <div id="requestModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-200">
+        <h2 class="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-6 h-6"></i> Add Borrow Request
+        </h2>
+
+        <form action="{{ url_for('userborrow_bp.borrow_page') }}" method="post" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">User</label>
+            <select name="student_id" class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              {% for u in users %}
+                <option value="{{ u.student_id }}">{{ u.username }} - {{ u.faculty_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Item</label>
+            <select name="item_id" class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              {% for d in devices %}
+                <option value="{{ d.id }}">{{ d.name }} - {{ d.serial_number }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Reason/Purpose</label>
+            <input type="text" name="reason" class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+          </div>
+
+          <div class="flex justify-end space-x-2 pt-2">
+            <button type="button" id="closeRequestModal" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-xl transition">Cancel</button>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </main>
 
- <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ✅ Icons
-  lucide.createIcons();
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg hidden"></div>
 
-  // ✅ Sidebar toggle
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-
-  if (sidebarToggle && overlay && sidebar) {
-    sidebarToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
-    });
-    overlay.addEventListener('click', () => {
-      sidebar.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-    });
-  }
-
-  // ✅ Toast helper
-  function showToast(message, color = 'green') {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.className =
-      `fixed bottom-4 right-4 bg-${color}-500 text-white px-4 py-2 rounded shadow-lg transition`;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
-  }
-
-  // ✅ Load requests data (from Flask)
-  const requests = JSON.parse('{{ requests|tojson | safe }}');
-  let filteredRequests = [...requests];
-  let currentPage = 1;
-  const rowsPerPage = 5;
-
-  // ✅ Render borrow requests table
-  function renderTable() {
-    const tbody = document.querySelector('#requestsTable tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    filteredRequests.slice(start, end).forEach(req => {
-      const tr = document.createElement('tr');
-
-      const today = new Date().toISOString().split('T')[0];
-      tr.className =
-        `hover:bg-gray-100 ${req.status !== 'Returned' && req.return_date && req.return_date < today
-          ? 'bg-red-100'
-          : ''}`;
-
-      const deviceString = `[ID ${req.accession_id}] ${req.item_name}` +
-        (req.brand_model ? ` - ${req.brand_model}` : '') +
-        (req.unit_serial ? ` (Serial: ${req.unit_serial})` : '');
-
-      tr.innerHTML = `
-        <td class="px-4 py-2 border-b">${req.borrower_name}<br><span class="text-xs text-gray-500">ID: ${req.student_id}</span></td>
-        <td class="px-4 py-2 border-b">${deviceString}</td>
-        <td class="px-4 py-2 border-b">${req.borrow_date ?? ''}</td>
-        <td class="px-4 py-2 border-b">${req.return_date ?? ''}</td>
-        <td class="px-4 py-2 border-b">${req.reason ?? ''}</td>
-        <td class="px-4 py-2 border-b">
-          <span class="px-2 py-1 text-xs font-semibold rounded ${
-            req.status === 'Pending'
-              ? 'bg-yellow-200 text-yellow-800'
-              : req.status === 'Approved'
-              ? 'bg-green-200 text-green-800'
-              : req.status === 'Returned'
-              ? 'bg-blue-200 text-blue-800'
-              : 'bg-red-200 text-red-800'
-          }">${req.status}</span>
-        </td>
-        <td class="px-4 py-2 border-b text-center space-x-2">
-          ${req.status === 'Pending'
-            ? `<form action="/approve/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs shadow-sm">Approve</button>
-               </form>
-               <form action="/decline/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm">Decline</button>
-               </form>`
-            : req.status === 'Approved'
-            ? `<form action="/returned/${req.borrow_id}" method="post" class="inline">
-                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow-sm">Mark Returned</button>
-               </form>`
-            : ''}
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // ✅ Search & filter
-  const searchInput = document.getElementById('searchInput');
-  const statusFilter = document.getElementById('statusFilter');
-
-  function filterRequests() {
-    const text = (searchInput.value || '').toLowerCase();
-    const status = statusFilter.value;
-    filteredRequests = requests.filter(r =>
-      ((r.student_name ?? '').toLowerCase().includes(text) ||
-       (r.item_name ?? '').toLowerCase().includes(text)) &&
-      (!status || r.status === status)
-    );
-    currentPage = 1;
-    renderTable();
-  }
-
-  if (searchInput && statusFilter) {
-    searchInput.addEventListener('input', filterRequests);
-    statusFilter.addEventListener('change', filterRequests);
-  }
-
-  // ✅ Pagination
-  const prevPageBtn = document.getElementById('prevPage');
-  const nextPageBtn = document.getElementById('nextPage');
-  if (prevPageBtn && nextPageBtn) {
-    prevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderTable();
-      }
-    });
-    nextPageBtn.addEventListener('click', () => {
-      if (currentPage * rowsPerPage < filteredRequests.length) {
-        currentPage++;
-        renderTable();
-      }
-    });
-  }
-
-  // ✅ Sorting
-  window.sortTable = function (n) {
-    const keys = ['student_name','item_name','borrow_date','return_date','reason','status'];
-    const key = keys[n];
-    filteredRequests.sort((a,b) => {
-      let x = a[key] ?? '', y = b[key] ?? '';
-      if (key.includes('date')) {
-        x = new Date(x); y = new Date(y);
-      }
-      return x > y ? 1 : x < y ? -1 : 0;
-    });
-    renderTable();
-  };
-
-  // ✅ Modal: Add Borrow Request
-  const requestModal = document.getElementById('requestModal');
-  const openBtn = document.getElementById('openRequestModal');
-  const closeBtn = document.getElementById('closeRequestModal');
-  const modalOverlay = requestModal?.querySelector('.modal-overlay');
-  const requestForm = document.getElementById('requestForm');
-
-  if (openBtn && requestModal) {
-    openBtn.addEventListener('click', () => {
-      requestModal.classList.remove('hidden');
-      requestModal.classList.add('flex');
-      if (requestForm) requestForm.reset();
-    });
-  }
-
-  if (closeBtn && requestModal) {
-    closeBtn.addEventListener('click', () => {
-      requestModal.classList.add('hidden');
-      requestModal.classList.remove('flex');
-    });
-  }
-
-  if (modalOverlay && requestModal) {
-    modalOverlay.addEventListener('click', () => {
-      requestModal.classList.add('hidden');
-      requestModal.classList.remove('flex');
-    });
-  }
-
-  // ✅ Initial render
-  renderTable();
-});
-</script>
-
+  <script>
+    {{ your_existing_javascript_code_here }}
+  </script>
 </body>
 </html>

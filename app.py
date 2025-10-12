@@ -60,36 +60,27 @@ def main():
     )
 @app.route('/admin')
 def admin():
-    if 'user_id' not in session:
-        return redirect(url_for('login_bp.login'))
-    if not session.get('is_admin'):
-        return redirect(url_for('login_bp.logout'))
-
-    # still use your stats helpers if you want
-    stats = get_concern_stats()
+    # stats = get_concern_stats()
+    requests = get_borrow_requests()
     users = get_all_users()
     devices = get_all_available_devices()
-    units = get_all_available_units()
-    requests = get_borrow_requests()
-   
+
+    # Optional: compute counts for cards
+    total_requests = len(requests)
+    pending_requests = sum(1 for r in requests if r['status'] == 'Pending')
+    returned_items = sum(1 for r in requests if r['status'] == 'Returned')
+    total_users = len(users)
+
     return render_template(
         'admin.html',
-        total_requests=stats['total'],
-        pending_requests=stats['pending'],
-        ongoing_requests=stats['ongoing'],
-        resolved_requests=stats['resolved'],
+        total_requests=total_requests,
+        pending_requests=pending_requests,
+        returned_items=returned_items,
+        total_users=total_users,
         requests=requests,
         users=users,
-        devices=devices 
-        ,units=units
+        devices=devices
     )
-
-# @app.route('/concernlist')
-# def concernlist():
-#     if 'user_id' not in session:
-#         return redirect(url_for('login_bp.logout'))
-#     return render_template('concernlist.html', username=session.get('username'))
-
 
 
 @app.route('/manage-user')
