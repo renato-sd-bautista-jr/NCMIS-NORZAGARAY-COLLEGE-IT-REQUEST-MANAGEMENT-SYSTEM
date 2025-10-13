@@ -3,9 +3,15 @@ from db import get_db_connection
 import bcrypt
 from datetime import datetime
 
-login_bp = Blueprint('login_bp', __name__)
+from db import get_db_connection
+import bcrypt
+import pymysql
+from dashboard import dashboard_bp
 
-@login_bp.route('/login', methods=['GET', 'POST'])
+
+login_bp = Blueprint('login_bp', __name__, url_prefix='/login')
+
+@login_bp.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -30,7 +36,7 @@ def login():
 
             # go to correct dashboard
             if session['is_admin']:
-                return redirect(url_for('admin'))   # admin route in app.py
+                return redirect(url_for('dashboard_bp.dashboard_load'))
             else:
                 
                 return redirect(url_for('main'))  # or your user page route
@@ -45,3 +51,34 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('login_bp.login'))
+
+@login_bp.route('/login-page')
+def qrcode_generator_page():
+    """render login page"""
+    return render_template('login.html')
+
+def main():
+    if 'user_id' not in session:
+        return redirect(url_for('login_bp.login'))
+    if session.get('is_admin'):
+        return redirect(url_for('admin'))
+
+    from userborrow import get_available_devices, get_available_units
+    raw_items = get_available_devices()
+    
+    items = [
+        {
+            'id': i['id'],
+            'name': i['name'],
+            'serial_number': i['serial_number'],
+            'department': i['department']
+        }
+        for i in raw_items
+    ]
+    units = get_available_units()  # ← add this
+    return render_template(
+        'main.html',
+        username=session.get('username'),
+        items=items,
+        units=units           # ← pass it here too
+    )

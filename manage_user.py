@@ -1,6 +1,11 @@
 import pymysql
 from db import get_db_connection
+from flask import Blueprint, send_file, jsonify, request, render_template
 
+manage_user_bp = Blueprint('manage_user_bp', __name__, template_folder='templates')
+
+
+@manage_user_bp.route('/get-users')
 def get_user():
     """
     Fetch all users from the users table with the necessary columns.
@@ -24,10 +29,10 @@ def get_user():
     finally:
         conn.close()
 
-
+@manage_user_bp.route('/edit-user/<int:id>', methods=['GET', 'POST'])
 def edit_user(id):
     return f"Edit user {id}"
 
-
+@manage_user_bp.route('/delete-user/<int:id>', methods=['POST'])
 def delete_user(id):
     return redirect(url_for('users'))     

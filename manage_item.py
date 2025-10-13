@@ -1,7 +1,15 @@
 from db import get_db_connection
 import pymysql
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
 
+@manage_item_bp.route('/manageitems')
+def manage_items_page():    
+    """Render the Manage Items HTML page."""
+    return render_template('manageitems.html')
+
+@manage_item_bp.route('/get-devices-with-details')
 def get_devices_with_details():
     conn = get_db_connection()
     try:
@@ -30,6 +38,8 @@ def get_devices_with_details():
         return []
     finally:
         conn.close()
+
+@manage_item_bp.route('/get-departments')
 def get_departments():
     conn = get_db_connection()
     with conn.cursor(pymysql.cursors.DictCursor) as cur:  # ✅ if using pymysql
@@ -38,7 +48,7 @@ def get_departments():
     conn.close()
     return results
 
-
+@manage_item_bp.route('/add-device', methods=['POST'])
 def add_device(item_name, brand_model, department_id, serial_number, quantity, device_type, status):
     """
     Adds a new device and one corresponding device unit.
@@ -76,3 +86,5 @@ def add_device(item_name, brand_model, department_id, serial_number, quantity, d
         raise
     finally:
         conn.close()
+
+

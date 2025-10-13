@@ -5,6 +5,7 @@ import pymysql
 manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 
 # ✅ Display all PCs
+@manage_pc_bp.route('/get-pc-inventory')
 def get_pc_inventory():
     conn = get_db_connection()
     with conn.cursor(pymysql.cursors.DictCursor) as cur:
@@ -34,6 +35,8 @@ def get_pc_inventory():
     return pcs
 
 # ✅ Get specific PC details
+
+@manage_pc_bp.route('/get-pc-by-id/<int:pcid>')
 def get_pc_by_id(pcid):
     conn = get_db_connection()
     try:
@@ -62,7 +65,7 @@ def get_pc_by_id(pcid):
     finally:
         conn.close()
 
-
+@manage_pc_bp.route('/delete-pc/<int:pcid>', methods=['POST'])
 @manage_pc_bp.route('/add-pc', methods=['POST'])
 def add_pc_route():
     pcname = request.form['pcname']
@@ -139,6 +142,8 @@ def update_pc_with_parts():
     flash("PC updated successfully!", "success")
     return redirect(url_for('inventory'))
 
+
+@manage_pc_bp.route('/add-pc-single', methods=['POST'])
 def add_pc(pcname, department_id, status, note):
     conn = get_db_connection()
     try:
@@ -155,7 +160,7 @@ def add_pc(pcname, department_id, status, note):
         conn.close()
 
 
-# ✅ Edit PC info
+@manage_pc_bp.route('/update-pc', methods=['POST'])
 def update_pc(pcid, pcname, department_id, status, note):
     conn = get_db_connection()
     try:
@@ -175,7 +180,7 @@ def update_pc(pcid, pcname, department_id, status, note):
     finally:
         conn.close()
 
-# ✅ Delete PC
+@manage_pc_bp.route('/delete-pc/<int:pcid>', methods=['POST'])
 def delete_pc(pcid):
     conn = get_db_connection()
     try:
@@ -189,17 +194,7 @@ def delete_pc(pcid):
         conn.close()
 
         
-
-
-def delete_pc_in_db(pcid):
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM pcs WHERE pcid=%s", (pcid,))
-            conn.commit()
-    finally:
-        conn.close()
-
+@manage_pc_bp.route('/add-multiple-pcs', methods=['POST'])
 def add_multiple_pcs(pcname, pcid, department_id, status, note, quantity):
     conn = get_db_connection()
     try:
