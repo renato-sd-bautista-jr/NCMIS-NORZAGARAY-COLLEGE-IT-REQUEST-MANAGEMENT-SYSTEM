@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Manage Users</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="flex min-h-screen bg-gray-100 text-gray-900">
+
+<!-- Sidebar -->
+  <aside id="sidebar"
+    class="fixed top-0 left-0 h-full w-64 bg-gray-900/90 text-white flex flex-col justify-between p-6 
+           transform transition-transform duration-300 md:translate-x-0 -translate-x-full z-50 shadow-xl">
+
+    <!-- Logo -->
+    <div>
+      <div class="mb-6 text-center border-b border-blue-500 pb-4">
+        <h4 class="text-3xl font-extrabold tracking-wide">NCMIS</h4>
+        <span class="text-blue-200 text-sm">Inventory Dashboard</span>
+      </div>      
+
+      <!-- Sidebar Navigation -->
+      <nav class="flex flex-col gap-2">
+        
+        <a href="{{ url_for('invendash_bp.dashboard_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg transition 
+                  {% if request.endpoint == 'inven_dash' %} bg-blue-600 text-white shadow {% else %} hover:bg-blue-600 {% endif %}">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+        </a>
+        <a href="{{ url_for('manage_item') }}"
+           class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
+          <i data-lucide="package" class="w-5 h-5 mr-3"></i> Manage Items
+        </a>
+        <a href="{{ url_for('inventory') }}"
+           class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
+          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
+        </a>
+        <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}" class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
+          <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
+        </a>
+        <a href="{{ url_for('report_bp.report_generator_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
+          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Logout -->
+    <form id="logoutForm" method="post" action="{{ url_for('login_bp.logout') }}">
+      <button type="button" id="logoutBtn"
+        class="flex items-center justify-center w-full px-4 py-3 mt-6 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+      </button>
+    </form>
+  </aside>
+
+
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-0 lg:ml-64 p-6 space-y-6 transition-all duration-300">
+
+    <!-- Top Navbar -->
+    <div class="flex items-center justify-between bg-white rounded-xl shadow-md p-4 border border-gray-200">
+      <button id="sidebarToggle" class="lg:hidden text-gray-600">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <h2 class="text-2xl font-bold text-blue-700">Manage Users</h2>
+      <div></div>
+    </div>
+
+    <!-- Add User Form -->
+    <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-700">
+        <i data-lucide="user-plus" class="w-5 h-5"></i> Add New User
+      </h3>
+      <form method="post" action="" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <input type="text" name="name" placeholder="Full Name" class="border border-gray-300 rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
+        <input type="email" name="email" placeholder="Email" class="border border-gray-300 rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
+        <input type="text" name="role" placeholder="Role (Admin/User)" class="border border-gray-300 rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-md transition">Add User</button>
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-700">
+        <i data-lucide="users" class="w-5 h-5"></i> Users List
+      </h3>
+      {% if users|length == 0 %}
+        <div class="bg-gray-100 text-gray-500 p-4 rounded-lg text-center">
+          No users found.
+        </div>
+      {% else %}
+        <div class="overflow-x-auto rounded-xl">
+          <table class="min-w-full border border-gray-300 text-sm text-gray-800">
+            <thead class="bg-gray-100 text-gray-700">
+              <tr>
+                <th class="px-4 py-2 text-left border-b">Faculty Name</th>
+                <th class="px-4 py-2 text-left border-b">Username</th>
+                <th class="px-4 py-2 text-left border-b">Email</th>
+                <th class="px-4 py-2 text-left border-b">Role</th>
+                <th class="px-4 py-2 text-left border-b">Created At</th>
+                <th class="px-4 py-2 text-left border-b">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-2 border-b">{{ user.faculty_name }}</td>
+                <td class="px-4 py-2 border-b">{{ user.username }}</td>
+                <td class="px-4 py-2 border-b">{{ user.email }}</td>
+                <td class="px-4 py-2 border-b">
+                  {% if user.is_admin == 1 %}
+                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Admin</span>
+                  {% else %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Staff</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2 border-b">{{ user.created_at }}</td>
+                <td class="px-4 py-2 border-b space-x-2">
+                  <form action="" method="get" class="inline">
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition">Edit</button>
+                  </form>
+                  <form action="" method="post" class="inline">
+                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script>
+    // Initialize Lucide icons with multiple fallbacks
+    function initializeIcons() {
+      try {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+        } else {
+          // Fallback: try again after a short delay
+          setTimeout(() => {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+              lucide.createIcons();
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Error initializing Lucide icons:', error);
+      }
+    }
+
+    // Initialize on DOM ready
+    document.addEventListener("DOMContentLoaded", initializeIcons);
+
+    // Also try immediately (in case DOM is already ready)
+    if (document.readyState === 'loading') {
+      document.addEventListener("DOMContentLoaded", initializeIcons);
+    } else {
+      initializeIcons();
+    }
+
+    // Sidebar toggle for mobile
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('sidebarToggle');
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

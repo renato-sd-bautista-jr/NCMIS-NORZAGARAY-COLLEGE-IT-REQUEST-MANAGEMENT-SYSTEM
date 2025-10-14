@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2025 at 11:02 PM
+-- Generation Time: Oct 14, 2025 at 10:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -176,6 +176,39 @@ INSERT INTO `devices` (`device_id`, `item_name`, `brand_model`, `department_id`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `devices_full`
+--
+
+CREATE TABLE `devices_full` (
+  `accession_id` int(11) NOT NULL,
+  `device_id` int(11) DEFAULT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `brand_model` varchar(255) DEFAULT NULL,
+  `serial_number` varchar(255) DEFAULT NULL,
+  `quantity` int(11) DEFAULT 1,
+  `device_type` varchar(255) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'Available',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `devices_full`
+--
+
+INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `serial_number`, `quantity`, `device_type`, `department_id`, `status`, `created_at`) VALUES
+(2, NULL, '1', '1', '1', 1, '1', 1, 'Available', '2025-10-14 17:00:09'),
+(3, NULL, 'inplay keyboard 1', 'inplay', '9', 1, 'keyboard', 1, 'Available', '2025-10-14 19:26:41'),
+(4, NULL, 'w', 'w', 'w', 1, 'w', 1, 'Available', '2025-10-14 19:32:43'),
+(5, NULL, '5', '3', '3', 1, '3', 1, 'Available', '2025-10-14 19:40:21'),
+(6, NULL, '4', '54', '5', 1, '5', 1, 'Available', '2025-10-14 19:48:47'),
+(7, NULL, 'e', 'Epson EB-X0778e', 'e', 1, 'e', 1, 'Available', '2025-10-14 19:50:30'),
+(9, NULL, '55', '333', '66', 1, '22', 1, 'Available', '2025-10-14 19:51:48'),
+(10, NULL, '4542', '25235', '23423', 1, '234234', 1, 'Available', '2025-10-14 19:53:10');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `devices_units`
 --
 
@@ -252,7 +285,8 @@ CREATE TABLE `pcparts` (
 
 INSERT INTO `pcparts` (`part_id`, `pcid`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`) VALUES
 (4, '1', '33', '222', '22', '22', '22', '22', '22', '22'),
-(5, '', '1', '1', '1', '1', '1', '1', '1', '1');
+(7, 'PC-953FF49C', '1', '1', '1', '1', '1', '1', '1', '1'),
+(8, 'PC-30143C90', '7', '7', '66', '5', '4', '4', '3', 'e');
 
 -- --------------------------------------------------------
 
@@ -273,8 +307,9 @@ CREATE TABLE `pcs` (
 --
 
 INSERT INTO `pcs` (`pcid`, `pcname`, `department_id`, `status`, `note`) VALUES
-('', 'PC1', 1, 'Active', '1'),
-('1', 'PC1', 1, 'Active', '3');
+('1', 'PC1', 1, 'Active', '3'),
+('PC-30143C90', '66', 1, 'Active', '88'),
+('PC-953FF49C', '2', 1, 'Active', '1');
 
 -- --------------------------------------------------------
 
@@ -365,6 +400,14 @@ ALTER TABLE `devices`
   ADD KEY `department_id` (`department_id`);
 
 --
+-- Indexes for table `devices_full`
+--
+ALTER TABLE `devices_full`
+  ADD PRIMARY KEY (`accession_id`),
+  ADD UNIQUE KEY `serial_number` (`serial_number`),
+  ADD KEY `fk_department` (`department_id`);
+
+--
 -- Indexes for table `devices_units`
 --
 ALTER TABLE `devices_units`
@@ -430,7 +473,13 @@ ALTER TABLE `departments`
 -- AUTO_INCREMENT for table `devices`
 --
 ALTER TABLE `devices`
-  MODIFY `device_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `device_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `devices_full`
+--
+ALTER TABLE `devices_full`
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
@@ -442,7 +491,7 @@ ALTER TABLE `devices_units`
 -- AUTO_INCREMENT for table `pcparts`
 --
 ALTER TABLE `pcparts`
-  MODIFY `part_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `part_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -472,6 +521,12 @@ ALTER TABLE `concern_devices`
 --
 ALTER TABLE `devices`
   ADD CONSTRAINT `devices_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
+
+--
+-- Constraints for table `devices_full`
+--
+ALTER TABLE `devices_full`
+  ADD CONSTRAINT `fk_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `devices_units`

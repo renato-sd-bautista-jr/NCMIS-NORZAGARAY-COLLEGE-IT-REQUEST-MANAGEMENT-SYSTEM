@@ -12,66 +12,55 @@
 
   <!-- Sidebar -->
   <aside id="sidebar"
-    class="fixed top-0 left-0 h-full w-64 bg-[#1E293B] text-gray-100 flex flex-col justify-between shadow-xl z-50 transform transition-transform duration-300 md:translate-x-0 -translate-x-full">
+    class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white flex flex-col justify-between p-6 
+          transform transition-transform duration-300 md:translate-x-0 -translate-x-full z-40 shadow-lg">
 
     <!-- Logo -->
     <div>
-      <div class="mb-8 text-center border-b border-blue-500 pb-5 mt-4">
-        <h4 class="text-3xl font-extrabold tracking-wide text-white">NCMIS</h4>
-        <span class="text-blue-300 text-sm">Inventory Dashboard</span>
+      <div class="mb-6 text-center border-b border-blue-500 pb-4">
+        <h4 class="text-3xl font-extrabold tracking-wide">NCMIS</h4>
+        <span class="text-blue-200 text-sm">Inventory Dashboard</span>
       </div>
 
-      <!-- Navigation -->
-      <nav class="flex flex-col gap-2 px-4">
-        <!-- Dashboard -->
-        <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
-                  {% if request.endpoint == 'invendash_bp.dashboard_page' %}
-                    bg-blue-600 text-white shadow-md
-                  {% else %}
-                    hover:bg-blue-600/30 hover:text-white
-                  {% endif %}">
+      <!-- Sidebar Navigation -->
+      <nav class="flex flex-col gap-2 text-gray-300">
+        <a href="{{ url_for('invendash_bp.dashboard_page') }}"
+          class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
           <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
         </a>
 
-        <!-- Manage Items -->
-        <a href="{{ url_for('manage_item_bp.manage_items_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
-                  {% if request.endpoint == 'manage_item' %}
-                    bg-blue-600 text-white shadow-md
-                  {% else %}
-                    hover:bg-blue-600/30 hover:text-white
-                  {% endif %}">
+        <a href="{{ url_for('manage_item') }}"
+          class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
           <i data-lucide="package" class="w-5 h-5 mr-3"></i> Manage Items
         </a>
 
-        <!-- Inventory -->
-        <a href="{{ url_for('manage_pc_bp.inventory') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <a href="{{ url_for('inventory') }}"
+          class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
           <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
         </a>
 
-        <!-- QR List -->
         <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          class="flex items-center px-4 py-3 rounded-lg transition hover:bg-blue-600/80 hover:shadow-md">
           <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
         </a>
 
-        <!-- Report -->
         <a href="{{ url_for('report_bp.report_generator_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
+          class="flex items-center px-4 py-3 rounded-lg border-l-4 transition-all duration-200
+            {% if request.endpoint == 'report_bp.report_generator_page' %}
+              border-blue-500 bg-blue-600/20 text-white shadow-md
+            {% else %}
+              border-transparent hover:border-blue-400 hover:bg-blue-600/10 hover:text-white
+            {% endif %}">
+          <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
         </a>
       </nav>
     </div>
 
     <!-- Logout Button -->
-    <div class="p-4">
-      <button id="logoutBtn"
-        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
-        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
-      </button>
-    </div>
+    <button type="button" id="logoutBtn"
+      class="flex items-center justify-center w-full px-4 py-3 mt-6 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+      <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+    </button>
   </aside>
 
 

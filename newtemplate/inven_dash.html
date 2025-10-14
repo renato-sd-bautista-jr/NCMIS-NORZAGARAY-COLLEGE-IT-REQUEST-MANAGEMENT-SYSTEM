@@ -24,7 +24,7 @@
       <!-- Navigation -->
       <nav class="flex flex-col gap-2 px-4">
         <!-- Dashboard -->
-        <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
+        <a href="{{ url_for('invendash_bp.dashboard_page') }}"
            class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
                   {% if request.endpoint == 'invendash_bp.dashboard_page' %}
                     bg-blue-600 text-white shadow-md
@@ -35,7 +35,7 @@
         </a>
 
         <!-- Manage Items -->
-        <a href="{{ url_for('manage_item_bp.manage_items_page') }}"
+        <a href="{{ url_for('manage_item') }}"
            class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
                   {% if request.endpoint == 'manage_item' %}
                     bg-blue-600 text-white shadow-md
@@ -46,7 +46,7 @@
         </a>
 
         <!-- Inventory -->
-        <a href="{{ url_for('manage_pc_bp.inventory') }}"
+        <a href="{{ url_for('inventory') }}"
            class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
           <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
         </a>

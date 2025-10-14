@@ -8,11 +8,11 @@ report_bp = Blueprint('report_bp', __name__, template_folder='templates')
 # 1️⃣ Route: Render QR Generator Page
 # -------------------------------
 @report_bp.route('/reportgenerator')
-def qrcode_generator_page():
+def report_generator_page():
     """Render the QR Code Generator HTML page."""
-    return render_template('qrcodegenerator.html')
+    return render_template('report.html')
 
 @report_bp.route('/reportlist')
-def qrcode_list():
-    return render_template('qrcodegenerator.html')
+def report_list():
+    return render_template('report.html')
 

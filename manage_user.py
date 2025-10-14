@@ -29,6 +29,7 @@ def get_user():
     finally:
         conn.close()
 
+
 @manage_user_bp.route('/edit-user/<int:id>', methods=['GET', 'POST'])
 def edit_user(id):
     return f"Edit user {id}"
