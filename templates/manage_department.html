@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Manage Departments</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
+
+  {% include 'sidebar.html' %}
+
+  <!-- Overlay -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+  
+ <!-- Main Content -->
+    <main class="flex-1 p-6 overflow-y-auto md:ml-64 transition-all duration-300">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-xl shadow mb-6">
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="building-2" class="w-6 h-6"></i> Manage Departments
+        </h1>
+        <p class="text-sm text-blue-100">View and organize all departments</p>
+        <button id="sidebarToggle" class="md:hidden bg-blue-600 text-white p-2 rounded-lg shadow">
+                <i data-lucide="menu"></i>
+        </button>
+      </div>
+
+      <!-- Table Card -->
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-blue-600 flex items-center gap-2">
+              <i data-lucide="list" class="w-5 h-5 text-blue-600"></i> Department List
+            </h2>
+            <p class="text-xs text-gray-500">All existing departments</p>
+          </div>
+          <button id="openAddModal"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow transition">
+            <i data-lucide="plus-circle" class="w-4 h-4 inline"></i> Add Department
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs">
+                  Department Name
+                </th>
+                <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase text-xs">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="departmentTable">
+              <!-- Rows will be dynamically loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+<!-- Edit Department Modal -->
+<div id="editDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+    <div class="bg-green-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
+      <i data-lucide="edit-3" class="w-5 h-5"></i>
+      <h5 class="text-lg font-bold">Edit Department</h5>
+    </div>
+    <form id="editDepartmentForm" class="p-5">
+      <input type="hidden" id="editDepartmentId">
+      <label class="block font-medium text-gray-700 mb-2">Department Name</label>
+      <input type="text" id="editDepartmentName" name="department_name" required
+             class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none mb-4">
+      <div class="flex justify-end gap-2">
+        <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+  <!-- Add Department Modal -->
+  <div id="addDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+      <div class="bg-blue-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        <h5 class="text-lg font-bold">Add New Department</h5>
+      </div>
+      <form id="addDepartmentForm" class="p-5">
+        <label class="block font-medium text-gray-700 mb-2">Department Name</label>
+        <input type="text" name="department_name" placeholder="Enter department name" required
+               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4">
+        <div class="flex justify-end gap-2">
+          <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Department Modal -->
+  <div id="deleteDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+      <div class="bg-red-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        <h5 class="text-lg font-bold">Confirm Deletion</h5>
+      </div>
+      <form id="deleteDepartmentForm" class="p-5">
+        <p class="text-gray-700 mb-3">Are you sure you want to delete the department:</p>
+        <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-4">
+          <span id="deleteDepartmentName" class="font-semibold text-gray-800"></span>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-md">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
+      <p class="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
+      <div class="flex justify-center space-x-3">
+        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
+        <form method="post" action="{{ url_for('login_bp.logout') }}">
+          <button type="submit" id="confirmLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+          // Lucide icons
+          document.addEventListener("DOMContentLoaded", () => {
+            if (typeof lucide !== "undefined") lucide.createIcons();
+          });
+
+          // Sidebar toggle
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebarOverlay');
+          const toggle = document.getElementById('sidebarToggle');
+
+          toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+          });
+          overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+          });
+
+          // Modal controls
+          const addModal = document.getElementById("addDepartmentModal");
+          const deleteModal = document.getElementById("deleteDepartmentModal");
+          const openAddModalBtn = document.getElementById("openAddModal");
+          const closeModalBtns = document.querySelectorAll(".closeModal");
+          const deleteButtons = document.querySelectorAll(".openDeleteModal");
+          const deleteDeptName = document.getElementById("deleteDepartmentName");
+
+          openAddModalBtn.addEventListener("click", () => {
+            addModal.classList.remove("hidden");
+            addModal.classList.add("flex");
+          });
+
+          deleteButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+              const deptName = btn.dataset.deptName;
+              deleteDeptName.textContent = deptName;
+              deleteModal.classList.remove("hidden");
+              deleteModal.classList.add("flex");
+            });
+          });
+
+          closeModalBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+              addModal.classList.add("hidden");
+              deleteModal.classList.add("hidden");
+            });
+          });
+
+          [addModal, deleteModal].forEach(modal => {
+            modal.addEventListener("click", (e) => {
+              if (e.target === modal) modal.classList.add("hidden");
+            });
+          });
+
+          async function loadDepartments() {
+        const response = await fetch('/get-departments');
+        const departments = await response.json();
+
+        const tableBody = document.getElementById('departmentTable');
+        tableBody.innerHTML = '';
+
+        departments.forEach(dept => {
+          const row = document.createElement('tr');
+          row.classList.add('hover:bg-blue-50', 'transition');
+          row.innerHTML = `
+            <td class="px-4 py-3 border-t">${dept.department_name}</td>
+            <td class="px-4 py-3 border-t text-right space-x-2">
+              <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs shadow-sm transition openEditModal"
+                data-dept-id="${dept.department_id}" data-dept-name="${dept.department_name}">
+                <i data-lucide="edit-3" class="w-4 h-4 inline"></i> Edit
+              </button>
+              <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition openDeleteModal"
+                data-dept-name="${dept.department_name}" data-id="${dept.department_id}">
+                <i data-lucide="trash-2" class="w-4 h-4 inline"></i> Delete
+              </button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        lucide.createIcons();
+
+        // Attach listeners AFTER rendering
+        attachEditButtons();
+        attachDeleteButtons();
+
+          
+      }
+      // Handle Add Department
+      const addForm = document.getElementById('addDepartmentForm');
+      addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = addForm.department_name.value.trim();
+        if (!name) return alert('Please enter a department name.');
+
+        const response = await fetch('/add-department', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ department_name: name })
+        });
+
+        if (response.ok) {
+          alert('Department added successfully!');
+          addForm.reset();
+          document.getElementById('addDepartmentModal').classList.add('hidden');
+          loadDepartments();
+        } else {
+          alert('Error adding department.');
+        }
+      });
+
+
+      // Handle Delete Department
+      const deleteForm = document.getElementById('deleteDepartmentForm');
+      deleteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const deptName = document.getElementById('deleteDepartmentName').textContent;
+        const deptButton = [...document.querySelectorAll('.openDeleteModal')]
+          .find(btn => btn.dataset.deptName === deptName);
+
+        const id = deptButton.dataset.id;
+
+        const response = await fetch(`/delete-department/${id}`, { method: 'DELETE' });
+
+        if (response.ok) {
+          alert('Department deleted successfully!');
+          document.getElementById('deleteDepartmentModal').classList.add('hidden');
+          loadDepartments();
+        } else {
+          alert('Error deleting department.');
+        }
+      });
+
+
+      function attachEditButtons() {
+        const editButtons = document.querySelectorAll('.openEditModal');
+        const editModal = document.getElementById('editDepartmentModal');
+        const editForm = document.getElementById('editDepartmentForm');
+        const editInput = document.getElementById('editDepartmentName');
+        const editIdInput = document.getElementById('editDepartmentId');
+
+        editButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const deptName = btn.dataset.deptName;
+            const deptId = btn.dataset.deptId;
+
+            editInput.value = deptName;
+            editIdInput.value = deptId;
+
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+          });
+        });
+
+        // Handle submit (PUT request)
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const deptId = editIdInput.value;
+          const newName = editInput.value.trim();
+
+          if (!newName) return alert("Please enter a department name.");
+
+          const response = await fetch(`/update-department/${deptId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ department_name: newName })
+          });
+
+          if (response.ok) {
+            alert('Department updated successfully!');
+            editModal.classList.add('hidden');
+            loadDepartments();
+          } else {
+            alert('Error updating department.');
+          }
+        });
+      }
+
+      function attachDeleteButtons() {
+        const deleteButtons = document.querySelectorAll('.openDeleteModal');
+        const deleteModal = document.getElementById("deleteDepartmentModal");
+        const deleteDeptName = document.getElementById("deleteDepartmentName");
+
+        deleteButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const deptName = btn.dataset.deptName;
+            deleteDeptName.textContent = deptName;
+            deleteModal.classList.remove("hidden");
+            deleteModal.classList.add("flex");
+          });
+        });
+
+      }
+
+      // Load departments on page load
+      document.addEventListener('DOMContentLoaded', loadDepartments);
+
+      // Logout modal
+          const logoutBtn = document.getElementById('logoutBtn');
+          const logoutModal = document.getElementById('logoutModal');
+          const cancelLogout = document.getElementById('cancelLogout');
+          logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+          cancelLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
+
+  </script>
+</body>
+</html>

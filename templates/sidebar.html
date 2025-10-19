@@ -1,0 +1,57 @@
+<!-- templates/partials/sidebar.html -->
+<aside id="sidebar"
+  class="fixed top-0 left-0 h-full w-64 bg-[#1E293B] text-gray-100 flex flex-col justify-between shadow-xl z-50 transform transition-transform duration-300 md:translate-x-0 -translate-x-full">
+
+  <div>
+    <div class="mb-8 text-center border-b border-blue-500 pb-5 mt-4">
+      <h4 class="text-3xl font-extrabold tracking-wide text-white">NCMIS</h4>
+      <span class="text-blue-300 text-sm">Inventory Dashboard</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-col gap-2 px-4">
+      <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
+                {% if request.endpoint == 'invendash_bp.dashboard_page' %}
+                  bg-blue-600 text-white shadow-md
+                {% else %}
+                  hover:bg-blue-600/30 hover:text-white
+                {% endif %}">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+      </a>      
+
+      <a href="{{ url_for('manage_pc_bp.inventory') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
+      </a>        
+
+      <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
+      </a>
+
+      <a href="{{ url_for('report_bp.report_generator_page') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
+      </a>
+     
+      <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage User
+      </a>
+
+      <a href="{{ url_for('manage_department_bp.manage_department_page') }}"
+         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+        <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
+      </a>
+    </nav>
+  </div>
+
+  <!-- Logout Button -->
+  <div class="p-4">
+    <button id="logoutBtn"
+      class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+      <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+    </button>
+  </div>
+</aside>

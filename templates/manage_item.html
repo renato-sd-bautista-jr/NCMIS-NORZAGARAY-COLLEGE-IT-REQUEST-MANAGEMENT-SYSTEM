@@ -40,16 +40,11 @@
 
         <!-- Manage Items -->
         <a href="{{ url_for('manage_item_bp.manage_items_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
-                  {% if request.endpoint == 'manage_item' %}
-                    bg-blue-600 text-white shadow-md
-                  {% else %}
-                    hover:bg-blue-600/30 hover:text-white
-                  {% endif %}">
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
           <i data-lucide="package" class="w-5 h-5 mr-3"></i> Manage Items
         </a>
 
-         <!-- Inventory -->
+        <!-- Inventory -->
         <a href="{{ url_for('manage_pc_bp.inventory') }}"
            class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
           <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
@@ -65,6 +60,17 @@
         <a href="{{ url_for('report_bp.report_generator_page') }}"
            class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
           <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
+        </a>
+       
+        <!-- Report --> 
+        <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage User
+        </a>
+
+        <a href="{{ url_for('manage_department_bp.manage_department_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
         </a>
       </nav>
     </div>
@@ -85,14 +91,21 @@
   <!-- Main Content -->
   <main class="flex-1 ml-0 md:ml-64 p-6 space-y-6 transition-all duration-300">
 
-    <!-- Top Navbar -->
-    <div class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <button id="sidebarToggle" class="md:hidden text-gray-600 hover:text-gray-800">
-        <i data-lucide="menu"></i>
-      </button>
-      <h2 class="text-2xl font-bold text-blue-600">Manage Items</h2>
-      <div></div>
-    </div>
+      <div class="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl shadow-md p-6 mb-6">
+            <!-- Sidebar Toggle (mobile only) -->
+            <button id="sidebarToggle" class="md:hidden text-white hover:text-gray-200">
+              <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Title Section -->
+            <h2 class="text-2xl font-bold flex items-center gap-2">
+              <i data-lucide="package" class="w-7 h-7"></i>
+              Manage Items
+            </h2>
+
+            <!-- Right side placeholder (can be used for buttons/actions later) -->
+            <div class="w-6"></div>
+      </div>
 
     <!-- Feedback Message -->
     {% if message %}

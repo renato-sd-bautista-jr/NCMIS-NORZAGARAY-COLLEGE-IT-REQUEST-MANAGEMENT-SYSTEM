@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory & Manage Items</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="flex min-h-screen bg-gray-100 text-gray-800">
+
+  <!-- Sidebar -->
+  <aside id="sidebar"
+    class="fixed top-0 left-0 h-full w-64 bg-[#1E293B] text-gray-100 flex flex-col justify-between shadow-xl z-50 transform transition-transform duration-300 md:translate-x-0 -translate-x-full">
+
+    <div>
+      <div class="mb-8 text-center border-b border-blue-500 pb-5 mt-4">
+        <h4 class="text-3xl font-extrabold tracking-wide text-white">NCMIS</h4>
+        <span class="text-blue-300 text-sm">Inventory Dashboard</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex flex-col gap-2 px-4">
+        <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+        </a>       
+
+        <a href="{{ url_for('manage_pc_bp.inventory') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
+        </a>
+
+        <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
+        </a>
+
+        <a href="{{ url_for('report_bp.report_generator_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
+        </a>
+       
+        <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage User
+        </a>
+
+        <a href="{{ url_for('manage_department_bp.manage_department_page') }}"
+           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+          <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
+        </a>
+      </nav>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="p-4">
+      <button id="logoutBtn"
+        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 ml-0 md:ml-64 transition-all duration-300 p-6">   
+
+    <!-- NAVBAR now INSIDE main content -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl shadow-lg p-4 mb-6 flex items-center justify-between">
+      <button id="sidebarToggle" class="md:hidden text-white hover:text-gray-200">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <h2 class="text-2xl font-bold flex items-center gap-2">
+        <i data-lucide="layout-dashboard" class="w-7 h-7"></i> Inventory & Item Management
+      </h2>
+
+        <div class="flex items-center gap-2">
+          {% include 'filtermodal.html' %}
+          {% include 'pceditmodal.html' %}
+          {% include 'add/edithmodal.html' %}
+        </div>
+
+      <div class="w-6"></div>
+    </div>
+
+    <!-- NAVIGATION BUTTONS -->
+    <nav class="flex flex-col md:flex-row gap-3 px-4 py-3 mb-4 bg-white rounded-xl shadow-sm border border-gray-200">
+      <button onclick="showSection('inventorySection'); setActiveNav(this)"
+        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-blue-50 text-blue-700 border border-blue-300 shadow-sm transition-all duration-200"
+        id="inventoryBtn">
+        <i data-lucide="cpu" class="w-5 h-5 mr-2 text-blue-600"></i>
+        Manage PC
+      </button>
+
+      <button onclick="showSection('itemsSection'); setActiveNav(this)"
+        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
+        id="itemsBtn">
+        <i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
+        Manage Items
+      </button>
+    </nav>
+
+    <!-- PAGE CONTENT BELOW NAVBAR -->
+    <div class="space-y-8">
+
+      <!-- INVENTORY SECTION -->
+      <section id="inventorySection">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+            <i data-lucide="cpu" class="w-6 h-6"></i> Manage PC
+          </h3>
+
+          {% if pc_list|length == 0 %}
+          <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No PCs found.</div>
+          {% else %}
+          <div class="overflow-x-auto rounded-xl">
+            <table class="min-w-full border border-gray-200 text-sm text-gray-800">
+              <thead class="bg-gray-200 text-gray-700">
+                <tr>
+                  <th class="px-4 py-2 border-b text-left">PC Name</th>
+                  <th class="px-4 py-2 border-b text-left">PC ID</th>
+                  <th class="px-4 py-2 border-b text-left">Department</th>
+                  <th class="px-4 py-2 border-b text-left">Status</th>
+                  <th class="px-4 py-2 border-b text-left">Note</th>
+                  <th class="px-4 py-2 border-b text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pc in pc_list %}
+                <tr class="hover:bg-gray-100 transition">
+                  <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.status }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.note }}</td>
+                  <td class="px-4 py-2 border-b flex gap-2">
+                    <button onclick='openPcModal({{ pc|tojson|safe }})' class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+                      Edit
+                    </button>
+                    <form action="{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}" method="post" onsubmit="return confirm('Delete this PC?');">
+                      <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- MANAGE ITEMS SECTION -->
+      <section id="itemsSection" class="hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+            <i data-lucide="package" class="w-6 h-6"></i> Manage Items
+          </h3>
+
+          {% if item_list|length == 0 %}
+          <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No items found.</div>
+          {% else %}
+          <div class="overflow-x-auto rounded-xl">
+            <table class="min-w-full border border-gray-200 text-sm text-gray-800">
+              <thead class="bg-gray-200 text-gray-700">
+                <tr>
+                  <th class="px-4 py-2 border-b text-left">Item Name</th>
+                  <th class="px-4 py-2 border-b text-left">Category</th>
+                  <th class="px-4 py-2 border-b text-left">Quantity</th>
+                  <th class="px-4 py-2 border-b text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in item_list %}
+                <tr class="hover:bg-gray-100 transition">
+                  <td class="px-4 py-2 border-b">{{ item.name }}</td>
+                  <td class="px-4 py-2 border-b">{{ item.category }}</td>
+                  <td class="px-4 py-2 border-b">{{ item.quantity }}</td>
+                  <td class="px-4 py-2 border-b flex gap-2">
+                    <button onclick='openItemModal({{ item|tojson|safe }})' class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+                      Edit
+                    </button>
+                    <form action="{{ url_for('manage_item_bp.delete_item', item_id=item.id) }}" method="post" onsubmit="return confirm('Delete this item?');">
+                      <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- LOGOUT MODAL -->
+  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
+      <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
+      <div class="flex justify-center space-x-3">
+        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
+        <form method="post" action="{{ url_for('login_bp.logout') }}">
+          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Section switching
+    function showSection(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    // Highlight active navigation
+    function setActiveNav(btn) {
+      document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
+        b.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+      });
+      btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+    }
+
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('sidebarToggle');
+
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+      });
+    }
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
+
+    // Logout modal logic
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    cancelLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
+
+    // Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

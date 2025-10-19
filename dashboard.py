@@ -30,11 +30,7 @@ def dashboard_load():
 
             # Count Available
             cur.execute("SELECT COUNT(*) AS total FROM devices_units WHERE status = 'Available'")
-            available_items = cur.fetchone()['total']
-
-            # Count Borrowed
-            cur.execute("SELECT COUNT(*) AS total FROM devices_units WHERE status = 'Borrowed'")
-            borrowed_items = cur.fetchone()['total']
+            available_items = cur.fetchone()['total']            
 
             # Count Damaged
             cur.execute("SELECT COUNT(*) AS total FROM devices_units WHERE status = 'Damaged'")
@@ -47,7 +43,6 @@ def dashboard_load():
     return render_template(
         'dashboard.html',
         total_items=total_items,
-        available_items=available_items,
-        borrowed_items=borrowed_items,
+        available_items=available_items,        
         damaged_items=damaged_items
     )
