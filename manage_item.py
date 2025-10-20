@@ -1,6 +1,6 @@
 from db import get_db_connection
 import pymysql
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
 
@@ -44,12 +44,11 @@ def get_devices_with_details():
 @manage_item_bp.route('/get-departments')
 def get_departments():
     conn = get_db_connection()
-    with conn.cursor(pymysql.cursors.DictCursor) as cur:  # ✅ if using pymysql
+    with conn.cursor(pymysql.cursors.DictCursor) as cur:
         cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
         results = cur.fetchall()
     conn.close()
-    return results
-
+    return jsonify(results)
 
 @manage_item_bp.route('/add-device', methods=['POST'])
 def add_device():
@@ -172,3 +171,55 @@ def edit_item(id):
         conn.close()
 
     return redirect(url_for('manage_item_bp.manage_items_page'))
+
+
+@manage_item_bp.route('/update-device', methods=['POST'])
+def update_device():
+    """Update an existing device in devices_full."""
+    conn = get_db_connection()
+    try:
+        accession_id = request.form.get('accession_id')
+        item_name = request.form.get('item_name')
+        brand_model = request.form.get('brand_model')
+        serial_number = request.form.get('serial_number')
+        device_type = request.form.get('device_type')
+        department_id = request.form.get('department_id')
+        status = request.form.get('status')
+
+        if not accession_id:
+            flash("Missing device ID.", "danger")
+            return redirect(url_for('manage_item_bp.manage_items_page'))
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE devices_full
+                SET 
+                    item_name = %s,
+                    brand_model = %s,
+                    serial_number = %s,
+                    device_type = %s,
+                    department_id = %s,
+                    status = %s
+                WHERE accession_id = %s
+            """, (
+                item_name,
+                brand_model,
+                serial_number,
+                device_type,
+                department_id,
+                status,
+                accession_id
+            ))
+            conn.commit()
+
+        flash("Device updated successfully!", "success")
+        return redirect(url_for('manage_item_bp.manage_items_page'))
+
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error updating device: {str(e)}")
+        flash("Error updating device. Please try again.", "danger")
+        return redirect(url_for('manage_item_bp.manage_items_page'))
+
+    finally:
+        conn.close()

@@ -9,58 +9,7 @@
 </head>
 <body class="flex min-h-screen bg-gray-100 text-gray-800">
 
-  <!-- Sidebar -->
-  <aside id="sidebar"
-    class="fixed top-0 left-0 h-full w-64 bg-[#1E293B] text-gray-100 flex flex-col justify-between shadow-xl z-50 transform transition-transform duration-300 md:translate-x-0 -translate-x-full">
-
-    <div>
-      <div class="mb-8 text-center border-b border-blue-500 pb-5 mt-4">
-        <h4 class="text-3xl font-extrabold tracking-wide text-white">NCMIS</h4>
-        <span class="text-blue-300 text-sm">Inventory Dashboard</span>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="flex flex-col gap-2 px-4">
-        <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
-        </a>       
-
-        <a href="{{ url_for('manage_pc_bp.inventory') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
-        </a>
-
-        <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
-        </a>
-
-        <a href="{{ url_for('report_bp.report_generator_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
-        </a>
-       
-        <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage User
-        </a>
-
-        <a href="{{ url_for('manage_department_bp.manage_department_page') }}"
-           class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
-        </a>
-      </nav>
-    </div>
-
-    <!-- Logout Button -->
-    <div class="p-4">
-      <button id="logoutBtn"
-        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
-        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
-      </button>
-    </div>
-  </aside>
+  {% include 'sidebar.html' %}
 
   <!-- Overlay for mobile -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
@@ -137,9 +86,11 @@
                   <td class="px-4 py-2 border-b">{{ pc.status }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.note }}</td>
                   <td class="px-4 py-2 border-b flex gap-2">
-                    <button onclick='openPcModal({{ pc|tojson|safe }})' class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-                      Edit
-                    </button>
+                   <button 
+                    onclick="openPcModalById({{ pc.pcid }})" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+                    Edit
+                  </button>
                     <form action="{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}" method="post" onsubmit="return confirm('Delete this PC?');">
                       <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
                     </form>
@@ -183,7 +134,7 @@
                     <button onclick='openItemModal({{ item|tojson|safe }})' class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
                       Edit
                     </button>
-                    <form action="{{ url_for('manage_item_bp.delete_item', item_id=item.id) }}" method="post" onsubmit="return confirm('Delete this item?');">
+                    <form action="{{ url_for('manage_item_bp.delete_item', id=item.id) }}" method="post" onsubmit="return confirm('Delete this item?');">
                       <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
                     </form>
                   </td>
@@ -215,7 +166,48 @@
   </div>
 
   <script>
-    // Section switching
+    
+    function openItemModal(itemData = null) {
+  const modal = document.getElementById('itemModal');
+  const content = document.getElementById('itemModalContent');
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('itemForm');
+  const submitBtn = document.getElementById('modalSubmitBtn');
+
+  form.reset();
+
+  if (itemData) {
+    // Edit Mode
+    title.textContent = "Edit Item";
+    form.action = "{{ url_for('manage_item_bp.edit_item', id=0) }}".replace('0', itemData.accession_id);
+    submitBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Update Item';
+
+    document.getElementById('modalItemName').value = itemData.item_name || '';
+    document.getElementById('modalBrandModel').value = itemData.brand_model || '';
+    document.getElementById('modalSerialNumber').value = itemData.serial_number || '';
+    document.getElementById('modalQuantity').value = itemData.quantity || 1;
+    document.getElementById('modalDeviceType').value = itemData.device_type || '';
+    document.getElementById('modalStatus').value = itemData.unit_status || '';
+    document.getElementById('modalDepartment').value = itemData.department_id || '';
+  } else {
+    // Add Mode
+    title.textContent = "Add New Item";
+    form.action = "{{ url_for('manage_item_bp.add_device') }}";
+    submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add Item';
+  }
+
+  modal.classList.remove('hidden');
+  setTimeout(() => content.classList.add('scale-100'), 50);
+  lucide.createIcons();
+}
+
+function closeItemModal() {
+  const modal = document.getElementById('itemModal');
+  const content = document.getElementById('itemModalContent');
+  content.classList.remove('scale-100');
+  setTimeout(() => modal.classList.add('hidden'), 150);
+}
+
     function showSection(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
@@ -257,6 +249,28 @@
 
     // Lucide icons
     lucide.createIcons();
+
+async function openPcModalById(pcid) {
+  console.log('Fetching PC ID:', pcid);
+
+  try {
+    const res = await fetch(`/manage_inventory/get-pc-by-id/${pcid}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const pcData = await res.json();
+    console.log('✅ PC Data received:', pcData);
+
+    if (pcData && pcData.pcname) {
+      openPcModal(pcData); // this calls your existing modal open function
+    } else {
+      alert('⚠️ PC not found or invalid data.');
+    }
+
+  } catch (err) {
+    console.error('❌ Error fetching PC data:', err);
+    alert('Failed to load PC data.');
+  }
+}
   </script>
 </body>
 </html>

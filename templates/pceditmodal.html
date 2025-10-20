@@ -1,46 +1,35 @@
-<!-- Add this to your <head> if Lucide isn’t already loaded -->
+<!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<div id="pcModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
-  <div class="bg-white p-8 rounded-2xl w-full max-w-5xl shadow-2xl overflow-y-auto max-h-[90vh] transform scale-95 transition-transform duration-300"
-       id="pcModalContent">
-    
-    <!-- Modal Title -->
+<!-- PC Modal -->
+<div id="pcModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+  <div id="pcModalContent" class="bg-white p-8 rounded-2xl w-full max-w-5xl shadow-2xl overflow-y-auto max-h-[90vh] transform scale-95 transition-transform duration-300">
+
+    <!-- Header -->
     <div class="flex items-center justify-between mb-6 border-b pb-3">
       <div class="flex items-center gap-3">
         <i data-lucide="computer" class="w-6 h-6 text-blue-600"></i>
         <h3 id="modalTitle" class="text-2xl font-semibold text-blue-600">Add PC</h3>
       </div>
-      <button type="button" onclick="closePcModal()"
-        class="text-gray-500 hover:text-gray-700 transition">
+      <button type="button" onclick="closePcModal()" class="text-gray-500 hover:text-gray-700 transition">
         <i data-lucide="x" class="w-6 h-6"></i>
       </button>
     </div>
 
-    <form id="pcForm" method="post" class="space-y-6">
-
+    <!-- Form -->
+    <form id="pcForm" method="POST" class="space-y-6">
       <input type="hidden" id="modalPcId" name="pcid">
 
-      <!-- PC Info Grid -->
+      <!-- Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <!-- Example Input Group -->
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="tag" class="w-4 h-4 text-blue-500"></i>
-            PC Name
-          </label>
-          <input type="text" id="modalPcName" name="pcname" required
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">PC Name</label>
+          <input type="text" id="modalPcName" name="pcname" required class="input">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="building" class="w-4 h-4 text-blue-500"></i>
-            Department
-          </label>
-          <select id="modalDepartment" name="department_id" required
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Department</label>
+          <select id="modalDepartment" name="department_id" required class="input">
             <option value="">Select Department</option>
             {% for dep in departments %}
             <option value="{{ dep.department_id }}">{{ dep.department_name }}</option>
@@ -49,96 +38,58 @@
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i>
-            Location
-          </label>
-          <input type="text" id="modalLocation" name="location" placeholder="e.g., IT Office"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Location</label>
+          <input type="text" id="modalLocation" name="location" class="input" placeholder="e.g., IT Office">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="layers" class="w-4 h-4 text-blue-500"></i>
-            Quantity
-          </label>
-          <input type="number" id="modalQuantity" name="quantity" min="1" value="1"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Quantity</label>
+          <input type="number" id="modalQuantity" name="quantity" min="1" value="1" class="input">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="wallet" class="w-4 h-4 text-blue-500"></i>
-            Acquisition Cost (₱)
-          </label>
-          <input type="number" id="modalAcquisitionCost" name="acquisition_cost" step="0.01" min="0"
-            placeholder="e.g., 35000"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Acquisition Cost (₱)</label>
+          <input type="number" id="modalAcquisitionCost" name="acquisition_cost" step="0.01" min="0" class="input" placeholder="e.g., 35000">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i>
-            Date Acquired
-          </label>
-          <input type="date" id="modalDateAcquired" name="date_acquired"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Date Acquired</label>
+          <input type="date" id="modalDateAcquired" name="date_acquired" class="input">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="user" class="w-4 h-4 text-blue-500"></i>
-            Accountable
-          </label>
-          <input type="text" id="modalAccountable" name="accountable" placeholder="e.g., John Doe"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Accountable</label>
+          <input type="text" id="modalAccountable" name="accountable" class="input" placeholder="e.g., John Doe">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="barcode" class="w-4 h-4 text-blue-500"></i>
-            Serial No
-          </label>
-          <input type="text" id="modalSerialNo" name="serial_no" placeholder="e.g., SN-123456"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Serial No</label>
+          <input type="text" id="modalSerialNo" name="serial_no" class="input" placeholder="e.g., SN-123456">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="barcode" class="w-4 h-4 text-blue-500"></i>
-            Municipal Serial No
-          </label>
-          <input type="text" id="modalSerialNo" name="municipal_serial_no" placeholder="e.g., SN-123456"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Municipal Serial No</label>
+          <input type="text" id="modalMunicipalSerialNo" name="municipal_serial_no" class="input" placeholder="e.g., MSN-987654">
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="activity" class="w-4 h-4 text-blue-500"></i>
-            Status
-          </label>
-          <select id="modalStatus" name="status"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <label class="label">Status</label>
+          <select id="modalStatus" name="status" class="input">
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </select>
         </div>
 
         <div class="md:col-span-2">
-          <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-            <i data-lucide="sticky-note" class="w-4 h-4 text-blue-500"></i>
-            Note
-          </label>
-          <textarea id="modalNote" name="note" rows="2"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"></textarea>
+          <label class="label">Note</label>
+          <textarea id="modalNote" name="note" rows="2" class="input"></textarea>
         </div>
       </div>
 
-      <!-- Divider -->
       <hr class="my-6 border-gray-300">
 
-      <!-- PC Parts Section -->
-      <div id="partsSection">
+      <!-- PC Parts -->
+      <div>
         <div class="flex items-center gap-2 mb-3">
           <i data-lucide="cpu" class="w-5 h-5 text-blue-600"></i>
           <h4 class="text-lg font-semibold text-blue-600">PC Parts</h4>
@@ -146,9 +97,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           {% for part in ['Monitor', 'Motherboard', 'RAM', 'Storage', 'GPU', 'PSU', 'Casing', 'Other Parts'] %}
           <div>
-            <label class="block text-gray-700 font-medium mb-1">{{ part }}</label>
-            <input type="text" id="{{ part|lower|replace(' ', '_') }}" name="{{ part|lower|replace(' ', '_') }}"
-              class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+            <label class="label">{{ part }}</label>
+            <input type="text" id="{{ part|lower|replace(' ', '_') }}" name="{{ part|lower|replace(' ', '_') }}" class="input">
           </div>
           {% endfor %}
         </div>
@@ -156,83 +106,172 @@
 
       <!-- Batch Add -->
       <div id="batchAddSection" class="hidden mt-4">
-        <label class="flex items-center gap-2 text-gray-700 font-medium mb-1">
-          <i data-lucide="copy" class="w-4 h-4 text-blue-500"></i>
-          Number of identical PCs to add
-        </label>
-        <input type="number" id="batchCount" name="batch_count" value="1" min="1"
-          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+        <label class="label">Number of identical PCs to add</label>
+        <input type="number" id="batchCount" name="batch_count" value="1" min="1" class="input">
       </div>
 
       <!-- Buttons -->
       <div class="flex justify-end gap-3 mt-8 pt-4 border-t">
-        <button type="button" onclick="closePcModal()"
-          class="flex items-center gap-2 px-5 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm transition">
+        <button type="button" onclick="closePcModal()" class="btn-gray">
           <i data-lucide="x-circle" class="w-4 h-4"></i> Cancel
         </button>
-        <button id="modalSubmitBtn" type="submit"
-          class="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm shadow-sm transition">
+        <button id="modalSubmitBtn" type="submit" class="btn-blue">
           <i data-lucide="save" class="w-4 h-4"></i> Add PC
         </button>
       </div>
-
     </form>
   </div>
 </div>
 
+<style>
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #374151; /* Dark gray for labels */
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  color: #000000; /* Text color black */
+  placeholder-color: #9ca3af;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input::placeholder {
+  color: #9ca3af; /* Gray placeholder */
+}
+
+.input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); /* Blue focus ring */
+  outline: none;
+}
+
+.btn-blue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-blue:hover {
+  background-color: #1e40af;
+}
+
+.btn-gray {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #9ca3af;
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-gray:hover {
+  background-color: #6b7280;
+}
+</style>
+
+
 <script>
-function openPcModal(pcData = null) {
+async function openPcModal(pcData = null) {
   const modal = document.getElementById('pcModal');
-  const content = document.getElementById('pcModalContent');
-  const title = document.getElementById('modalTitle');
+  const modalTitle = document.getElementById('modalTitle');
   const form = document.getElementById('pcForm');
   const submitBtn = document.getElementById('modalSubmitBtn');
-  const batchSection = document.getElementById('batchAddSection');
-  const deptSelect = document.getElementById('modalDepartment');
+  const departmentSelect = document.getElementById('modalDepartment');
 
+  // Reset form first
   form.reset();
 
-  if (pcData) {
-    title.textContent = "Edit PC";
-    form.action = "{{ url_for('manage_pc_bp.update_pc_with_parts') }}";
-    submitBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Update PC';
-    batchSection.classList.add('hidden');
+  // 🔹 Fetch departments dynamically
+  try {
+    const depResponse = await fetch("/get-departments");
+    const departments = await depResponse.json();
 
-    document.getElementById('modalPcId').value = pcData.pcid || '';
-    document.getElementById('modalPcName').value = pcData.pcname || '';
-    document.getElementById('modalStatus').value = pcData.status || 'Active';
-    document.getElementById('modalNote').value = pcData.note || '';
-    document.getElementById('modalLocation').value = pcData.location || '';
-    document.getElementById('modalQuantity').value = pcData.quantity || 1;
-    document.getElementById('modalAcquisitionCost').value = pcData.acquisition_cost || '';
-    document.getElementById('modalDateAcquired').value = pcData.date_acquired || '';
-    document.getElementById('modalAccountable').value = pcData.accountable || '';
-    document.getElementById('modalSerialNo').value = pcData.serial_no || '';
-
-    if (pcData.department_id) {
-      [...deptSelect.options].forEach(opt => opt.selected = (String(opt.value) === String(pcData.department_id)));
-    }
-
-    const fields = ['monitor','motherboard','ram','storage','gpu','psu','casing','other_parts'];
-    fields.forEach(f => {
-      document.getElementById(f).value = pcData[f] || '';
+    // Clear and repopulate dropdown
+    departmentSelect.innerHTML = '<option value="">Select Department</option>';
+    departments.forEach(dep => {
+      const opt = document.createElement("option");
+      opt.value = dep.department_id;
+      opt.textContent = dep.department_name;
+      departmentSelect.appendChild(opt);
     });
-  } else {
-    title.textContent = "Add New PC";
-    form.action = "{{ url_for('manage_pc_bp.add_pc_route') }}";
-    submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add PC';
-    batchSection.classList.remove('hidden');
-    deptSelect.selectedIndex = 0;
+  } catch (err) {
+    console.error("❌ Failed to load departments:", err);
   }
 
+  // 🟦 EDIT MODE
+  if (pcData) {
+    modalTitle.textContent = "Edit PC";
+    form.action = "{{ url_for('manage_pc_bp.update_pcinfofull') }}";
+    submitBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Update PC';
+
+    const fieldMap = {
+      pcid: 'modalPcId',
+      pcname: 'modalPcName',
+      department_id: 'modalDepartment',
+      location: 'modalLocation',
+      quantity: 'modalQuantity',
+      acquisition_cost: 'modalAcquisitionCost',
+      date_acquired: 'modalDateAcquired',
+      accountable: 'modalAccountable',
+      serial_no: 'modalSerialNo',
+      municipal_serial_no: 'modalMunicipalSerialNo',
+      status: 'modalStatus',
+      note: 'modalNote',
+      monitor: 'monitor',
+      motherboard: 'motherboard',
+      ram: 'ram',
+      storage: 'storage',
+      gpu: 'gpu',
+      psu: 'psu',
+      casing: 'casing',
+      other_parts: 'other_parts'
+    };
+
+    for (const [key, inputId] of Object.entries(fieldMap)) {
+      const element = document.getElementById(inputId);
+      if (element) {
+        let value = pcData[key] ?? '';
+        if (key === 'date_acquired' && value) {
+          const dateObj = new Date(value);
+          value = dateObj.toISOString().split('T')[0];
+        }
+        element.value = value;
+      }
+    }
+
+    // 🧩 Select department by ID
+    if (pcData.department_id) {
+      departmentSelect.value = pcData.department_id;
+    }
+
+  } else {
+    // 🟩 ADD MODE
+    modalTitle.textContent = "Add PC";
+    form.action = "{{ url_for('manage_pc_bp.add_pcinfofull') }}";
+    submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add PC';
+  }
+
+  // 🪟 Show modal
   modal.classList.remove('hidden');
-  setTimeout(() => content.classList.add('scale-100'), 50);
+  setTimeout(() => document.getElementById('pcModalContent').classList.add('scale-100'), 50);
   lucide.createIcons();
 }
-
-function closePcModal() {
-  document.getElementById('pcModal').classList.add('hidden');
-}
-
-document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
 </script>
+
+

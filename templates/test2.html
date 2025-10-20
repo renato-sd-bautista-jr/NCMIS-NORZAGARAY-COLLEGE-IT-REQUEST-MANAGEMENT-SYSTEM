@@ -9,36 +9,7 @@
 </head>
 <body class="flex bg-gray-100 text-gray-800 min-h-screen">
 
-  <!-- SIDEBAR -->
-  <aside class="fixed top-0 left-0 h-full w-64 bg-[#1E293B] text-gray-100 flex flex-col justify-between shadow-xl z-50">
-    <div>
-      <div class="mb-8 text-center border-b border-blue-500 pb-5 mt-4">
-        <h4 class="text-3xl font-extrabold tracking-wide text-white">NCMIS</h4>
-        <span class="text-blue-300 text-sm">Admin Dashboard</span>
-      </div>
-
-      <nav class="flex flex-col gap-2 px-4">
-        <button onclick="showPage('homePage')" class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="home" class="w-5 h-5 mr-3"></i> Home
-        </button>
-
-        <button onclick="showPage('inventoryPage')" class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
-        </button>
-
-        <button onclick="showPage('reportsPage')" class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 hover:bg-blue-600/30 hover:text-white">
-          <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
-        </button>
-      </nav>
-    </div>
-
-    <div class="p-4">
-      <button id="logoutBtn"
-        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
-        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
-      </button>
-    </div>
-  </aside>
+  {% include 'sidebar.html' %}
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 ml-64 p-8 space-y-8 overflow-y-auto">

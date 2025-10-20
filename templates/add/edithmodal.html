@@ -56,6 +56,18 @@
         </select>
       </div>
 
+      <!-- Status -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Status</label>
+        <select name="status" id="status" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+          <option value="Available">Available</option>
+          <option value="In Use">In Use</option>
+          <option value="Repair">Repair</option>
+          <option value="Disposed">Disposed</option>
+        </select>
+      </div>
+
       <!-- Buttons -->
       <div class="flex justify-end gap-3 mt-6">
         <button type="button" onclick="closeItemModal()"
@@ -78,6 +90,7 @@ function openItemModal(itemData = null) {
   const form = document.getElementById('itemForm');
   const submitBtn = document.getElementById('itemSubmitBtn');
   const deptSelect = document.getElementById('department_id');
+  const statusSelect = document.getElementById('status');
 
   form.reset();
 
@@ -98,12 +111,17 @@ function openItemModal(itemData = null) {
       [...deptSelect.options].forEach(opt => opt.selected = (String(opt.value) === String(itemData.department_id)));
     }
 
+    if (itemData.status) {
+      [...statusSelect.options].forEach(opt => opt.selected = (opt.value === itemData.status));
+    }
+
   } else {
     // --- ADD MODE ---
     title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
     form.action = "{{ url_for('manage_item_bp.add_device') }}";
     submitBtn.textContent = "Add Device";
     deptSelect.selectedIndex = 0;
+    statusSelect.value = "Available";
   }
 
   lucide.createIcons();

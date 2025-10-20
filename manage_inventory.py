@@ -1,0 +1,124 @@
+from flask import Blueprint, render_template, flash, jsonify
+from db import get_db_connection
+import pymysql
+
+manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='templates')
+
+
+@manage_inventory_bp.route('/manage_inventory')
+def inventory_load():
+    """Load the Manage Inventory page with PCs and Items."""
+    
+    pc_list = get_pc_list()
+    item_list = get_item_list()
+
+    if pc_list is None or item_list is None:
+        flash("Error loading data. Please try again.", "danger")
+
+    return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
+
+
+def get_pc_list():
+    """Fetch all PCs with department and part details from pcinfofull."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    p.pcid,
+                    p.pcname,
+                    p.department_id,
+                    d.department_name,
+                    p.status,
+                    p.note,
+                    p.monitor,
+                    p.motherboard,
+                    p.ram,
+                    p.storage,
+                    p.gpu,
+                    p.psu,
+                    p.casing,
+                    p.other_parts
+                FROM pcinfofull p
+                LEFT JOIN departments d ON p.department_id = d.department_id
+                ORDER BY p.pcid
+            """)
+            return cur.fetchall()
+    except Exception as e:
+        print(f"❌ Error fetching PC list: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+def get_item_list():
+    """Fetch all devices from devices_full (for Manage Items section)."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    df.accession_id AS id,
+                    df.item_name AS name,
+                    df.device_type AS category,
+                    df.quantity,
+                    df.brand_model,
+                    df.serial_number,
+                    d.department_name,
+                    df.status
+                FROM devices_full df
+                LEFT JOIN departments d ON df.department_id = d.department_id
+                ORDER BY df.accession_id
+            """)
+            return cur.fetchall()
+    except Exception as e:
+        print(f"❌ Error fetching item list: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+
+@manage_inventory_bp.route('/manage_inventory/get-pc-by-id/<int:pcid>')
+def get_pc_by_id(pcid):
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    p.pcid,
+                    p.pcname,
+                    p.department_id,
+                    d.department_name,
+                    p.location,
+                    p.quantity,
+                    p.acquisition_cost,
+                    p.date_acquired,
+                    p.accountable,
+                    p.serial_no,
+                    p.municipal_serial_no,
+                    p.status,
+                    p.note,
+                    p.monitor,
+                    p.motherboard,
+                    p.ram,
+                    p.storage,
+                    p.gpu,
+                    p.psu,
+                    p.casing,
+                    p.other_parts
+                FROM pcinfofull p
+                LEFT JOIN departments d ON p.department_id = d.department_id
+                WHERE p.pcid = %s
+            """, (pcid,))
+            pc = cur.fetchone()
+
+            if not pc:
+                return {"error": "PC not found"}, 404
+
+            return pc
+    except Exception as e:
+        print(f"❌ Error fetching PC by ID: {e}")
+        return {"error": "Database error"}, 500
+    finally:
+        conn.close()

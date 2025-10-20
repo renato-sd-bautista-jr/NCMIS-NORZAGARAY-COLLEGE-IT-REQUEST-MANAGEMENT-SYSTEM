@@ -9,6 +9,8 @@ from manage_item import manage_item_bp
 from report import report_bp
 from manage_pc import manage_pc_bp
 from manage_department import manage_department_bp
+from manage_inventory import manage_inventory_bp
+
 
 app = Flask(__name__)
 app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
@@ -21,6 +23,7 @@ app.register_blueprint(manage_item_bp)
 app.register_blueprint(manage_user_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(manage_department_bp)
+app.register_blueprint(manage_inventory_bp)
 
 
 

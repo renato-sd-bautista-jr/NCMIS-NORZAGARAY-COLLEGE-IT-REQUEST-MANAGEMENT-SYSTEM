@@ -1,57 +1,65 @@
-from flask import request, render_template, redirect, url_for, flash, Blueprint
+from flask import request, render_template, redirect, url_for, flash, Blueprint,jsonify
 from db import get_db_connection
 import pymysql
 import uuid
 manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 
-@manage_pc_bp.route('/inventory')
-def inventory():
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            # Load departments
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            departments = cur.fetchall()
+# @manage_pc_bp.route('/inventory')
+# def inventory():
+#     conn = get_db_connection()
+#     try:
+#         with conn.cursor(pymysql.cursors.DictCursor) as cur:
+#             # Load departments
+#             cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
+#             departments = cur.fetchall()
 
-            # Load PCs with joined info
-            cur.execute("""
-                SELECT 
-                    p.pcid,
-                    p.pcname,
-                    p.department_id,
-                    d.department_name,
-                    p.status,
-                    p.note,
-                    pa.monitor,
-                    pa.motherboard,
-                    pa.ram,
-                    pa.storage,
-                    pa.gpu,
-                    pa.psu,
-                    pa.casing,
-                    pa.other_parts
-                FROM pcs p
-                LEFT JOIN departments d ON p.department_id = d.department_id
-                LEFT JOIN pcparts pa ON p.pcid = pa.pcid
-                ORDER BY p.pcid ASC
-            """)
-            pc_list = cur.fetchall()
+#             # Load PCs with joined info
+#             cur.execute("""
+#                 SELECT 
+#                     p.pcid,
+#                     p.pcname,
+#                     p.department_id,
+#                     d.department_name,
+#                     p.status,
+#                     p.note,
+#                     pa.monitor,
+#                     pa.motherboard,
+#                     pa.ram,
+#                     pa.storage,
+#                     pa.gpu,
+#                     pa.psu,
+#                     pa.casing,
+#                     pa.other_parts
+#                 FROM pcs p
+#                 LEFT JOIN departments d ON p.department_id = d.department_id
+#                 LEFT JOIN pcparts pa ON p.pcid = pa.pcid
+#                 ORDER BY p.pcid ASC
+#             """)
+#             pc_list = cur.fetchall()
 
-        # Debugging info (see your terminal if it still redirects)
-        print("✅ Loaded PCs:", pc_list)
-        print("✅ Loaded Departments:", departments)
+#         # Debugging info (see your terminal if it still redirects)
+#         print("✅ Loaded PCs:", pc_list)
+#         print("✅ Loaded Departments:", departments)
 
-        return render_template('inventory.html', pc_list=pc_list, departments=departments)
+#         return render_template('test.html', pc_list=pc_list, departments=departments)
 
-    except Exception as e:
-        print("❌ Error loading inventory:", e)
-        flash(f"Error loading inventory: {e}", "danger")
-        # Temporarily comment out redirect for debugging
-        # return redirect(url_for('dashboard_bp.dashboard_load'))
-        return f"<h3>Error loading inventory: {e}</h3>", 500
+#     except Exception as e:
+#         print("❌ Error loading inventory:", e)
+#         flash(f"Error loading inventory: {e}", "danger")
+#         # Temporarily comment out redirect for debugging
+#         # return redirect(url_for('dashboard_bp.dashboard_load'))
+#         return f"<h3>Error loading inventory: {e}</h3>", 500
 
-    finally:
-        conn.close()
+#     finally:
+#         conn.close()
+
+
+
+# @manage_pc_bp.route('/inventory')
+# def inventory():
+#     return render_template('test.html')
+
+   
 
 # ✅ Display all PCs
 @manage_pc_bp.route('/get-pc-inventory')
@@ -84,35 +92,6 @@ def get_pc_inventory():
     return pcs
 
 # ✅ Get specific PC details
-
-@manage_pc_bp.route('/get-pc-by-id/<string:pcid>')
-def get_pc_by_id(pcid):
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    p.*,
-                    dep.department_name,
-                    pa.monitor,
-                    pa.motherboard,
-                    pa.ram,
-                    pa.storage,
-                    pa.gpu,
-                    pa.psu,
-                    pa.casing,
-                    pa.other_parts
-                FROM pcs p
-                LEFT JOIN departments dep ON p.department_id = dep.department_id
-                LEFT JOIN pcparts pa ON p.pcid = pa.pcid
-                WHERE p.pcid = %s
-            """, (pcid,))
-            return cur.fetchone()
-    except Exception as e:
-        print(f"Error fetching PC by ID: {e}")
-        return None
-    finally:
-        conn.close()
 
 
 
@@ -164,7 +143,7 @@ def add_pc_route():
     finally:
         conn.close()
 
-    return redirect(url_for('manage_pc_bp.manage_pc_page'))
+    return redirect(url_for('manage_inventory.inventory_load'))
 
 
 
@@ -204,7 +183,7 @@ def update_pc_with_parts():
 
     conn.close()
     flash("PC updated successfully!", "success")
-    return redirect(url_for('manage_pc_bp.manage_pc_page'))
+    return redirect(url_for('manage_inventory.inventory_load'))
 
 
 @manage_pc_bp.route('/add-pc-single', methods=['POST'])
@@ -292,6 +271,56 @@ def manage_pc_page():
                 cur.execute("SELECT * FROM pcparts WHERE pcid = %s", (pc["pcid"],))
                 pc["parts"] = cur.fetchall()
 
-        return redirect(url_for('manage_pc_bp.inventory'))
+        return redirect(url_for('manage_inventory.inventory_load'))
     finally:
         conn.close()
+
+
+@manage_pc_bp.route('/add-pcinfofull', methods=['POST'])
+def add_pcinfofull():
+    conn = get_db_connection()
+    data = request.form
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO pcinfofull 
+                (pcname, department_id, location, quantity, acquisition_cost, date_acquired, accountable, serial_no, municipal_serial_no, status, note,
+                 monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                data['pcname'], data['department_id'], data['location'], data['quantity'],
+                data['acquisition_cost'], data['date_acquired'], data['accountable'],
+                data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],
+                data['monitor'], data['motherboard'], data['ram'], data['storage'],
+                data['gpu'], data['psu'], data['casing'], data['other_parts']
+            ))
+            conn.commit()
+        flash("PC added successfully!", "success")
+    finally:
+        conn.close()
+    return redirect(url_for('manage_pc_bp.manage_pc_page'))
+
+@manage_pc_bp.route('/update-pcinfofull', methods=['POST'])
+def update_pcinfofull():
+    conn = get_db_connection()
+    data = request.form
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE pcinfofull SET
+                    pcname=%s, department_id=%s, location=%s, quantity=%s, acquisition_cost=%s, date_acquired=%s,
+                    accountable=%s, serial_no=%s, municipal_serial_no=%s, status=%s, note=%s,
+                    monitor=%s, motherboard=%s, ram=%s, storage=%s, gpu=%s, psu=%s, casing=%s, other_parts=%s
+                WHERE pcid=%s
+            """, (
+                data['pcname'], data['department_id'], data['location'], data['quantity'],
+                data['acquisition_cost'], data['date_acquired'], data['accountable'],
+                data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],
+                data['monitor'], data['motherboard'], data['ram'], data['storage'],
+                data['gpu'], data['psu'], data['casing'], data['other_parts'], data['pcid']
+            ))
+            conn.commit()
+        flash("PC updated successfully!", "success")
+    finally:
+        conn.close()
+    return redirect(url_for('manage_inventory.inventory_load'))
