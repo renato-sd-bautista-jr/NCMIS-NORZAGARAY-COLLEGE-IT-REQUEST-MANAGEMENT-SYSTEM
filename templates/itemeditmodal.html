@@ -1,0 +1,158 @@
+  <!-- Item Add/Edit Modal -->
+  <div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200">
+      <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
+        <i data-lucide="plus-circle"></i>
+        <span>Add Device</span>
+      </h3>
+
+      <form id="itemForm" method="post" action="{{ url_for('manage_item_bp.add_device') }}" class="space-y-4">
+        <input type="hidden" name="accession_id" id="accession_id">
+
+        <!-- Device Name -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Device Name</label>
+          <input type="text" name="item_name" id="item_name" required
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        </div>
+
+        <!-- Brand / Model -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Brand / Model</label>
+          <input type="text" name="brand_model" id="brand_model"
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        </div>
+
+        <!-- Serial Number -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Serial Number</label>
+          <input type="text" name="serial_number" id="serial_number"
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        </div>
+
+        <!-- Quantity -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Quantity</label>
+          <input type="number" name="quantity" id="quantity" value="1" readonly
+            class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed text-black">
+        </div>
+
+        <!-- Device Type -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Device Type</label>
+          <input type="text" name="device_type" id="device_type"
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        </div>
+
+        <!-- Department -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Department</label>
+          <select name="department_id" id="department_id" required
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black" >
+            <option value="">Select Department</option>
+            {% for dept in departments %}
+              <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Status</label>
+          <select name="status" id="status" required
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+            <option value="Available">Available</option>
+            <option value="In Use">In Use</option>
+            <option value="Repair">Repair</option>
+            <option value="Disposed">Disposed</option>
+          </select>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="closeItemModal()"
+            class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm ">
+            Cancel
+          </button>
+          <button id="itemSubmitBtn" type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
+            Add Device
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+async function openItemModal(itemData = null) {
+  const modal = document.getElementById('itemModal');
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('itemForm');
+  const submitBtn = document.getElementById('itemSubmitBtn');
+  const deptSelect = document.getElementById('department_id');
+  const statusSelect = document.getElementById('status');
+
+  form.reset();
+
+  // ✅ Fetch updated departments list from backend
+  try {
+    const depRes = await fetch('/get-departments');
+    if (!depRes.ok) throw new Error(`HTTP ${depRes.status}`);
+    const departments = await depRes.json();
+
+    // Rebuild the department dropdown
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    departments.forEach(dep => {
+      const opt = document.createElement('option');
+      opt.value = dep.department_id;
+      opt.textContent = dep.department_name;
+      deptSelect.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('❌ Error loading departments:', err);
+    deptSelect.innerHTML = '<option value="">Error loading departments</option>';
+  }
+
+  // 🟦 EDIT MODE
+  if (itemData) {
+    title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
+    form.action = "{{ url_for('manage_item_bp.update_device') }}";
+    submitBtn.textContent = "Update Device";
+
+    document.getElementById('accession_id').value = itemData.accession_id || '';
+    document.getElementById('item_name').value = itemData.name || '';
+    document.getElementById('brand_model').value = itemData.brand_model || '';
+    document.getElementById('serial_number').value = itemData.serial_number || '';
+    document.getElementById('quantity').value = itemData.quantity || 1;
+    document.getElementById('device_type').value = itemData.category || '';
+
+    // ✅ Try selecting by department_id, fallback by name
+    if (itemData.department_id) {
+      deptSelect.value = itemData.department_id;
+    } else if (itemData.department_name) {
+      const match = Array.from(deptSelect.options).find(
+        opt => opt.text === itemData.department_name
+      );
+      if (match) deptSelect.value = match.value;
+    }
+
+    if (itemData.status) statusSelect.value = itemData.status;
+
+  } else {
+    // 🟩 ADD MODE
+    title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
+    form.action = "{{ url_for('manage_item_bp.add_device') }}";
+    submitBtn.textContent = "Add Device";
+    deptSelect.selectedIndex = 0;
+    statusSelect.value = "Available";
+  }
+
+  lucide.createIcons();
+  modal.classList.remove('hidden');
+}
+
+function closeItemModal() {
+  document.getElementById('itemModal').classList.add('hidden');
+}
+</script>
+

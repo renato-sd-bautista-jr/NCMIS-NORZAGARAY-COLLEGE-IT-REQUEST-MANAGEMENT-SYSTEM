@@ -16,6 +16,23 @@ def inventory_load():
         flash("Error loading data. Please try again.", "danger")
 
     return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
+@manage_inventory_bp.route('/manage_inventory/get-departments')
+def get_departments():
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT department_id, department_name 
+                FROM departments 
+                ORDER BY department_name
+            """)
+            departments = cur.fetchall()
+        return jsonify(departments)
+    except Exception as e:
+        print(f"❌ Error fetching departments: {e}")
+        return jsonify([]), 500
+    finally:
+        conn.close()
 
 
 def get_pc_list():
@@ -76,11 +93,44 @@ def get_item_list():
         return []
     finally:
         conn.close()
+@manage_inventory_bp.route('/manage_inventory/get-item-by-id/<int:item_id>')
+def get_item_by_id(item_id):
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    df.accession_id AS id,
+                    df.item_name AS name,
+                    df.brand_model,
+                    df.serial_number,
+                    df.quantity,
+                    df.device_type AS category,
+                    df.status,
+                    df.department_id,
+                    dep.department_name
+                FROM devices_full df
+                LEFT JOIN departments dep 
+                    ON df.department_id = dep.department_id
+                WHERE df.accession_id = %s
+            """, (item_id,))
+            item = cur.fetchone()
 
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+
+        return jsonify(item)
+    except Exception as e:
+        print(f"❌ Error fetching item by ID: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        conn.close()
 
 
 @manage_inventory_bp.route('/manage_inventory/get-pc-by-id/<int:pcid>')
 def get_pc_by_id(pcid):
+
+    
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:

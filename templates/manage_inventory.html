@@ -29,7 +29,7 @@
         <div class="flex items-center gap-2">
           {% include 'filtermodal.html' %}
           {% include 'pceditmodal.html' %}
-          {% include 'add/edithmodal.html' %}
+          {% include 'itemeditmodal.html' %}
         </div>
 
       <div class="w-6"></div>
@@ -131,7 +131,8 @@
                   <td class="px-4 py-2 border-b">{{ item.category }}</td>
                   <td class="px-4 py-2 border-b">{{ item.quantity }}</td>
                   <td class="px-4 py-2 border-b flex gap-2">
-                    <button onclick='openItemModal({{ item|tojson|safe }})' class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+                    <button onclick="openItemModalById({{ item.id }})"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
                       Edit
                     </button>
                     <form action="{{ url_for('manage_item_bp.delete_item', id=item.id) }}" method="post" onsubmit="return confirm('Delete this item?');">
@@ -167,47 +168,100 @@
 
   <script>
     
-    function openItemModal(itemData = null) {
+async function openItemModal(itemData = null) {
   const modal = document.getElementById('itemModal');
-  const content = document.getElementById('itemModalContent');
   const title = document.getElementById('modalTitle');
   const form = document.getElementById('itemForm');
-  const submitBtn = document.getElementById('modalSubmitBtn');
+  const submitBtn = document.getElementById('itemSubmitBtn');
+  const deptSelect = document.getElementById('department_id');
+  const statusSelect = document.getElementById('status');
 
   form.reset();
 
-  if (itemData) {
-    // Edit Mode
-    title.textContent = "Edit Item";
-    form.action = "{{ url_for('manage_item_bp.edit_item', id=0) }}".replace('0', itemData.accession_id);
-    submitBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Update Item';
+  // ✅ Fetch updated department list
+  try {
+    const depRes = await fetch('/get-departments');
+    if (!depRes.ok) throw new Error(`HTTP ${depRes.status}`);
+    const departments = await depRes.json();
 
-    document.getElementById('modalItemName').value = itemData.item_name || '';
-    document.getElementById('modalBrandModel').value = itemData.brand_model || '';
-    document.getElementById('modalSerialNumber').value = itemData.serial_number || '';
-    document.getElementById('modalQuantity').value = itemData.quantity || 1;
-    document.getElementById('modalDeviceType').value = itemData.device_type || '';
-    document.getElementById('modalStatus').value = itemData.unit_status || '';
-    document.getElementById('modalDepartment').value = itemData.department_id || '';
-  } else {
-    // Add Mode
-    title.textContent = "Add New Item";
-    form.action = "{{ url_for('manage_item_bp.add_device') }}";
-    submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add Item';
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    departments.forEach(dep => {
+      const opt = document.createElement('option');
+      opt.value = dep.department_id;
+      opt.textContent = dep.department_name;
+      deptSelect.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('❌ Error loading departments:', err);
+    deptSelect.innerHTML = '<option value="">Error loading departments</option>';
   }
 
-  modal.classList.remove('hidden');
-  setTimeout(() => content.classList.add('scale-100'), 50);
+  // 🟦 EDIT MODE
+  if (itemData) {
+    title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
+    form.action = "{{ url_for('manage_item_bp.update_device') }}";
+    submitBtn.textContent = "Update Device";
+
+    document.getElementById('accession_id').value = itemData.accession_id || '';
+    document.getElementById('item_name').value = itemData.name || '';
+    document.getElementById('brand_model').value = itemData.brand_model || '';
+    document.getElementById('serial_number').value = itemData.serial_number || '';
+    document.getElementById('quantity').value = itemData.quantity || 1;
+    document.getElementById('device_type').value = itemData.category || '';
+
+    if (itemData.department_id) {
+      deptSelect.value = itemData.department_id;
+    } else if (itemData.department_name) {
+      const match = Array.from(deptSelect.options).find(opt => opt.text === itemData.department_name);
+      if (match) deptSelect.value = match.value;
+    }
+
+    if (itemData.status) statusSelect.value = itemData.status;
+
+  } else {
+    // 🟩 ADD MODE
+    title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
+    form.action = "{{ url_for('manage_item_bp.add_device') }}";
+    submitBtn.textContent = "Add Device";
+    deptSelect.selectedIndex = 0;
+    statusSelect.value = "Available";
+  }
+
   lucide.createIcons();
+  modal.classList.remove('hidden');
 }
 
 function closeItemModal() {
-  const modal = document.getElementById('itemModal');
-  const content = document.getElementById('itemModalContent');
-  content.classList.remove('scale-100');
-  setTimeout(() => modal.classList.add('hidden'), 150);
+  document.getElementById('itemModal').classList.add('hidden');
 }
 
+async function openItemModalById(itemId) {
+  console.log('Fetching Item ID:', itemId);
+  try {
+    const res = await fetch(`/manage_inventory/get-item-by-id/${itemId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const item = await res.json();
+    console.log('✅ Item data received:', item);
+
+    const itemData = {
+      accession_id: item.id,
+      name: item.name,
+      brand_model: item.brand_model,
+      serial_number: item.serial_number,
+      quantity: item.quantity,
+      category: item.category,
+      status: item.status,
+      department_id: item.department_id,
+      department_name: item.department_name
+    };
+
+    openItemModal(itemData);
+  } catch (err) {
+    console.error('❌ Error fetching item data:', err);
+    alert('Failed to load item data.');
+  }
+}
     function showSection(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
@@ -271,6 +325,7 @@ async function openPcModalById(pcid) {
     alert('Failed to load PC data.');
   }
 }
+
   </script>
 </body>
 </html>

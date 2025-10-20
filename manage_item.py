@@ -4,12 +4,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
 
-@manage_item_bp.route('/manageitems')
-def manage_items_page():
-    """Render the Manage Items page with devices and departments."""
-    departments = get_departments()
-    items = get_devices_with_details()
-    return render_template('manage_item.html', departments=departments, items=items)
 
 @manage_item_bp.route('/get-devices-with-details')
 def get_devices_with_details():
@@ -93,13 +87,13 @@ def add_device():
         print(f"✅ QR saved at: {qr_path}")
 
         flash("Device added successfully with QR code!", "success")
-        return redirect(url_for('manage_item_bp.manage_items_page'))
+        return redirect(url_for('inventory_bp.inventory_page'))
 
     except Exception as e:
         conn.rollback()
         print(f"❌ Error adding device: {str(e)}")
         flash("Error adding device. Please try again.", "danger")
-        return redirect(url_for('manage_item_bp.manage_items_page'))
+        return redirect(url_for('inventory_bp.inventory_page'))
     finally:
         conn.close()
 
@@ -115,14 +109,13 @@ def delete_item(id):
 
             if not result:
                 flash("Item not found.", "danger")
-                return redirect(url_for('manage_item_bp.manage_items_page'))
-
+                return redirect(url_for('inventory_bp.inventory_page'))
             # Delete the record
             cur.execute("DELETE FROM devices_full WHERE accession_id = %s", (id,))
             conn.commit()
 
         flash("Device deleted successfully!", "success")
-        return redirect(url_for('manage_item_bp.manage_items_page'))
+        return redirect(url_for('inventory_bp.inventory_page'))
 
     except Exception as e:
         conn.rollback()
@@ -170,7 +163,7 @@ def edit_item(id):
     finally:
         conn.close()
 
-    return redirect(url_for('manage_item_bp.manage_items_page'))
+    return redirect(url_for('inventory_bp.inventory_page'))
 
 
 @manage_item_bp.route('/update-device', methods=['POST'])
@@ -188,7 +181,7 @@ def update_device():
 
         if not accession_id:
             flash("Missing device ID.", "danger")
-            return redirect(url_for('manage_item_bp.manage_items_page'))
+            return redirect(url_for('inventory_bp.inventory_page'))
 
         with conn.cursor() as cur:
             cur.execute("""
@@ -213,13 +206,49 @@ def update_device():
             conn.commit()
 
         flash("Device updated successfully!", "success")
-        return redirect(url_for('manage_item_bp.manage_items_page'))
+        return redirect(url_for('inventory_bp.inventory_page'))
 
     except Exception as e:
         conn.rollback()
         print(f"❌ Error updating device: {str(e)}")
         flash("Error updating device. Please try again.", "danger")
-        return redirect(url_for('manage_item_bp.manage_items_page'))
+        return redirect(url_for('manage_inventory.inventory_load'))
+
+    finally:
+        conn.close()
+@manage_item_bp.route('/get-item-by-id/<int:item_id>')
+def get_item_by_id(item_id):
+    """Fetch a single item (device) by its accession_id with department details."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    df.accession_id AS id,
+                    df.item_name AS name,
+                    df.brand_model,
+                    df.serial_number,
+                    df.quantity,
+                    df.device_type AS category,
+                    df.status,
+                    df.note,
+                    dep.department_id,
+                    dep.department_name
+                FROM devices_full df
+                LEFT JOIN departments dep 
+                    ON df.department_id = dep.department_id
+                WHERE df.accession_id = %s
+            """, (item_id,))
+            item = cur.fetchone()
+
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+
+        return jsonify(item)
+
+    except Exception as e:
+        print(f"❌ Error fetching item by ID: {e}")
+        return jsonify({'error': 'Database error'}), 500
 
     finally:
         conn.close()
