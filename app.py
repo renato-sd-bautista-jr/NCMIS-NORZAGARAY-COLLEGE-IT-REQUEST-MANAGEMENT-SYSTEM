@@ -10,6 +10,8 @@ from report import report_bp
 from manage_pc import manage_pc_bp
 from manage_department import manage_department_bp
 from manage_inventory import manage_inventory_bp
+from notification import notification_bp
+
 
 
 app = Flask(__name__)
@@ -24,6 +26,7 @@ app.register_blueprint(manage_user_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(manage_department_bp)
 app.register_blueprint(manage_inventory_bp)
+app.register_blueprint(notification_bp)
 
 
 

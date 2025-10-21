@@ -54,6 +54,15 @@
 
     <!-- PAGE CONTENT BELOW NAVBAR -->
     <div class="space-y-8">
+      <!-- ACTION BAR -->
+<div class="flex justify-end mb-4">
+  <button 
+    id="addButton"
+    onclick="handleAddButtonClick()" 
+    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+    Add PC
+  </button>
+</div>
 
       <!-- INVENTORY SECTION -->
       <section id="inventorySection">
@@ -61,6 +70,7 @@
           <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
             <i data-lucide="cpu" class="w-6 h-6"></i> Manage PC
           </h3>
+          
 
           {% if pc_list|length == 0 %}
           <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No PCs found.</div>
@@ -262,10 +272,32 @@ async function openItemModalById(itemId) {
     alert('Failed to load item data.');
   }
 }
-    function showSection(id) {
-      document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-    }
+    // --- SECTION SWITCHING & DYNAMIC ADD BUTTON LOGIC ---
+let currentSection = "pc"; // default view is Manage PC
+
+function showSection(id) {
+  document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+
+  const addBtn = document.getElementById('addButton');
+  
+  if (id === 'inventorySection') {
+    currentSection = 'pc';
+    addBtn.textContent = 'Add PC';
+  } else if (id === 'itemsSection') {
+    currentSection = 'item';
+    addBtn.textContent = 'Add Device';
+  }
+}
+
+function handleAddButtonClick() {
+  if (currentSection === 'pc') {
+    openPcModal(); // opens your existing Add PC modal
+  } else if (currentSection === 'item') {
+    openItemModal(); // opens your existing Add Device modal
+  }
+}
+
 
     // Highlight active navigation
     function setActiveNav(btn) {

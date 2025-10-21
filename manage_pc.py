@@ -1,7 +1,9 @@
-from flask import request, render_template, redirect, url_for, flash, Blueprint,jsonify
+from flask import request, render_template, redirect, url_for, flash, Blueprint,jsonify,session
 from db import get_db_connection
 import pymysql
 import uuid
+from notification import add_notification
+
 manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 
 # @manage_pc_bp.route('/inventory')
@@ -97,54 +99,71 @@ def get_pc_inventory():
 
 @manage_pc_bp.route('/add-pc', methods=['POST'])
 def add_pc_route():
+    # Ensure only logged-in admins can add PCs
+    if 'user_id' not in session or not session.get('is_admin'):
+        flash("You must be logged in as admin to perform this action.", "danger")
+        return redirect(url_for('login_bp.login'))
+
     conn = get_db_connection()
     form = request.form
 
     try:
         with conn.cursor() as cur:
-            # ✅ Generate a unique PCID string (like "PC-uuid4")
+            # Generate unique PC ID
+            import uuid
             pcid = f"PC-{uuid.uuid4().hex[:8].upper()}"
 
-            pcname = form['pcname']
-            department_id = form['department_id']
-            status = form['status']
-            note = form['note']
+            # PC basic info
+            pcname = form.get('pcname')
+            department_id = form.get('department_id')
+            status = form.get('status')
+            note = form.get('note')
 
-            monitor = form['monitor']
-            motherboard = form['motherboard']
-            ram = form['ram']
-            storage = form['storage']
-            gpu = form['gpu']
-            psu = form['psu']
-            casing = form['casing']
-            other_parts = form['other_parts']
+            # PC parts
+            monitor = form.get('monitor')
+            motherboard = form.get('motherboard')
+            ram = form.get('ram')
+            storage = form.get('storage')
+            gpu = form.get('gpu')
+            psu = form.get('psu')
+            casing = form.get('casing')
+            other_parts = form.get('other_parts')
 
-            # ✅ Insert into pcs first
+            # Insert into pcs table
             cur.execute("""
                 INSERT INTO pcs (pcid, pcname, department_id, status, note)
                 VALUES (%s, %s, %s, %s, %s)
             """, (pcid, pcname, department_id, status, note))
 
-            # ✅ Then insert into pcparts using the same pcid
+            # Insert into pcparts table
             cur.execute("""
                 INSERT INTO pcparts (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (pcid, monitor, motherboard, ram, storage, gpu, psu, casing, other_parts))
 
+            # Commit inserts
             conn.commit()
 
-        flash("PC and parts added successfully!", "success")
+            # Log notification
+            user_id = session['user_id']
+            action = f"Added new PC: {pcname} ({pcid})"
+            try:
+                add_notification(user_id, action, target_type="PC", target_id=pcid)
+                print("✅ Notification logged")
+            except Exception as e:
+                print(f"❌ Failed to log notification: {e}")
+
+            flash("PC and parts added successfully!", "success")
 
     except Exception as e:
         conn.rollback()
-        print(f"Error adding PC: {e}")
+        print(f"❌ Error adding PC: {e}")
         flash(f"Error adding PC: {str(e)}", "danger")
 
     finally:
         conn.close()
 
     return redirect(url_for('manage_inventory.inventory_load'))
-
 
 
 @manage_pc_bp.route('/update-pc-with-parts', methods=['POST'])
@@ -278,10 +297,16 @@ def manage_pc_page():
 
 @manage_pc_bp.route('/add-pcinfofull', methods=['POST'])
 def add_pcinfofull():
+    if 'user_id' not in session or not session.get('is_admin'):
+        flash("You must be logged in as admin to perform this action.", "warning")
+        return redirect(url_for('login_bp.login'))
+
     conn = get_db_connection()
     data = request.form
+
     try:
         with conn.cursor() as cur:
+            # Insert PC info
             cur.execute("""
                 INSERT INTO pcinfofull 
                 (pcname, department_id, location, quantity, acquisition_cost, date_acquired, accountable, serial_no, municipal_serial_no, status, note,
@@ -294,11 +319,29 @@ def add_pcinfofull():
                 data['monitor'], data['motherboard'], data['ram'], data['storage'],
                 data['gpu'], data['psu'], data['casing'], data['other_parts']
             ))
+
             conn.commit()
+
+        # ✅ Log notification
+        user_id = session['user_id']
+        action = f"Added new PC: {data['pcname']} (Serial: {data['serial_no']})"
+        try:
+            add_notification(user_id, action, target_type="PC", target_id=data['serial_no'])
+        except Exception as e:
+            print(f"❌ Notification error: {e}")
+
         flash("PC added successfully!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error adding PC: {e}")
+        flash(f"Error adding PC: {str(e)}", "danger")
+
     finally:
         conn.close()
+
     return redirect(url_for('manage_pc_bp.manage_pc_page'))
+
 
 @manage_pc_bp.route('/update-pcinfofull', methods=['POST'])
 def update_pcinfofull():

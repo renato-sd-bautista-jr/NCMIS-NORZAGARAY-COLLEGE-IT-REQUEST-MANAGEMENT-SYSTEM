@@ -87,13 +87,13 @@ def add_device():
         print(f"✅ QR saved at: {qr_path}")
 
         flash("Device added successfully with QR code!", "success")
-        return redirect(url_for('inventory_bp.inventory_page'))
+        return redirect(url_for('manage_inventory.inventory_load'))
 
     except Exception as e:
         conn.rollback()
         print(f"❌ Error adding device: {str(e)}")
         flash("Error adding device. Please try again.", "danger")
-        return redirect(url_for('inventory_bp.inventory_page'))
+        return redirect(url_for('manage_inventory.inventory_load'))
     finally:
         conn.close()
 
@@ -109,13 +109,13 @@ def delete_item(id):
 
             if not result:
                 flash("Item not found.", "danger")
-                return redirect(url_for('inventory_bp.inventory_page'))
+                return redirect(url_for('manage_inventory.inventory_load'))
             # Delete the record
             cur.execute("DELETE FROM devices_full WHERE accession_id = %s", (id,))
             conn.commit()
 
         flash("Device deleted successfully!", "success")
-        return redirect(url_for('inventory_bp.inventory_page'))
+        return redirect(url_for('manage_inventory.inventory_load'))
 
     except Exception as e:
         conn.rollback()
@@ -163,7 +163,7 @@ def edit_item(id):
     finally:
         conn.close()
 
-    return redirect(url_for('inventory_bp.inventory_page'))
+    return redirect(url_for('manage_inventory.inventory_load'))
 
 
 @manage_item_bp.route('/update-device', methods=['POST'])
@@ -181,7 +181,7 @@ def update_device():
 
         if not accession_id:
             flash("Missing device ID.", "danger")
-            return redirect(url_for('inventory_bp.inventory_page'))
+            return redirect(url_for('manage_inventory.inventory_load'))
 
         with conn.cursor() as cur:
             cur.execute("""
@@ -206,7 +206,7 @@ def update_device():
             conn.commit()
 
         flash("Device updated successfully!", "success")
-        return redirect(url_for('inventory_bp.inventory_page'))
+        return redirect(url_for('manage_inventory.inventory_load'))
 
     except Exception as e:
         conn.rollback()

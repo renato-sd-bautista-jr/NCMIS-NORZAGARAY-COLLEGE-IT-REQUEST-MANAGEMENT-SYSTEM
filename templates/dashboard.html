@@ -22,7 +22,9 @@
         <h2 class="text-3xl font-bold text-white">Dashboard</h2>
       </div>
     </div>
-
+<button id="notificationBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+  View Notifications
+</button>
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
       <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-green-500">
@@ -136,9 +138,11 @@
       </div>
     </section>
   </main>
-
+{% include 'notification_modal.html' %}
   <script>
     lucide.createIcons();
+
+    
 
     // Pie Chart
     const ctx1 = document.getElementById('inventoryChart');
@@ -185,6 +189,52 @@
         maintainAspectRatio: false
       }
     });
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('notificationModal');
+  const list = document.getElementById('notificationList');
+  const openBtn = document.getElementById('notificationBtn');
+  const closeBtn = document.getElementById('closeNotificationModal');
+
+  if (!modal || !list || !openBtn || !closeBtn) return;
+
+  // Open modal
+  openBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    loadNotifications();
+  });
+
+  // Close modal
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  async function loadNotifications() {
+    try {
+        const res = await fetch('notifications_bp.get_notification'); // ✅ correct URL
+        const data = await res.json();
+        list.innerHTML = '';
+
+        if (!data.length) {
+            list.innerHTML = '<p class="text-gray-500 text-sm">No notifications yet.</p>';
+            return;
+        }
+
+        data.forEach(n => {
+            const div = document.createElement('div');
+            div.className = "p-2 border-b border-gray-200 text-sm";
+            div.innerHTML = `
+                <p><strong>${n.user_name || 'Unknown'}</strong> ${n.action}</p>
+                <p class="text-gray-500 text-xs">${new Date(n.created_at).toLocaleString()}</p>
+            `;
+            list.appendChild(div);
+        });
+    } catch (err) {
+        console.error('Error loading notifications:', err);
+        list.innerHTML = '<p class="text-red-500 text-sm">Failed to load notifications.</p>';
+    }
+}});
+
+
   </script>
 </body>
 </html>
