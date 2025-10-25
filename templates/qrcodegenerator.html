@@ -84,7 +84,22 @@
  <script>
   document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
-
+    const response = await fetch('/get_all_device_qrs');
+    const devices = await response.json();
+    const container = document.getElementById('itemList');
+    container.innerHTML = '';
+    devices.forEach(device => {
+        container.innerHTML += `
+        <div class="bg-white rounded-2xl shadow p-5 border hover:shadow-xl transition">
+            <h3 class="font-bold text-blue-600 mb-2">${device.item_name}</h3>
+            <p class="text-sm text-gray-700">Brand: ${device.brand_model}</p>
+            <p class="text-sm text-gray-700">Serial: ${device.serial_number}</p>
+            <p class="text-sm text-gray-700">Status: ${device.status}</p>
+            <img src="/device_qr/${device.accession_id}" class="mt-3 border rounded shadow" alt="QR">
+            <a href="/device_qr/${device.accession_id}" download="${device.item_name}_QR.png" class="mt-2 inline-block bg-blue-600 text-white px-3 py-1 rounded text-xs">Download QR</a>
+        </div>`;
+    });
+});
   // Sidebar toggle
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
@@ -250,6 +265,7 @@
  await loadDeviceQRs(); // Server version
 
 });
+
 </script>
 </body>
 </html>

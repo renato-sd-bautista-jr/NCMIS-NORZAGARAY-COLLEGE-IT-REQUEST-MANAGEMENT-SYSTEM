@@ -7,13 +7,14 @@ manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='t
 
 @manage_inventory_bp.route('/manage_inventory')
 def inventory_load():
-    """Load the Manage Inventory page with PCs and Items."""
-    
+    """Load the Manage Inventory page with PCs and Devices."""
     pc_list = get_pc_list()
     item_list = get_item_list()
 
     if pc_list is None or item_list is None:
         flash("Error loading data. Please try again.", "danger")
+
+    return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
 
     return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
 @manage_inventory_bp.route('/manage_inventory/get-departments')
@@ -46,6 +47,13 @@ def get_pc_list():
                     p.pcname,
                     p.department_id,
                     d.department_name,
+                    p.location,
+                    p.quantity,
+                    p.acquisition_cost,
+                    p.date_acquired,
+                    p.accountable,
+                    p.serial_no,
+                    p.municipal_serial_no,
                     p.status,
                     p.note,
                     p.monitor,
@@ -75,17 +83,23 @@ def get_item_list():
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute("""
                 SELECT 
-                    df.accession_id AS id,
-                    df.item_name AS name,
-                    df.device_type AS category,
-                    df.quantity,
+                    df.accession_id AS accession_id,
+                    df.item_name,
                     df.brand_model,
-                    df.serial_number,
-                    d.department_name,
-                    df.status
+                    df.serial_no,
+                    df.municipal_serial_no,
+                    df.quantity,
+                    df.device_type,
+                    df.acquisition_cost,
+                    df.date_acquired,
+                    df.accountable,
+                    df.department_id,
+                    dep.department_name,
+                    df.status,
+                    df.updated_at
                 FROM devices_full df
-                LEFT JOIN departments d ON df.department_id = d.department_id
-                ORDER BY df.accession_id
+                LEFT JOIN departments dep ON df.department_id = dep.department_id
+                ORDER BY df.accession_id DESC
             """)
             return cur.fetchall()
     except Exception as e:
@@ -93,22 +107,29 @@ def get_item_list():
         return []
     finally:
         conn.close()
+
 @manage_inventory_bp.route('/manage_inventory/get-item-by-id/<int:item_id>')
 def get_item_by_id(item_id):
+    """Fetch a single device record with full details."""
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute("""
                 SELECT 
-                    df.accession_id AS id,
-                    df.item_name AS name,
+                    df.accession_id AS accession_id,
+                    df.item_name,
                     df.brand_model,
-                    df.serial_number,
+                    df.serial_no,
+                    df.municipal_serial_no,
                     df.quantity,
-                    df.device_type AS category,
-                    df.status,
+                    df.device_type,
+                    df.acquisition_cost,
+                    df.date_acquired,
+                    df.accountable,
                     df.department_id,
-                    dep.department_name
+                    dep.department_name,
+                    df.status,
+                    df.updated_at
                 FROM devices_full df
                 LEFT JOIN departments dep 
                     ON df.department_id = dep.department_id
@@ -170,5 +191,83 @@ def get_pc_by_id(pcid):
     except Exception as e:
         print(f"❌ Error fetching PC by ID: {e}")
         return {"error": "Database error"}, 500
+    finally:
+        conn.close()
+
+
+@manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
+def pc_filter_modal():
+    return render_template('pcFilterModal.html')
+
+
+@manage_inventory_bp.route('/manage_inventory/get-pc-filter-options')
+def get_pc_filter_options():
+    """Return unique filter options for PC filter dropdown."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT DISTINCT
+                    d.department_name,
+                    p.location,
+                    p.device_type,
+                    p.accountable,
+                    p.status
+                FROM pcinfofull p
+                LEFT JOIN departments d ON p.department_id = d.department_id
+            """)
+            rows = cur.fetchall()
+
+        # Extract unique non-null values per field
+        departments = sorted({r['department_name'] for r in rows if r['department_name']})
+        locations = sorted({r['location'] for r in rows if r['location']})
+        accountables = sorted({r['accountable'] for r in rows if r['accountable']})
+        statuses = sorted({r['status'] for r in rows if r['status']})
+
+        return jsonify({
+            'departments': departments,
+            'locations': locations,
+            'accountables': accountables,
+            'statuses': statuses
+        })
+    except Exception as e:
+        print(f"❌ Error fetching filter options: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        conn.close()
+
+
+@manage_inventory_bp.route('/manage_inventory/get-item-filter-options')
+def get_item_filter_options():
+    """Return unique filter options for Item filter dropdown."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT DISTINCT
+                    d.department_name,
+                    df.device_type,
+                    df.accountable,
+                    df.status
+                FROM devices_full df
+                LEFT JOIN departments d ON df.department_id = d.department_id
+            """)
+            rows = cur.fetchall()
+
+        # Extract unique non-null values per field
+        departments = sorted({r['department_name'] for r in rows if r['department_name']})
+        device_types = sorted({r['device_type'] for r in rows if r['device_type']})
+        accountables = sorted({r['accountable'] for r in rows if r['accountable']})
+        statuses = sorted({r['status'] for r in rows if r['status']})
+
+        return jsonify({
+            'departments': departments,
+            'device_types': device_types,
+            'accountables': accountables,
+            'statuses': statuses
+        })
+    except Exception as e:
+        print(f"❌ Error fetching filter options: {e}")
+        return jsonify({'error': 'Database error'}), 500
     finally:
         conn.close()

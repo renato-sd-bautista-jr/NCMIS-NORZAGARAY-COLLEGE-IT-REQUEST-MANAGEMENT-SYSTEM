@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 14, 2025 at 10:03 PM
+-- Generation Time: Oct 23, 2025 at 10:18 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -197,14 +197,15 @@ CREATE TABLE `devices_full` (
 --
 
 INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `serial_number`, `quantity`, `device_type`, `department_id`, `status`, `created_at`) VALUES
-(2, NULL, '1', '1', '1', 1, '1', 1, 'Available', '2025-10-14 17:00:09'),
+(2, NULL, '3', '1', '1', 1, '1', 1, 'Available', '2025-10-14 17:00:09'),
 (3, NULL, 'inplay keyboard 1', 'inplay', '9', 1, 'keyboard', 1, 'Available', '2025-10-14 19:26:41'),
 (4, NULL, 'w', 'w', 'w', 1, 'w', 1, 'Available', '2025-10-14 19:32:43'),
 (5, NULL, '5', '3', '3', 1, '3', 1, 'Available', '2025-10-14 19:40:21'),
 (6, NULL, '4', '54', '5', 1, '5', 1, 'Available', '2025-10-14 19:48:47'),
 (7, NULL, 'e', 'Epson EB-X0778e', 'e', 1, 'e', 1, 'Available', '2025-10-14 19:50:30'),
 (9, NULL, '55', '333', '66', 1, '22', 1, 'Available', '2025-10-14 19:51:48'),
-(10, NULL, '4542', '25235', '23423', 1, '234234', 1, 'Available', '2025-10-14 19:53:10');
+(10, NULL, '4542', '25235', '23423', 1, '234234', 1, 'Available', '2025-10-14 19:53:10'),
+(11, NULL, 'a4Tech Mouse', 'a4Tech', 'm2025', 1, 'Mouse', 1, 'Available', '2025-10-21 17:07:19');
 
 -- --------------------------------------------------------
 
@@ -259,6 +260,97 @@ INSERT INTO `devices_units` (`accession_id`, `device_id`, `serial_number`, `stat
 (33, 5, NULL, 'Available'),
 (34, 5, NULL, 'Available'),
 (35, 6, 'M03', 'Available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `target_type` varchar(50) DEFAULT NULL,
+  `target_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `user_id`, `action`, `target_type`, `target_id`, `created_at`) VALUES
+(1, 9, 'Added new PC: PC1333 (Serial: SN-0000051)', 'PC', 0, '2025-10-21 19:21:18'),
+(2, 9, 'Added new PC: pc418pm (Serial: SN-000001f24)', 'PC', 0, '2025-10-23 08:18:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pcinfofull`
+--
+
+CREATE TABLE `pcinfofull` (
+  `pcid` int(11) NOT NULL,
+  `pcname` varchar(255) NOT NULL,
+  `department_id` int(11) NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `acquisition_cost` decimal(12,2) DEFAULT NULL,
+  `date_acquired` date DEFAULT NULL,
+  `accountable` varchar(255) DEFAULT NULL,
+  `serial_no` varchar(255) NOT NULL,
+  `municipal_serial_no` varchar(255) DEFAULT NULL,
+  `status` varchar(100) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `monitor` varchar(255) DEFAULT NULL,
+  `motherboard` varchar(255) DEFAULT NULL,
+  `ram` varchar(255) DEFAULT NULL,
+  `storage` varchar(255) DEFAULT NULL,
+  `gpu` varchar(255) DEFAULT NULL,
+  `psu` varchar(255) DEFAULT NULL,
+  `casing` varchar(255) DEFAULT NULL,
+  `other_parts` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pcinfofull`
+--
+
+INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`) VALUES
+(1, 'PC-LAB-01', 1, 'Computer Lab A', 1, 45000.00, '2025-10-20', 'John Doe', 'SN-000001f', 'MUN-000123', 'Active', 'For student usedsss', 'AOC 24-inch', 'ASUS PRIME B450', '16GB DDR4', '512GB SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'WiFi Card', '2025-10-20 07:43:02', '2025-10-20 08:25:02'),
+(2, 'PC-LAB-02', 1, 'Computer Lab A', 1, 45000.00, '2025-10-13', 'John Doe', 'SN-000002', 'MUN-000124', 'Active', 'number 2', 'AOC 24-inch', 'ASUS PRIME B450', '16GB DDR4', '512GB SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-20 08:29:07', '2025-10-20 08:29:07'),
+(3, 'PC3', 1, 'Computer Lab A', 1, 40000.00, '2025-10-22', 'John Doe', 'SN-000003', 'MUN-000125', 'Active', '3', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', '500wats', 'CoolerMaster', '22', '2025-10-21 17:09:37', '2025-10-21 17:09:37'),
+(4, 'PC4', 1, 'Computer Lab A', 1, 50000.00, '2025-10-23', 'John Doe', 'SN-000004', 'MUN-000126', 'Active', '333', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '22', '2025-10-21 17:17:39', '2025-10-21 17:17:39'),
+(7, 'PC5', 1, 'Computer Lab A', 1, 30000.00, '2025-10-22', 'John Doe', 'SN-000005', 'MUN-0050126', 'Active', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-21 17:22:08', '2025-10-21 17:22:08'),
+(8, 'PC7', 1, 'Computer Lab A', 1, 50000.00, '2025-10-22', 'John Doe', 'SN-000006', 'MUN-00501263', 'Active', '3333', '4', '4', '4', '4', '2', '3', '1', '2', '2025-10-21 17:24:47', '2025-10-21 17:24:47'),
+(9, 'pc8', 1, 'Computer Lab A', 1, 80000.00, '2025-10-22', 'John Doe', 'SN-0000063', 'MUN-005012633', 'Active', '33', 'AOC 24-inch', 'gigabyte a320m', '22', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-21 17:27:50', '2025-10-21 17:27:50'),
+(10, 'pc9', 1, 'Computer Lab A', 1, 50000.00, '2025-10-22', 'John Doe', 'SN-00000633', 'MUN-0050126331', 'Active', '33', '3', '1', '2', '1', '1', '1', '1', '1', '2025-10-21 17:32:32', '2025-10-21 17:32:32'),
+(11, 'pc10', 1, 'it', 1, 3.00, '2025-10-23', '3', 'SN-0000043', 'MUN-0050126321', 'Active', '3', '3', '2', '3', '2', '1', '2', '2', '2', '2025-10-21 17:35:37', '2025-10-21 17:35:37'),
+(12, 'PC11', 1, 'Computer Lab A', 1, 333333.00, '0000-00-00', 'John Doe', 'SN-0000021', 'MUN-0001243', 'Active', '3', '3', '4', '3', '4', '3', '1', '2', '2', '2025-10-21 17:37:17', '2025-10-21 17:37:17'),
+(13, 'pc12', 1, 'Computer Lab A', 1, 33333.00, '2025-10-22', 'John Doe', 'SN-000001f3', 'MUN-0001254', 'Active', '4', '1', '3', '1', '3', '1', '3', '2', '3', '2025-10-21 17:57:15', '2025-10-21 17:57:15'),
+(14, 'PC133', 1, 'Computer Lab A', 1, 33333.00, '2025-10-22', '', 'SN-000001f31', 'MUN-0001252', 'Active', '3', 'yh', 'w', 't', 'w', 't', 'e', 't', 'r', '2025-10-21 17:58:41', '2025-10-21 17:58:41'),
+(16, 'PC53', 1, 'Computer Lab A', 1, 333333.00, '2025-10-22', 'John Doe', 'SN-000001f23', 'MUN-00012523', 'Active', '3', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', '4', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-21 18:02:30', '2025-10-21 18:02:30'),
+(17, 'PC532', 1, 'Computer Lab A', 1, 333333.00, '2025-10-22', 'John Doe', 'SN-0000052', 'MUN-0001251', 'Active', '32', 's', 's', 's', 's', 's', 's', 's', 's', '2025-10-21 18:09:37', '2025-10-21 18:09:37'),
+(20, 'PC1335', 1, 'Computer Lab A', 1, 333.00, '2025-10-22', 'John Doe', 'SN-003', 'MUN-000125221', 'Active', '46', 'qetr', 'qwe', 't', 'wqe', 'wq', 'wqe', 're', 'q', '2025-10-21 19:16:24', '2025-10-21 19:16:24'),
+(21, 'PC1333', 1, 'Computer Lab A', 1, 3333333.00, '2025-10-22', 'John Doe', 'SN-0000051', 'MUN-00012524', 'Active', '4', '2', '23', '213', '23', '213', '23', '213', '23', '2025-10-21 19:21:18', '2025-10-21 19:21:18'),
+(22, 'pc418pm', 1, 'it', 1, 43333.00, '2025-10-23', 'John Doe', 'SN-000001f24', 'MUN-0001252244', 'Active', '2', 'qetr', 'qwe', 't', 'ramsta 500gb', 'wq', 'Corsair 500W', 'CoolerMaster', '2', '2025-10-23 08:18:17', '2025-10-23 08:18:17');
+
+--
+-- Triggers `pcinfofull`
+--
+DELIMITER $$
+CREATE TRIGGER `before_insert_pcinfofull` BEFORE INSERT ON `pcinfofull` FOR EACH ROW BEGIN
+  DECLARE next_id INT;
+  IF NEW.serial_no IS NULL OR NEW.serial_no = '' THEN
+    SELECT IFNULL(MAX(pcid), 0) + 1 INTO next_id FROM pcinfofull;
+    SET NEW.serial_no = CONCAT('SN-', LPAD(next_id, 6, '0'));
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -415,6 +507,22 @@ ALTER TABLE `devices_units`
   ADD KEY `device_id` (`device_id`);
 
 --
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `pcinfofull`
+--
+ALTER TABLE `pcinfofull`
+  ADD PRIMARY KEY (`pcid`),
+  ADD UNIQUE KEY `pcname` (`pcname`),
+  ADD UNIQUE KEY `serial_no` (`serial_no`),
+  ADD UNIQUE KEY `municipal_serial_no` (`municipal_serial_no`),
+  ADD KEY `department_id` (`department_id`);
+
+--
 -- Indexes for table `pcparts`
 --
 ALTER TABLE `pcparts`
@@ -479,13 +587,25 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
 --
 ALTER TABLE `devices_units`
   MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `pcinfofull`
+--
+ALTER TABLE `pcinfofull`
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `pcparts`
@@ -533,6 +653,12 @@ ALTER TABLE `devices_full`
 --
 ALTER TABLE `devices_units`
   ADD CONSTRAINT `devices_units_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
+
+--
+-- Constraints for table `pcinfofull`
+--
+ALTER TABLE `pcinfofull`
+  ADD CONSTRAINT `pcinfofull_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
 
 --
 -- Constraints for table `pcparts`

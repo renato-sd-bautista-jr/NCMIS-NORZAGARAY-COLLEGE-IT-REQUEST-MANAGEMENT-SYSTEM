@@ -75,8 +75,10 @@
         <div>
           <label class="label">Status</label>
           <select id="modalStatus" name="status" class="input">
-            <option value="Active">Active</option>
+            <option value="Available">Available</option>
             <option value="Inactive">Inactive</option>
+            <option value="In Used">In Used</option>
+            <option value="Damaged">Damaged</option>
           </select>
         </div>
 
@@ -193,6 +195,7 @@ async function openPcModal(pcData = null) {
   const form = document.getElementById('pcForm');
   const submitBtn = document.getElementById('modalSubmitBtn');
   const departmentSelect = document.getElementById('modalDepartment');
+  const res = await fetch('/notifications/get_notifications');
 
   // Reset form first
   form.reset();

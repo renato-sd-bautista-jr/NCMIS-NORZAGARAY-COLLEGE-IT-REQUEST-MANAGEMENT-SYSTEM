@@ -10,7 +10,7 @@
 <body class="flex min-h-screen bg-gray-100 text-gray-800">
 
   {% include 'sidebar.html' %}
-
+  {% include 'delete_modal.html' %}
   <!-- Overlay for mobile -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
@@ -27,7 +27,6 @@
       </h2>
 
         <div class="flex items-center gap-2">
-          {% include 'filtermodal.html' %}
           {% include 'pceditmodal.html' %}
           {% include 'itemeditmodal.html' %}
         </div>
@@ -48,7 +47,7 @@
         class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
         id="itemsBtn">
         <i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
-        Manage Items
+        Manage Devices
       </button>
     </nav>
 
@@ -56,6 +55,11 @@
     <div class="space-y-8">
       <!-- ACTION BAR -->
 <div class="flex justify-end mb-4">
+  <button 
+      onclick="openPcFilterModalFromFile(true)" 
+      class="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+      <i data-lucide="filter" class="w-4 h-4"></i> Filter
+    </button>
   <button 
     id="addButton"
     onclick="handleAddButtonClick()" 
@@ -66,6 +70,8 @@
 
       <!-- INVENTORY SECTION -->
       <section id="inventorySection">
+
+        <!-- MANAGE PC SECTION -->
         <div class="bg-white rounded-xl shadow-lg p-6">
           <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
             <i data-lucide="cpu" class="w-6 h-6"></i> Manage PC
@@ -79,34 +85,58 @@
             <table class="min-w-full border border-gray-200 text-sm text-gray-800">
               <thead class="bg-gray-200 text-gray-700">
                 <tr>
-                  <th class="px-4 py-2 border-b text-left">PC Name</th>
+                  
                   <th class="px-4 py-2 border-b text-left">PC ID</th>
+                  <th class="px-4 py-2 border-b text-left">PC Name</th>
                   <th class="px-4 py-2 border-b text-left">Department</th>
-                  <th class="px-4 py-2 border-b text-left">Status</th>
+                  <th class="px-4 py-2 border-b text-left">Location</th>
+                  <th class="px-4 py-2 border-b text-left">Acquisition_Cost</th>
+                  <th class="px-4 py-2 border-b text-left">Date Acquired</th>
+                  <th class="px-4 py-2 border-b text-left">Accountable</th>
+                  <th class="px-4 py-2 border-b text-left">Serial No.</th>
+                  <th class="px-4 py-2 border-b text-left">Municipal Serial No.</th>
                   <th class="px-4 py-2 border-b text-left">Note</th>
+                  <th class="px-4 py-2 border-b text-left">Status</th>
                   <th class="px-4 py-2 border-b text-left">Actions</th>
                 </tr>
               </thead>
               <tbody>
+                <tbody id="pcTableBody">
                 {% for pc in pc_list %}
                 <tr class="hover:bg-gray-100 transition">
-                  <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
-                  <td class="px-4 py-2 border-b">{{ pc.status }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.location }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.acquisition_cost }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.date_acquired }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.serial_no }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.note }}</td>
+                  <td class="px-4 py-2 border-b">
+              <span
+                class="{% if pc.status == 'Available' %}text-green-600{% elif pc.status == 'In Used' %}text-blue-600{% elif pc.status == 'Inactive' %}text-gray-500{% else %}text-red-600{% endif %} font-medium">
+                {{ pc.status }}
+              </span>
+            </td>
+
+              
                   <td class="px-4 py-2 border-b flex gap-2">
                    <button 
                     onclick="openPcModalById({{ pc.pcid }})" 
                     class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
                     Edit
+                 <button 
+                    type="button"
+                    onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')"
+                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
+                    Delete
                   </button>
-                    <form action="{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}" method="post" onsubmit="return confirm('Delete this PC?');">
-                      <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
-                    </form>
                   </td>
                 </tr>
                 {% endfor %}
+                </tbody>
               </tbody>
             </table>
           </div>
@@ -114,49 +144,70 @@
         </div>
       </section>
 
-      <!-- MANAGE ITEMS SECTION -->
-      <section id="itemsSection" class="hidden">
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-            <i data-lucide="package" class="w-6 h-6"></i> Manage Items
-          </h3>
+      <!-- MANAGE DEVICES SECTION -->
+<section id="itemsSection" class="hidden">
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+      <i data-lucide="package" class="w-6 h-6"></i> Manage Devices
+    </h3>
 
-          {% if item_list|length == 0 %}
-          <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No items found.</div>
-          {% else %}
-          <div class="overflow-x-auto rounded-xl">
-            <table class="min-w-full border border-gray-200 text-sm text-gray-800">
-              <thead class="bg-gray-200 text-gray-700">
-                <tr>
-                  <th class="px-4 py-2 border-b text-left">Item Name</th>
-                  <th class="px-4 py-2 border-b text-left">Category</th>
-                  <th class="px-4 py-2 border-b text-left">Quantity</th>
-                  <th class="px-4 py-2 border-b text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in item_list %}
-                <tr class="hover:bg-gray-100 transition">
-                  <td class="px-4 py-2 border-b">{{ item.name }}</td>
-                  <td class="px-4 py-2 border-b">{{ item.category }}</td>
-                  <td class="px-4 py-2 border-b">{{ item.quantity }}</td>
-                  <td class="px-4 py-2 border-b flex gap-2">
-                    <button onclick="openItemModalById({{ item.id }})"
-                      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-                      Edit
-                    </button>
-                    <form action="{{ url_for('manage_item_bp.delete_item', id=item.id) }}" method="post" onsubmit="return confirm('Delete this item?');">
-                      <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          {% endif %}
-        </div>
-      </section>
+    {% if item_list|length == 0 %}
+    <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No devices found.</div>
+    {% else %}
+    <div class="overflow-x-auto rounded-xl">
+      <table class="min-w-full border border-gray-200 text-sm text-gray-800">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="px-4 py-2 border-b text-left">Device Name</th>
+            <th class="px-4 py-2 border-b text-left">Brand / Model</th>
+            <th class="px-4 py-2 border-b text-left">Serial No</th>
+            <th class="px-4 py-2 border-b text-left">Municipal Serial No</th>
+            <th class="px-4 py-2 border-b text-left">Acquisition Cost</th>
+            <th class="px-4 py-2 border-b text-left">Date Acquired</th>
+            <th class="px-4 py-2 border-b text-left">Accountable</th>
+            <th class="px-4 py-2 border-b text-left">Department</th>
+            <th class="px-4 py-2 border-b text-left">Status</th>
+            <th class="px-4 py-2 border-b text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in item_list %}
+          <tr class="hover:bg-gray-100 transition">
+            <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
+            <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
+            <td class="px-4 py-2 border-b">{{ item.serial_no or '—' }}</td>
+            <td class="px-4 py-2 border-b">{{ item.municipal_serial_no or '—' }}</td>
+            <td class="px-4 py-2 border-b">₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</td>
+            <td class="px-4 py-2 border-b">{{ item.date_acquired or '—' }}</td>
+            <td class="px-4 py-2 border-b">{{ item.accountable or '—' }}</td>
+            <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
+            <td class="px-4 py-2 border-b">
+              <span
+                class="{% if item.status == 'Available' %}text-green-600{% elif item.status == 'In Used' %}text-blue-600{% elif item.status == 'Inactive' %}text-gray-500{% else %}text-red-600{% endif %} font-medium">
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="px-4 py-2 border-b flex gap-2">
+              <button onclick="openItemModalById({{ item.accession_id }})"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+                Edit
+              </button>
+              <button 
+                type="button"
+                onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item',  id=item.accession_id) }}')"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
+                Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>  
+    </div>
+    {% endif %}
+  </div>
+</section>
+
 
     </div>
   </main>
@@ -188,7 +239,7 @@ async function openItemModal(itemData = null) {
 
   form.reset();
 
-  // ✅ Fetch updated department list
+  // ✅ Refresh department list
   try {
     const depRes = await fetch('/get-departments');
     if (!depRes.ok) throw new Error(`HTTP ${depRes.status}`);
@@ -215,9 +266,13 @@ async function openItemModal(itemData = null) {
     document.getElementById('accession_id').value = itemData.accession_id || '';
     document.getElementById('item_name').value = itemData.name || '';
     document.getElementById('brand_model').value = itemData.brand_model || '';
-    document.getElementById('serial_number').value = itemData.serial_number || '';
+    document.getElementById('serial_no').value = itemData.serial_no || '';
+    document.getElementById('municipal_serial_no').value = itemData.municipal_serial_no || '';
     document.getElementById('quantity').value = itemData.quantity || 1;
     document.getElementById('device_type').value = itemData.category || '';
+    document.getElementById('acquisition_cost').value = itemData.acquisition_cost || '';
+    document.getElementById('date_acquired').value = itemData.date_acquired || '';
+    document.getElementById('accountable').value = itemData.accountable || '';
 
     if (itemData.department_id) {
       deptSelect.value = itemData.department_id;
@@ -255,12 +310,16 @@ async function openItemModalById(itemId) {
     console.log('✅ Item data received:', item);
 
     const itemData = {
-      accession_id: item.id,
-      name: item.name,
+      accession_id: item.accession_id,       // match your DB field
+      name: item.item_name,                  // updated field name
       brand_model: item.brand_model,
-      serial_number: item.serial_number,
+      serial_no: item.serial_no,             // ✅ new field
+      municipal_serial_no: item.municipal_serial_no, // ✅ new field
+      acquisition_cost: item.acquisition_cost,       // ✅ new field
+      date_acquired: item.date_acquired,             // ✅ new field
+      accountable: item.accountable,                 // ✅ new field
       quantity: item.quantity,
-      category: item.category,
+      category: item.device_type,            // renamed from item.category
       status: item.status,
       department_id: item.department_id,
       department_name: item.department_name
@@ -272,6 +331,7 @@ async function openItemModalById(itemId) {
     alert('Failed to load item data.');
   }
 }
+
     // --- SECTION SWITCHING & DYNAMIC ADD BUTTON LOGIC ---
 let currentSection = "pc"; // default view is Manage PC
 
@@ -356,6 +416,47 @@ async function openPcModalById(pcid) {
     console.error('❌ Error fetching PC data:', err);
     alert('Failed to load PC data.');
   }
+}
+// ======== DELETE MODAL LOGIC ========
+
+function openDeleteModal(actionUrl) {
+  const modal = document.getElementById('deleteModal');
+  const form = document.getElementById('deleteForm');
+  form.action = actionUrl; // set the form to the correct delete endpoint
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+document.getElementById('cancelDelete').addEventListener('click', () => {
+  document.getElementById('deleteModal').classList.add('hidden');
+});
+async function openPcFilterModalFromFile() {
+  // Check if modal is already loaded in DOM
+  if (!document.getElementById("pcFilterModal")) {
+    try {
+      const res = await fetch("/manage_inventory/pc-filter-modal"); // ✅ Flask route instead of file path
+      if (!res.ok) throw new Error(`Failed to load modal: ${res.status}`);
+
+      const html = await res.text();
+      document.body.insertAdjacentHTML("beforeend", html);
+      lucide.createIcons(); // Re-render icons
+      
+    } catch (err) {
+      console.error("❌ Error loading PC Filter Modal:", err);
+      alert("Failed to load PC Filter Modal.");
+      return;
+    }
+  }
+
+  // Show the modal
+  const modal = document.getElementById('pcFilterModal');
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('pcFilterModalContent').classList.add('scale-100');
+  }, 50);
+  lucide.createIcons();
+  await loadPcFilterOptions();
+    // ✅ Load dropdown + search values here
 }
 
   </script>

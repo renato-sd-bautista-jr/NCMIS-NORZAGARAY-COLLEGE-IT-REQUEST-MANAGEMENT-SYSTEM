@@ -1,150 +1,206 @@
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel - Manage Users</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-  </head>
-  <body class="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Manage Users</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
 
   {% include 'sidebar.html' %}
 
-    <!-- Overlay for mobile -->
-    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
-    <!-- Main Content -->
-    <main class="flex-1 ml-0 md:ml-64 p-6 space-y-8 transition-all duration-300">
-
-      <!-- Top Navbar (Inverted Style) -->
-      <div class="flex items-center justify-between bg-blue-700 text-white rounded-xl shadow-lg p-4 backdrop-blur-md border border-blue-800">
-        <!-- Left: Menu + Title -->
-        <div class="flex items-center gap-3">
-          <button id="sidebarToggle"
-            class="md:hidden p-2 rounded-md text-white/80 hover:text-white hover:bg-blue-600 transition">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-          </button>
-          <div class="flex items-center gap-2">
-            <i data-lucide="users" class="w-6 h-6 text-white"></i>
-            <h2 class="text-2xl font-bold">Manage Users</h2>
-          </div>
-        </div>        
-      </div>    
-          
-</form>
-      </section>
-        <button type="button" 
-          onclick="openUserModal('add')" 
-          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-md transition-transform transform hover:scale-[1.02] active:scale-[0.98]">
-          <i data-lucide="user-plus" class="w-5 h-5"></i>
-          <span>Add User</span>
-        </button>
-      <!-- Users Table -->
-      <section class="bg-white/90 rounded-2xl shadow-md p-6 border border-gray-200 backdrop-blur-md">
-        <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-700">
-          <i data-lucide="users" class="w-5 h-5"></i> Users List
-        </h3>
-        {% if users|length == 0 %}
-          <div class="bg-gray-100 text-gray-500 p-4 rounded-lg text-center">
-            No users found.
-          </div>
-        {% else %}
-          <div class="overflow-x-auto rounded-xl border border-gray-200">
-            <table class="min-w-full text-sm text-gray-800">
-              <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold tracking-wider">
-                <tr>
-                  <th class="px-4 py-3 text-left">Faculty Name</th>
-                  <th class="px-4 py-3 text-left">Username</th>
-                  <th class="px-4 py-3 text-left">Email</th>
-                  <th class="px-4 py-3 text-left">Role</th>
-                  <th class="px-4 py-3 text-left">Created At</th>
-                  <th class="px-4 py-3 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for user in users %}
-                <tr class="hover:bg-blue-50 transition">
-                  <td class="px-4 py-2 border-t">{{ user.faculty_name }}</td>
-                  <td class="px-4 py-2 border-t">{{ user.username }}</td>
-                  <td class="px-4 py-2 border-t">{{ user.email }}</td>
-                  <td class="px-4 py-2 border-t">
-                    {% if user.is_admin == 1 %}
-                      <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Admin</span>
-                    {% else %}
-                      <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Staff</span>
-                    {% endif %}
-                  </td>
-                  <td class="px-4 py-2 border-t">{{ user.created_at }}</td>
-                  <td class="px-4 py-2 border-t space-x-2">
-                    <form action="" method="get" class="inline">
-                     <button type="button" 
-        onclick='openUserModal("edit", {{ user|tojson }})'
-        class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition">
-        Edit
+    <!-- Logout Button -->
+    <div class="p-4">
+      <button id="logoutBtn"
+        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
       </button>
-</form>
-                    <form action="" method="post" class="inline">
-                      <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
-      </section>
-    </main>
+    </div>
+  </aside>
 
-      <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
-        <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
-        <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
-        <p class="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
-        <div class="flex justify-center space-x-3">
-          <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
-          <form method="post" action="{{ url_for('login_bp.logout') }}">
-            <button type="submit" id="confirmLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
-          </form>
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-0 md:ml-64 p-6 space-y-8 transition-all duration-300">
+
+    <!-- Top Navbar -->
+    <div class="flex items-center justify-between bg-blue-700 text-white rounded-xl shadow-lg p-4">
+      <div class="flex items-center gap-3">
+        <button id="sidebarToggle"
+          class="md:hidden p-2 rounded-md text-white/80 hover:text-white hover:bg-blue-600 transition">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-6 h-6"></i>
+          <h2 class="text-2xl font-bold">Manage Users</h2>
         </div>
       </div>
     </div>
 
-    <script>
-      // Initialize Lucide icons safely
-      function initializeIcons() {
-        try {
-          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-        } catch (error) {
-          console.error('Lucide initialization error:', error);
-        }
+    <!-- Add User Button -->
+    <section>
+      <button type="button" 
+        onclick="openUserModal('add')" 
+        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-md transition-transform transform hover:scale-[1.02] active:scale-[0.98]">
+        <i data-lucide="user-plus" class="w-5 h-5"></i>
+        <span>Add User</span>
+      </button>
+    </section>
+
+    <!-- Users Table -->
+    <section class="bg-white/90 rounded-2xl shadow-md p-6 border border-gray-200">
+      <h3 class="text-xl font-semibold flex items-center gap-3 mb-6 text-blue-700">
+        <i data-lucide="users" class="w-5 h-5"></i> Users List
+      </h3>
+
+      {% if users|length == 0 %}
+        <div class="bg-gray-100 text-gray-500 p-4 rounded-lg text-center">
+          No users found.
+        </div>
+      {% else %}
+        <div class="overflow-x-auto rounded-xl border border-gray-200">
+          <table class="min-w-full text-sm text-gray-800">
+            <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold tracking-wider">
+              <tr>
+                <th class="px-4 py-3 text-left">Faculty Name</th>
+                <th class="px-4 py-3 text-left">Username</th>
+                <th class="px-4 py-3 text-left">Email</th>
+                <th class="px-4 py-3 text-left">Role</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Created At</th>
+                <th class="px-4 py-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr class="hover:bg-blue-50 transition">
+                <td class="px-4 py-2 border-t">{{ user.faculty_name }}</td>
+                <td class="px-4 py-2 border-t">{{ user.username }}</td>
+                <td class="px-4 py-2 border-t">{{ user.email }}</td>
+                <td class="px-4 py-2 border-t">
+                  {% if user.is_admin == 1 %}
+                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Admin</span>
+                  {% else %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Staff</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2 border-t">
+                  {% if user.is_active == 1 %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Active</span>
+                  {% else %}
+                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Inactive</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2 border-t">{{ user.created_at }}</td>
+                <td class="px-4 py-2 border-t space-x-2">
+                  <button type="button" 
+                    onclick='openUserModal("edit", {{ user|tojson }})'
+                    class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition">
+                    Edit
+                  </button>
+
+                  {% if user.is_active == 1 %}
+                    <button type="button"
+                      onclick='openDeactivateModal({{ user.user_id }})'
+                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
+                      Deactivate
+                    </button>
+                  {% else %}
+                    <button type="button"
+                      onclick='openActivateModal({{ user.user_id }})'
+                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
+                      Activate
+                    </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
+      <p class="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
+      <div class="flex justify-center space-x-3">
+        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
+        <form method="post" action="{{ url_for('login_bp.logout') }}">
+          <button type="submit" id="confirmLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% include 'deactivate_modal.html' %}
+  {% include 'activate_modal.html' %}
+  {% include 'usermodal.html' %}
+
+  <script>
+    // Lucide icons
+    function initializeIcons() {
+      try {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      } catch (error) {
+        console.error('Lucide initialization error:', error);
       }
-      document.addEventListener("DOMContentLoaded", initializeIcons);
+    }
+    document.addEventListener("DOMContentLoaded", initializeIcons);
 
-      // Sidebar toggle for mobile
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const toggle = document.getElementById('sidebarToggle');
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('sidebarToggle');
 
-      toggle.addEventListener('click', () => {
-        sidebar.classList.toggle('-translate-x-full');
-        overlay.classList.toggle('hidden');
-      });
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
 
-      overlay.addEventListener('click', () => {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-      });
+    // Logout modal
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    cancelLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
 
-      // Logout modal
-      const logoutBtn = document.getElementById('logoutBtn');
-      const logoutModal = document.getElementById('logoutModal');
-      const cancelLogout = document.getElementById('cancelLogout');
-      logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
-      cancelLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
-    </script>
-    {% include 'usermodal.html' %}
-  </body>
-  </html>
+    // Deactivate modal
+    const deactivateModal = document.getElementById("deactivateModal");
+    const cancelDeactivate = document.getElementById("cancelDeactivate");
+    const deactivateItemId = document.getElementById("deactivateItemId");
+
+    function openDeactivateModal(id) {
+      deactivateItemId.value = id;
+      deactivateModal.classList.remove("hidden");
+    }
+    cancelDeactivate.addEventListener("click", () => deactivateModal.classList.add("hidden"));
+
+    // Activate modal
+    const activateModal = document.getElementById("activateModal");
+    const cancelActivate = document.getElementById("cancelActivate");
+    const activateItemId = document.getElementById("activateItemId");
+
+    function openActivateModal(id) {
+      activateItemId.value = id;
+      activateModal.classList.remove("hidden");
+    }
+    cancelActivate.addEventListener("click", () => activateModal.classList.add("hidden"));
+  </script>
+</body>
+</html>

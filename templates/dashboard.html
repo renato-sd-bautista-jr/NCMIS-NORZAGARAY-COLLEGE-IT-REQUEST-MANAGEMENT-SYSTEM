@@ -10,67 +10,91 @@
 </head>
 
 <body class="flex min-h-screen bg-gray-200 text-gray-800">
-  <!-- Sidebar -->
-  {% include 'sidebar.html' %}
+ {% include 'sidebar.html' %}
+
+  <!-- Overlay for mobile -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- LOGOUT -->
+    <div class="p-4">
+      <button id="logoutBtn"
+        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
+        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+      </button>
+    </div>
+  </aside>
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 ml-0 md:ml-64 p-8 transition-all duration-300 space-y-8">
-    <!-- Header -->
     <div class="flex items-center justify-between bg-blue-600 rounded-xl shadow-lg p-4 mb-6">
       <div class="flex items-center gap-3">
         <i data-lucide="layout-dashboard" class="w-8 h-8 text-white"></i>
         <h2 class="text-3xl font-bold text-white">Dashboard</h2>
       </div>
     </div>
-<button id="notificationBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-  View Notifications
-</button>
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-7 gap-6">
+      <!-- Manage Items (devices_full) -->
+      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500">Devices Inventory</h3>
+          <p class="text-2xl font-bold text-blue-600">{{ total_items }}</p>
+        </div>
+        <i data-lucide="box" class="w-8 h-8 text-blue-500"></i>
+      </div>
+
+      <!-- PC Inventory (pcs) -->
       <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-green-500">
         <div>
-          <h3 class="text-sm font-semibold text-gray-500">Available</h3>
-          <p class="text-2xl font-bold text-green-600">120</p>
+          <h3 class="text-sm font-semibold text-gray-500">PC Inventory</h3>
+          <p class="text-2xl font-bold text-green-600">{{ total_pcs }}</p>
         </div>
-        <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+        <i data-lucide="monitor" class="w-8 h-8 text-green-500"></i>
       </div>
 
+      <!-- Available -->
+      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-emerald-500">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500">Available</h3>
+          <p class="text-2xl font-bold text-emerald-600">{{ available_items }}</p>
+        </div>
+        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600"></i>
+      </div>
+
+      <!-- In Use -->
       <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-yellow-500">
         <div>
-          <h3 class="text-sm font-semibold text-gray-500">Borrowed</h3>
-          <p class="text-2xl font-bold text-yellow-600">45</p>
+          <h3 class="text-sm font-semibold text-gray-500">In Use</h3>
+          <p class="text-2xl font-bold text-yellow-600">{{ in_use_items }}</p>
         </div>
-        <i data-lucide="clock" class="w-8 h-8 text-yellow-500"></i>
+        <i data-lucide="play-circle" class="w-8 h-8 text-yellow-500"></i>
       </div>
 
+      <!-- Damaged -->
       <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-red-500">
         <div>
           <h3 class="text-sm font-semibold text-gray-500">Damaged</h3>
-          <p class="text-2xl font-bold text-red-600">10</p>
+          <p class="text-2xl font-bold text-red-600">{{ damaged_items }}</p>
         </div>
         <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
       </div>
 
+      <!-- Cost In -->
       <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500">
         <div>
           <h3 class="text-sm font-semibold text-gray-500">Cost In</h3>
-          <p class="text-2xl font-bold text-blue-600">₱120,000</p>
+          <p class="text-2xl font-bold text-blue-600">₱{{ "{:,.2f}".format(total_cost_in) }}</p>
         </div>
         <i data-lucide="trending-up" class="w-8 h-8 text-blue-600"></i>
       </div>
 
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-purple-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">Cost Out</h3>
-          <p class="text-2xl font-bold text-purple-600">₱45,000</p>
-        </div>
-        <i data-lucide="trending-down" class="w-8 h-8 text-purple-600"></i>
-      </div>
+      
     </div>
 
-    <!-- Charts + Transactions -->
+    <!-- CHARTS + TRANSACTIONS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Compact Pie Chart -->
+      <!-- INVENTORY OVERVIEW -->
       <div class="bg-white rounded-2xl shadow p-6 border flex flex-col items-center">
         <h3 class="text-xl font-bold text-blue-700 mb-4">Inventory Overview</h3>
         <div class="w-36 h-36">
@@ -78,163 +102,119 @@
         </div>
       </div>
 
-      <!-- Recent Transactions -->
+      <!-- RECENT TRANSACTIONS -->
       <div class="bg-white rounded-2xl shadow p-6 border">
         <h3 class="text-xl font-bold text-blue-700 mb-4">Recent Transactions</h3>
         <ul class="divide-y divide-gray-200 text-sm">
-          <li class="py-3 flex justify-between"><span>Added: Laptop</span><span class="text-gray-500">Oct 15, 2025</span></li>
-          <li class="py-3 flex justify-between"><span>Borrowed: Projector</span><span class="text-gray-500">Oct 14, 2025</span></li>
-          <li class="py-3 flex justify-between"><span>Returned: Printer</span><span class="text-gray-500">Oct 13, 2025</span></li>
-          <li class="py-3 flex justify-between"><span>Marked Damaged: Keyboard</span><span class="text-gray-500">Oct 12, 2025</span></li>
+          {% for tx in recent_transactions %}
+            <li class="py-3 flex justify-between">
+              <span>{{ tx.action }}: {{ tx.item_name }}</span>
+              <span class="text-gray-500">{{ tx.created_at }}</span>
+            </li>
+          {% else %}
+            <li class="py-3 text-gray-500 text-center">No recent transactions</li>
+          {% endfor %}
         </ul>
       </div>
     </div>
 
-    <!-- Cost Chart (Smaller Height) -->
-    <section class="bg-white rounded-2xl shadow p-6 border">
-      <h3 class="text-xl font-bold text-blue-700 mb-4">Cost In vs Cost Out (Monthly)</h3>
+    <!-- COST CHART -->
+    <section class="bg-white rounded-2xl shadow p-6 border relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-blue-700">
+          Cost In vs Cost Out (<span id="filterLabel">Monthly</span>)
+        </h3>
+        <button id="openFilterModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          <i data-lucide="filter" class="inline w-4 h-4 mr-2"></i> Filter
+        </button>
+      </div>
       <div class="w-full h-48">
         <canvas id="costChart"></canvas>
       </div>
     </section>
-
-    <!-- Compact Inventory Table -->
-    <section id="overviewSection" class="bg-white rounded-2xl shadow p-6 border">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-blue-700">Inventory Preview</h3>
-        <button id="viewMoreBtn" class="text-sm text-blue-600 hover:underline">View Full Inventory</button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-gray-700">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-2">Item</th>
-              <th class="px-4 py-2">Brand</th>
-              <th class="px-4 py-2">Status</th>
-              <th class="px-4 py-2">Qty</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-t hover:bg-blue-50">
-              <td class="px-4 py-2">Laptop</td>
-              <td class="px-4 py-2">Dell</td>
-              <td class="px-4 py-2 text-green-600">Available</td>
-              <td class="px-4 py-2">15</td>
-            </tr>
-            <tr class="border-t hover:bg-blue-50">
-              <td class="px-4 py-2">Projector</td>
-              <td class="px-4 py-2">Epson</td>
-              <td class="px-4 py-2 text-yellow-600">Borrowed</td>
-              <td class="px-4 py-2">5</td>
-            </tr>
-            <tr class="border-t hover:bg-blue-50">
-              <td class="px-4 py-2">Keyboard</td>
-              <td class="px-4 py-2">Logitech</td>
-              <td class="px-4 py-2 text-red-600">Damaged</td>
-              <td class="px-4 py-2">2</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </main>
-{% include 'notification_modal.html' %}
+
+  <!-- FILTER MODAL -->
+  <div id="filterModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-lg p-6 w-80">
+      <h3 class="text-lg font-semibold text-blue-700 mb-4">Select Cost Chart Filter</h3>
+      <div class="space-y-3">
+        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Weekly">Weekly</button>
+        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Monthly">Monthly</button>
+        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Yearly">Yearly</button>
+      </div>
+      <button id="closeFilterModal" class="mt-5 w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Close</button>
+    </div>
+  </div>
+
+  <!-- JS -->
   <script>
     lucide.createIcons();
 
-    
-
-    // Pie Chart
+    // INVENTORY PIE CHART
     const ctx1 = document.getElementById('inventoryChart');
     new Chart(ctx1, {
       type: 'pie',
       data: {
-        labels: ['Available', 'Borrowed', 'Damaged'],
+        labels: ['Available', 'In Use', 'Damaged'],
         datasets: [{
-          data: [120, 45, 10],
-          backgroundColor: ['#22c55e', '#facc15', '#ef4444'],
+          data: [{ available_items }, { in_use_items }, { damaged_items }],
+          backgroundColor: ['#22c55e', '#facc15', '#ef4444']
         }]
       },
       options: {
         plugins: { legend: { position: 'bottom' } },
-        maintainAspectRatio: false,
+        maintainAspectRatio: false
       }
+
     });
 
-    // Bar Chart (Smaller Height)
+
+    // COST CHART
     const ctx2 = document.getElementById('costChart');
-    new Chart(ctx2, {
+    const costChart = new Chart(ctx2, {
       type: 'bar',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [
-          {
-            label: 'Cost In',
-            data: [20000, 18000, 15000, 22000, 25000, 30000],
-            backgroundColor: '#3b82f6'
-          },
-          {
-            label: 'Cost Out',
-            data: [12000, 10000, 8000, 15000, 17000, 20000],
-            backgroundColor: '#8b5cf6'
-          }
-        ]
-      },
+      data: { labels: [], datasets: [] },
       options: {
         responsive: true,
         plugins: { legend: { position: 'bottom' } },
-        scales: {
-          y: { beginAtZero: true }
-        },
+        scales: { y: { beginAtZero: true } },
         maintainAspectRatio: false
       }
     });
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('notificationModal');
-  const list = document.getElementById('notificationList');
-  const openBtn = document.getElementById('notificationBtn');
-  const closeBtn = document.getElementById('closeNotificationModal');
 
-  if (!modal || !list || !openBtn || !closeBtn) return;
-
-  // Open modal
-  openBtn.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    loadNotifications();
-  });
-
-  // Close modal
-  closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-  });
-
-  async function loadNotifications() {
-    try {
-        const res = await fetch('notifications_bp.get_notification'); // ✅ correct URL
+    async function loadCostData(filterType = 'Monthly') {
+      try {
+        const res = await fetch(`/cost_data/${filterType}`);
         const data = await res.json();
-        list.innerHTML = '';
-
-        if (!data.length) {
-            list.innerHTML = '<p class="text-gray-500 text-sm">No notifications yet.</p>';
-            return;
-        }
-
-        data.forEach(n => {
-            const div = document.createElement('div');
-            div.className = "p-2 border-b border-gray-200 text-sm";
-            div.innerHTML = `
-                <p><strong>${n.user_name || 'Unknown'}</strong> ${n.action}</p>
-                <p class="text-gray-500 text-xs">${new Date(n.created_at).toLocaleString()}</p>
-            `;
-            list.appendChild(div);
-        });
-    } catch (err) {
-        console.error('Error loading notifications:', err);
-        list.innerHTML = '<p class="text-red-500 text-sm">Failed to load notifications.</p>';
+        costChart.data.labels = data.labels;
+        costChart.data.datasets = [
+          { label: 'Cost In', data: data.cost_in, backgroundColor: '#3b82f6' },
+        ];
+        costChart.update();
+      } catch (err) {
+        console.error('Error fetching cost data:', err);
+      }
     }
-}});
 
+    loadCostData('Monthly');
 
+    const modal = document.getElementById('filterModal');
+    const openModal = document.getElementById('openFilterModal');
+    const closeModal = document.getElementById('closeFilterModal');
+    const filterLabel = document.getElementById('filterLabel');
+
+    openModal.addEventListener('click', () => modal.classList.remove('hidden'));
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const filter = btn.dataset.filter;
+        filterLabel.textContent = filter;
+        modal.classList.add('hidden');
+        await loadCostData(filter);
+      });
+    });
   </script>
 </body>
 </html>

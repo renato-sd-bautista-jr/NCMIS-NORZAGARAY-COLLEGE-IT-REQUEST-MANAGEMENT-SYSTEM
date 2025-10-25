@@ -1,87 +1,115 @@
-  <!-- Item Add/Edit Modal -->
-  <div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200">
-      <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
-        <i data-lucide="plus-circle"></i>
-        <span>Add Device</span>
-      </h3>
+<!-- Item Add/Edit Modal -->
+<div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200">
+    <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
+      <i data-lucide="plus-circle"></i>
+      <span>Add Device</span>
+    </h3>
 
-      <form id="itemForm" method="post" action="{{ url_for('manage_item_bp.add_device') }}" class="space-y-4">
-        <input type="hidden" name="accession_id" id="accession_id">
+    <form id="itemForm" method="post" action="{{ url_for('manage_item_bp.add_device') }}" class="space-y-4">
+      <input type="hidden" name="accession_id" id="accession_id">
 
-        <!-- Device Name -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Device Name</label>
-          <input type="text" name="item_name" id="item_name" required
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-        </div>
+      <!-- Device Name -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Device Name</label>
+        <input type="text" name="item_name" id="item_name" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Brand / Model -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Brand / Model</label>
-          <input type="text" name="brand_model" id="brand_model"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-        </div>
+      <!-- Brand / Model -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Brand / Model</label>
+        <input type="text" name="brand_model" id="brand_model"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Serial Number -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Serial Number</label>
-          <input type="text" name="serial_number" id="serial_number"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-        </div>
+      <!-- Serial No -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Serial No</label>
+        <input type="text" name="serial_no" id="serial_no" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Quantity -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Quantity</label>
-          <input type="number" name="quantity" id="quantity" value="1" readonly
-            class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed text-black">
-        </div>
+      <!-- Municipal Serial No -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Municipal Serial No</label>
+        <input type="text" name="municipal_serial_no" id="municipal_serial_no"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Device Type -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Device Type</label>
-          <input type="text" name="device_type" id="device_type"
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-        </div>
+      <!-- Quantity -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Quantity</label>
+        <input type="number" name="quantity" id="quantity" value="1" readonly
+          class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed text-black">
+      </div>
 
-        <!-- Department -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Department</label>
-          <select name="department_id" id="department_id" required
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black" >
-            <option value="">Select Department</option>
-            {% for dept in departments %}
-              <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <!-- Device Type -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Device Type</label>
+        <input type="text" name="device_type" id="device_type"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Status -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Status</label>
-          <select name="status" id="status" required
-            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-            <option value="Available">Available</option>
-            <option value="In Use">In Use</option>
-            <option value="Repair">Repair</option>
-            <option value="Disposed">Disposed</option>
-          </select>
-        </div>
+      <!-- Acquisition Cost -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Acquisition Cost (₱)</label>
+        <input type="number" step="0.01" name="acquisition_cost" id="acquisition_cost"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
 
-        <!-- Buttons -->
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="closeItemModal()"
-            class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm ">
-            Cancel
-          </button>
-          <button id="itemSubmitBtn" type="submit"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
-            Add Device
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Date Acquired -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Date Acquired</label>
+        <input type="date" name="date_acquired" id="date_acquired"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
+
+      <!-- Accountable Person -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Accountable Person</label>
+        <input type="text" name="accountable" id="accountable"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+      </div>
+
+      <!-- Department -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Department</label>
+        <select name="department_id" id="department_id" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+          <option value="">Select Department</option>
+          {% for dept in departments %}
+          <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Status</label>
+        <select name="status" id="status" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+          <option value="Available">Available</option>
+          <option value="In Used">In Used</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Damaged">Damaged</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" onclick="closeItemModal()"
+          class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm">
+          Cancel
+        </button>
+        <button id="itemSubmitBtn" type="submit"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
+          Add Device
+        </button>
+      </div>
+    </form>
   </div>
+</div>
 
 <script>
 async function openItemModal(itemData = null) {
@@ -94,13 +122,10 @@ async function openItemModal(itemData = null) {
 
   form.reset();
 
-  // ✅ Fetch updated departments list from backend
+  // Fetch updated departments
   try {
-    const depRes = await fetch('/get-departments');
-    if (!depRes.ok) throw new Error(`HTTP ${depRes.status}`);
-    const departments = await depRes.json();
-
-    // Rebuild the department dropdown
+    const res = await fetch('/get-departments');
+    const departments = await res.json();
     deptSelect.innerHTML = '<option value="">Select Department</option>';
     departments.forEach(dep => {
       const opt = document.createElement('option');
@@ -109,42 +134,33 @@ async function openItemModal(itemData = null) {
       deptSelect.appendChild(opt);
     });
   } catch (err) {
-    console.error('❌ Error loading departments:', err);
     deptSelect.innerHTML = '<option value="">Error loading departments</option>';
   }
 
-  // 🟦 EDIT MODE
+  // Edit mode
   if (itemData) {
     title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
     form.action = "{{ url_for('manage_item_bp.update_device') }}";
     submitBtn.textContent = "Update Device";
 
-    document.getElementById('accession_id').value = itemData.accession_id || '';
-    document.getElementById('item_name').value = itemData.name || '';
-    document.getElementById('brand_model').value = itemData.brand_model || '';
-    document.getElementById('serial_number').value = itemData.serial_number || '';
-    document.getElementById('quantity').value = itemData.quantity || 1;
-    document.getElementById('device_type').value = itemData.category || '';
-
-    // ✅ Try selecting by department_id, fallback by name
-    if (itemData.department_id) {
-      deptSelect.value = itemData.department_id;
-    } else if (itemData.department_name) {
-      const match = Array.from(deptSelect.options).find(
-        opt => opt.text === itemData.department_name
-      );
-      if (match) deptSelect.value = match.value;
-    }
-
-    if (itemData.status) statusSelect.value = itemData.status;
-
+    document.getElementById('accession_id').value = itemData.accession_id;
+    document.getElementById('item_name').value = itemData.item_name;
+    document.getElementById('brand_model').value = itemData.brand_model;
+    document.getElementById('serial_no').value = itemData.serial_no;
+    document.getElementById('municipal_serial_no').value = itemData.municipal_serial_no;
+    document.getElementById('device_type').value = itemData.device_type;
+    document.getElementById('acquisition_cost').value = itemData.acquisition_cost;
+    document.getElementById('date_acquired').value = itemData.date_acquired;
+    document.getElementById('accountable').value = itemData.accountable;
+    document.getElementById('quantity').value = itemData.quantity;
+    deptSelect.value = itemData.department_id || '';
+    statusSelect.value = itemData.status || 'Available';
   } else {
-    // 🟩 ADD MODE
+    // Add mode
     title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
     form.action = "{{ url_for('manage_item_bp.add_device') }}";
     submitBtn.textContent = "Add Device";
-    deptSelect.selectedIndex = 0;
-    statusSelect.value = "Available";
+    statusSelect.value = 'Available';
   }
 
   lucide.createIcons();
@@ -154,5 +170,15 @@ async function openItemModal(itemData = null) {
 function closeItemModal() {
   document.getElementById('itemModal').classList.add('hidden');
 }
-</script>
 
+async function openItemModalById(itemId) {
+  try {
+    const res = await fetch(`/manage_inventory/get-item-by-id/${itemId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const item = await res.json();
+    openItemModal(item);
+  } catch (err) {
+    alert('Failed to load item data.');
+  }
+}
+</script>
