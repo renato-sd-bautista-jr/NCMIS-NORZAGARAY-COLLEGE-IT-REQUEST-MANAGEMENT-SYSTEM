@@ -15,8 +15,6 @@ def inventory_load():
         flash("Error loading data. Please try again.", "danger")
 
     return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
-
-    return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
 @manage_inventory_bp.route('/manage_inventory/get-departments')
 def get_departments():
     conn = get_db_connection()
@@ -198,76 +196,3 @@ def get_pc_by_id(pcid):
 @manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
-
-
-@manage_inventory_bp.route('/manage_inventory/get-pc-filter-options')
-def get_pc_filter_options():
-    """Return unique filter options for PC filter dropdown."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT DISTINCT
-                    d.department_name,
-                    p.location,
-                    p.device_type,
-                    p.accountable,
-                    p.status
-                FROM pcinfofull p
-                LEFT JOIN departments d ON p.department_id = d.department_id
-            """)
-            rows = cur.fetchall()
-
-        # Extract unique non-null values per field
-        departments = sorted({r['department_name'] for r in rows if r['department_name']})
-        locations = sorted({r['location'] for r in rows if r['location']})
-        accountables = sorted({r['accountable'] for r in rows if r['accountable']})
-        statuses = sorted({r['status'] for r in rows if r['status']})
-
-        return jsonify({
-            'departments': departments,
-            'locations': locations,
-            'accountables': accountables,
-            'statuses': statuses
-        })
-    except Exception as e:
-        print(f"❌ Error fetching filter options: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        conn.close()
-
-
-@manage_inventory_bp.route('/manage_inventory/get-item-filter-options')
-def get_item_filter_options():
-    """Return unique filter options for Item filter dropdown."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT DISTINCT
-                    d.department_name,
-                    df.device_type,
-                    df.accountable,
-                    df.status
-                FROM devices_full df
-                LEFT JOIN departments d ON df.department_id = d.department_id
-            """)
-            rows = cur.fetchall()
-
-        # Extract unique non-null values per field
-        departments = sorted({r['department_name'] for r in rows if r['department_name']})
-        device_types = sorted({r['device_type'] for r in rows if r['device_type']})
-        accountables = sorted({r['accountable'] for r in rows if r['accountable']})
-        statuses = sorted({r['status'] for r in rows if r['status']})
-
-        return jsonify({
-            'departments': departments,
-            'device_types': device_types,
-            'accountables': accountables,
-            'statuses': statuses
-        })
-    except Exception as e:
-        print(f"❌ Error fetching filter options: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        conn.close()

@@ -143,6 +143,25 @@
                 </label>
               </div>
             </div>
+
+
+            <!-- DEPARTMENTS -->
+            <div class="flex justify-between items-center border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="file-chart-column" class="w-6 h-6 text-orange-600"></i>
+                <span class="font-semibold text-gray-700">Departments</span>
+              </div>
+              <div class="flex gap-6">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="dept_view" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  View
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="dept_edit" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  Edit
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -200,14 +219,29 @@
       document.getElementById('email').value = user.email;
       document.getElementById('is_admin').value = user.is_admin;
 
-      if (user.permissions && Array.isArray(user.permissions)) {
-        user.permissions.forEach(p => {
-          const checkbox = document.querySelector(`.permCheckbox[value="${p}"]`);
-          if (checkbox) checkbox.checked = true;
-        });
-        const allChecked = Array.from(permissionCheckboxes).every(cb => cb.checked);
-        selectAllCheckbox.checked = allChecked;
+      if (user.permissions) {
+  try {
+    const perms = typeof user.permissions === "string"
+      ? JSON.parse(user.permissions)
+      : user.permissions;
+
+    Object.keys(perms).forEach(section => {
+      if (perms[section].view) {
+        const cb = document.querySelector(`.permCheckbox[value="${section}_view"]`);
+        if (cb) cb.checked = true;
       }
+      if (perms[section].edit) {
+        const cb = document.querySelector(`.permCheckbox[value="${section}_edit"]`);
+        if (cb) cb.checked = true;
+      }
+    });
+
+    const allChecked = Array.from(permissionCheckboxes).every(cb => cb.checked);
+    selectAllCheckbox.checked = allChecked;
+  } catch (e) {
+    console.error("Invalid permission format:", e);
+  }
+}
     }
 
     userModal.classList.remove('hidden');

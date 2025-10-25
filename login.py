@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
-import bcrypt
+import bcrypt,json
 from datetime import datetime
 
 # Blueprint setup
@@ -16,40 +16,47 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Database connection
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT user_id, username, is_admin, password FROM users WHERE username=%s",
+                    "SELECT user_id, username, is_admin, password, permissions FROM users WHERE username=%s",
                     (username,)
                 )
                 user = cursor.fetchone()
         finally:
             conn.close()
 
-        # 🔹 CASE 1: Username not found
+        # Username not found
         if not user:
             flash("Invalid username. Please try again.", "error")
             return redirect(url_for('login_bp.login'))
 
-        # 🔹 CASE 2: Wrong password
+        # Wrong password
         if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             flash("Incorrect password. Please try again.", "error")
             return redirect(url_for('login_bp.login'))
 
-        # 🔹 CASE 3: Correct login
-        session['user_id'] = user['user_id']
-        session['username'] = user['username']
-        session['is_admin'] = bool(user['is_admin'])
+        # Decode permissions JSON safely
+        import json
+        permissions = {}
+        if user.get('permissions'):
+            try:
+                permissions = json.loads(user['permissions'])
+            except json.JSONDecodeError:
+                permissions = {}
 
-        # Redirect based on role
-        if session['is_admin']:
-            return redirect(url_for('dashboard_bp.dashboard_load'))
-        else:
-            return redirect(url_for('main'))
+        # Save session data
+        session['user'] = {
+            'user_id': user['user_id'],
+            'username': user['username'],
+            'is_admin': bool(user['is_admin']),
+            'permissions': permissions
+        }
 
-    # GET request → show login page
+        
+        return redirect(url_for('dashboard_bp.dashboard_load'))
+        # ✅ Handle GET requests here
     return render_template('login.html')
 
 

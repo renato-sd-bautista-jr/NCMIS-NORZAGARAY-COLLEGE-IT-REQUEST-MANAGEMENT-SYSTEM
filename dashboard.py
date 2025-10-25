@@ -5,13 +5,6 @@ import pymysql
 dashboard_bp = Blueprint('dashboard_bp', __name__, template_folder='templates')
 
 
-@dashboard_bp.route('/dashboardgenerator')
-def dashboard_generator_page():
-    """Admin-only access to dashboard generator page."""
-    if 'user_id' not in session or not session.get('is_admin'):
-        flash("Access denied. Admins only.", "error")
-        return redirect(url_for('login_bp.login'))
-    return render_template('dashboard.html')
 
 
 @dashboard_bp.route('/dashboardlist')
@@ -26,6 +19,14 @@ def dashboard_load():
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            cur.execute("""
+                SELECT item_name AS item_name, brand_model AS action, created_at 
+                FROM devices_full 
+                ORDER BY created_at DESC 
+                LIMIT 5
+            """)
+            recent_transactions = cur.fetchall()
 
             # 🔹 Manage Items Count (devices_full)
             cur.execute("SELECT COUNT(*) AS total FROM devices_full")
@@ -45,35 +46,40 @@ def dashboard_load():
             cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Damaged'")
             damaged_items = cur.fetchone()['total']
 
-            # 🔹 Cost In / Out (not in DB yet — default to 0)
-            total_cost_in = 0.00
-            total_cost_out = 0.00
+                # 🔹 Total Cost In (sum of acquisition_cost from both tables)
+            cur.execute("SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM devices_full")
+            device_cost = cur.fetchone()['total']
 
-            # 🔹 Recent Transactions (optional — only if table exists)
-            try:
-                cur.execute("""
-                    SELECT action, item_name, created_at 
-                    FROM transactions 
-                    ORDER BY created_at DESC 
-                    LIMIT 5
-                """)
-                recent_transactions = cur.fetchall()
-            except Exception:
-                recent_transactions = []
+            cur.execute("SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM pcinfofull")
+            pc_cost = cur.fetchone()['total']
+
+            # Average cost
+            cur.execute("""
+                SELECT AVG(acquisition_cost) AS avg_cost FROM (
+                    SELECT acquisition_cost FROM devices_full
+                    UNION ALL
+                    SELECT acquisition_cost FROM pcinfofull
+                ) AS combined
+            """)
+            avg_cost = cur.fetchone()['avg_cost'] or 0
+
+            total_cost_in = float(device_cost) + float(pc_cost)
+
+            
+            
 
     except Exception as e:
         print("❌ Dashboard load error:", e)
         flash("Error loading dashboard data.", "error")
-        return render_template(
-            'dashboard.html',
+        return render_template('dashboard.html',
             total_items=0,
             total_pcs=0,
             available_items=0,
             in_use_items=0,
             damaged_items=0,
             total_cost_in=0,
-            total_cost_out=0,
-            recent_transactions=[]
+            avg_cost=avg_cost,
+            recent_transactions=recent_transactions
         )
     finally:
         conn.close()
@@ -87,7 +93,6 @@ def dashboard_load():
         in_use_items=in_use_items,        # Borrowed = In Use
         damaged_items=damaged_items,      # Damaged from devices_units
         total_cost_in=total_cost_in,      # Placeholder ₱0.00
-        total_cost_out=total_cost_out,    # Placeholder ₱0.00
         recent_transactions=recent_transactions
     )
 

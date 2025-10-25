@@ -1,4 +1,5 @@
 import pymysql
+import json
 from db import get_db_connection
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for
 
@@ -17,14 +18,15 @@ def manage_user_page():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute("""
-                SELECT 
-                    user_id,
-                    username,
-                    faculty_name,
-                    email,
-                    is_admin,
-                    is_active,
-                    created_at
+                 SELECT 
+                user_id,
+                username,
+                faculty_name,
+                email,
+                is_admin,
+                is_active,
+                permissions,
+                created_at
                 FROM users
                 ORDER BY faculty_name
             """)
@@ -70,7 +72,7 @@ def get_users():
 @manage_user_bp.route('/add-or-update-user', methods=['POST'])
 def add_or_update_user():
     """
-    Add a new user or update an existing one.
+    Add or update a user, including permissions.
     """
     data = request.form
     user_id = data.get('user_id')
@@ -79,6 +81,16 @@ def add_or_update_user():
     email = data.get('email')
     password = data.get('password')
     is_admin = int(data.get('is_admin', 0))
+    permissions = data.getlist('permissions')  # comes from checkboxes
+
+    # Build structured JSON for permissions
+    perm_data = {
+        "dashboard": {"view": "dashboard_view" in permissions, "edit": "dashboard_edit" in permissions},
+        "inventory": {"view": "inventory_view" in permissions, "edit": "inventory_edit" in permissions},
+        "qrlist": {"view": "qrlist_view" in permissions, "edit": "qrlist_edit" in permissions},
+        "report": {"view": "report_view" in permissions, "edit": "report_edit" in permissions},
+        "dept": {"view": "dept_view" in permissions, "edit": "dept_edit" in permissions}
+    }
 
     if not faculty_name or not username or not email:
         return jsonify({"error": "Missing required fields"}), 400
@@ -89,21 +101,25 @@ def add_or_update_user():
             if user_id:  # Update existing user
                 sql = """
                     UPDATE users
-                    SET faculty_name=%s, username=%s, email=%s, is_admin=%s, updated_at=NOW()
+                    SET faculty_name=%s, username=%s, email=%s, is_admin=%s, permissions=%s, updated_at=NOW()
                     WHERE user_id=%s
                 """
-                cursor.execute(sql, (faculty_name, username, email, is_admin, user_id))
+                cursor.execute(sql, (
+                    faculty_name, username, email, is_admin, json.dumps(perm_data), user_id
+                ))
             else:  # Add new user
                 sql = """
-                    INSERT INTO users (faculty_name, username, email, password, is_admin, is_active, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, 1, NOW(), NOW())
+                    INSERT INTO users (faculty_name, username, email, password, is_admin, permissions, is_active, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, 1, NOW(), NOW())
                 """
-                cursor.execute(sql, (faculty_name, username, email, password, is_admin))
+                cursor.execute(sql, (
+                    faculty_name, username, email, password, is_admin, json.dumps(perm_data)
+                ))
+
         conn.commit()
         return redirect(url_for('manage_user_bp.manage_user_page'))
     finally:
         conn.close()
-
 
 # ========================
 # DEACTIVATE USER
@@ -157,3 +173,5 @@ def activate_user():
 @manage_user_bp.route('/edit-user/<int:id>', methods=['GET', 'POST'])
 def edit_user(id):
     return f"Edit user {id}"
+
+

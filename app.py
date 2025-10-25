@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint
+from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint,g
 
 from login import login_bp
 from userborrow import userborrow_bp
@@ -11,6 +11,7 @@ from manage_pc import manage_pc_bp
 from manage_department import manage_department_bp
 from manage_inventory import manage_inventory_bp
 from notification import notification_bp
+from sidebar import get_user_access
 
 
 
@@ -29,7 +30,38 @@ app.register_blueprint(manage_inventory_bp)
 app.register_blueprint(notification_bp)
 
 
+# ✅ Context processor to make user access available globally in templates
+@app.context_processor
+def inject_user_access():
+    user_id = session.get('user_id')
+    if not user_id:
+        return {'user_access': {}}  # default empty access if not logged in
+    return {'user_access': get_user_access(user_id)}
 
+
+
+@app.context_processor
+def inject_user_permissions():
+    """Make user data and permissions available in all templates"""
+    user = session.get('user')
+    if user:
+        return {
+            'permissions': user.get('permissions', {}),
+            'is_admin': user.get('is_admin', 0)
+        }
+    return {'permissions': {}, 'is_admin': 0}
+@app.before_request
+def load_user_permissions():
+    if 'user' in session:
+        user = session['user']
+        if isinstance(user.get('permissions'), str):
+            try:
+                user['permissions'] = json.loads(user['permissions'])
+            except json.JSONDecodeError:
+                user['permissions'] = {}
+        g.permissions = user.get('permissions', {})
+    else:
+        g.permissions = {}
 
 @app.route('/')
 def index():

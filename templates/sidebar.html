@@ -10,40 +10,53 @@
 
     <!-- Navigation -->
     <nav class="flex flex-col gap-2 px-4">
-      <a href="{{ url_for('dashboard_bp.dashboard_load') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
-                {% if request.endpoint == 'invendash_bp.dashboard_page' %}
-                  bg-blue-600 text-white shadow-md
-                {% else %}
-                  hover:bg-blue-600/30 hover:text-white
-                {% endif %}">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
-      </a>      
+{% if permissions.get('dashboard', {}).get('view', False) %}
+<a href="{{ url_for('dashboard_bp.dashboard_load') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
+          {% if request.endpoint == 'dashboard_bp.dashboard_load' %}
+            bg-blue-600 text-white shadow-md
+          {% else %}
+            hover:bg-blue-600/30 hover:text-white
+          {% endif %}">
+  <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+</a>
+{% endif %}
+{% if permissions.get('inventory', {}).get('view', False) %}
+<a href="{{ url_for('manage_inventory.inventory_load') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
+</a>
+{% endif %}
 
-      <a href="{{ url_for('manage_inventory.inventory_load') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-        <i data-lucide="cpu" class="w-5 h-5 mr-3"></i> Inventory
-      </a>        
+{% if permissions.get('qrlist', {}).get('view', False) %}
+<a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
+</a>
+{% endif %}
 
-      <a href="{{ url_for('qrcode_bp.qrcode_generator_page') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-        <i data-lucide="qr-code" class="w-5 h-5 mr-3"></i> QR List
-      </a>
+{% if permissions.get('report', {}).get('view', False) %}
+<a href="{{ url_for('report_bp.report_generator_page') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
+</a>
+{% endif %}
 
-      <a href="{{ url_for('report_bp.report_generator_page') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-        <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Report
-      </a>
-     
-      <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-        <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage User
-      </a>
 
-      <a href="{{ url_for('manage_department_bp.manage_department_page') }}"
-         class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-        <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
-      </a>
+{% if permissions.get('dept', {}).get('view', False) %}
+<a href="{{ url_for('manage_department_bp.manage_department_page') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Department
+</a>
+{% endif %}
+
+
+{% if is_admin == 1 %}
+<a href="{{ url_for('manage_user_bp.manage_user_page') }}"
+    class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage Users
+</a>
+{% endif %}
     </nav>
   </div>
 
@@ -55,3 +68,31 @@
     </button>
   </div>
 </aside>
+
+
+  <!-- LOGOUT MODAL -->
+  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
+      <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
+      <div class="flex justify-center space-x-3">
+        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
+        <form method="post" action="{{ url_for('login_bp.logout') }}">
+          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+<script>  
+
+     // Logout modal logic
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    cancelLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
+
+    // Lucide icons
+    lucide.createIcons();
+</script>
