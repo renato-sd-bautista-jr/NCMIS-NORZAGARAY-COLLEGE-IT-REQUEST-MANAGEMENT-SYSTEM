@@ -17,7 +17,7 @@
     </div>
 
     <!-- Form -->
-    <form id="pcForm" method="POST" class="space-y-6">
+    <form id="pcForm" class="space-y-6">
       <input type="hidden" id="modalPcId" name="pcid">
 
       <!-- Grid -->
@@ -114,12 +114,19 @@
 
       <!-- Buttons -->
       <div class="flex justify-end gap-3 mt-8 pt-4 border-t">
-        <button type="button" onclick="closePcModal()" class="btn-gray">
-          <i data-lucide="x-circle" class="w-4 h-4"></i> Cancel
+        <button type="button" onclick="toggleBatchAdd()" class="btn-blue">
+          <i data-lucide="layers" class="w-4 h-4"></i> Batch Add
         </button>
-        <button id="modalSubmitBtn" type="submit" class="btn-blue">
-          <i data-lucide="save" class="w-4 h-4"></i> Add PC
-        </button>
+
+        <div class="flex gap-3">
+          <button type="button" onclick="closePcModal()" class="btn-gray">
+            <i data-lucide="x-circle" class="w-4 h-4"></i> Cancel
+          </button>
+          <button id="modalSubmitBtn" type="submit" class="btn-blue">
+            <i data-lucide="save" class="w-4 h-4"></i> Add PC
+          </button>
+        </div>
+        
       </div>
     </form>
   </div>
@@ -278,6 +285,90 @@ async function openPcModal(pcData = null) {
 }
 function closePcModal() {
   document.getElementById('pcModal').classList.add('hidden');
+}
+
+document.getElementById("pcForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const batchCount = parseInt(document.getElementById("batchCount").value || "1", 10);
+
+  if (batchCount > 1) {
+    // Batch Add Mode
+    const baseName = formData.get("pcname").trim() || "PC";
+    const batchPcs = [];
+
+    for (let i = 1; i <= batchCount; i++) {
+      const pcCopy = Object.fromEntries(formData.entries());
+      pcCopy.pcname = `${baseName}-${String(i).padStart(2, "0")}`;
+      pcCopy.serial_no = generateSerial("SN");
+      pcCopy.municipal_serial_no = generateSerial("MSN");
+      batchPcs.push(pcCopy);
+    }
+
+    try {
+      const res = await fetch("{{ url_for('manage_pc_bp.batch_add_pcinfofull') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(batchPcs)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showPopup("success", `${batchCount} PCs added successfully!`);
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showPopup("error", data.error || "Batch add failed.");
+      }
+    } catch (err) {
+      console.error("❌ Batch Add Error:", err);
+      showPopup("error", "Something went wrong during batch add.");
+    }
+
+  } else {
+    // Single Add Mode
+    try {
+      const res = await fetch("{{ url_for('manage_pc_bp.add_pcinfofull') }}", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showPopup("error", data.error || "Failed to add PC.");
+        openPcModal(Object.fromEntries(formData));
+        return;
+      }
+
+      showPopup("success", data.message);
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      console.error("❌ Submission error:", err);
+      showPopup("error", "Something went wrong while adding PC.");
+    }
+  }
+});
+
+
+function showPopup(type, message) {
+  const popup = document.createElement("div");
+  popup.className = `fixed top-5 right-5 px-4 py-3 rounded-lg shadow-lg text-white z-50 ${
+    type === "error" ? "bg-red-600" : "bg-green-600"
+  }`;
+  popup.textContent = message;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 3000);
+}
+
+function toggleBatchAdd() {
+  const batchSection = document.getElementById("batchAddSection");
+  batchSection.classList.toggle("hidden");
+}
+
+/** Helper to generate unique serials */
+function generateSerial(prefix = "SN") {
+  const randomPart = Math.floor(100000 + Math.random() * 900000); // 6 digits
+  return `${prefix}-${Date.now()}-${randomPart}`;
 }
 </script>
 

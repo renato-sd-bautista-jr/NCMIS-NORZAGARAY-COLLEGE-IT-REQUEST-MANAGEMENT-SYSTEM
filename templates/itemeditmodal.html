@@ -6,7 +6,7 @@
       <span>Add Device</span>
     </h3>
 
-    <form id="itemForm" method="post" action="{{ url_for('manage_item_bp.add_device') }}" class="space-y-4">
+    <form id="itemForm" method="post" class="space-y-4">
       <input type="hidden" name="accession_id" id="accession_id">
 
       <!-- Device Name -->
@@ -40,8 +40,8 @@
       <!-- Quantity -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Quantity</label>
-        <input type="number" name="quantity" id="quantity" value="1" readonly
-          class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed text-black">
+        <input type="number" name="quantity" id="quantity" value="1" min="1"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
       </div>
 
       <!-- Device Type -->
@@ -77,10 +77,7 @@
         <label class="block text-gray-700 font-medium mb-1">Department</label>
         <select name="department_id" id="department_id" required
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-          <option value="">Select Department</option>
-          {% for dept in departments %}
-          <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
-          {% endfor %}
+          <option value="">Loading departments...</option>
         </select>
       </div>
 
@@ -110,19 +107,21 @@
     </form>
   </div>
 </div>
-
 <script>
 async function openItemModal(itemData = null) {
   const modal = document.getElementById('itemModal');
   const title = document.getElementById('modalTitle');
   const form = document.getElementById('itemForm');
+  const quantity = document.getElementById('quantity');
   const submitBtn = document.getElementById('itemSubmitBtn');
   const deptSelect = document.getElementById('department_id');
   const statusSelect = document.getElementById('status');
 
+  // Reset the form
   form.reset();
+  document.getElementById('accession_id').value = '';
 
-  // Fetch updated departments
+  // Load departments dynamically
   try {
     const res = await fetch('/get-departments');
     const departments = await res.json();
@@ -133,33 +132,45 @@ async function openItemModal(itemData = null) {
       opt.textContent = dep.department_name;
       deptSelect.appendChild(opt);
     });
-  } catch (err) {
+  } catch {
     deptSelect.innerHTML = '<option value="">Error loading departments</option>';
   }
 
-  // Edit mode
+  // --- Edit mode ---
   if (itemData) {
+    console.log('Editing item → disabling quantity');
     title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
     form.action = "{{ url_for('manage_item_bp.update_device') }}";
     submitBtn.textContent = "Update Device";
 
-    document.getElementById('accession_id').value = itemData.accession_id;
-    document.getElementById('item_name').value = itemData.item_name;
-    document.getElementById('brand_model').value = itemData.brand_model;
-    document.getElementById('serial_no').value = itemData.serial_no;
-    document.getElementById('municipal_serial_no').value = itemData.municipal_serial_no;
-    document.getElementById('device_type').value = itemData.device_type;
-    document.getElementById('acquisition_cost').value = itemData.acquisition_cost;
-    document.getElementById('date_acquired').value = itemData.date_acquired;
-    document.getElementById('accountable').value = itemData.accountable;
-    document.getElementById('quantity').value = itemData.quantity;
+    // Populate fields
+    Object.entries(itemData).forEach(([key, value]) => {
+      const input = document.getElementById(key);
+      if (input) input.value = value ?? '';
+    });
+
+    // Disable quantity
+    if (quantity) {
+      quantity.readOnly = true;
+      quantity.classList.add('bg-gray-100', 'cursor-not-allowed');
+    }
+
     deptSelect.value = itemData.department_id || '';
     statusSelect.value = itemData.status || 'Available';
-  } else {
-    // Add mode
+  } 
+  // --- Add mode ---
+  else {
+    console.log('Adding new item → enabling quantity');
     title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
     form.action = "{{ url_for('manage_item_bp.add_device') }}";
     submitBtn.textContent = "Add Device";
+
+    if (quantity) {
+      quantity.readOnly = false;
+      quantity.value = 1;
+      quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
+    }
+
     statusSelect.value = 'Available';
   }
 
@@ -171,14 +182,5 @@ function closeItemModal() {
   document.getElementById('itemModal').classList.add('hidden');
 }
 
-async function openItemModalById(itemId) {
-  try {
-    const res = await fetch(`/manage_inventory/get-item-by-id/${itemId}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const item = await res.json();
-    openItemModal(item);
-  } catch (err) {
-    alert('Failed to load item data.');
-  }
-}
+
 </script>

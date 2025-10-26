@@ -313,26 +313,27 @@ function closeItemModal() {
   document.getElementById('itemModal').classList.add('hidden');
 }
 
+// ✅ Called when clicking "Edit" button
 async function openItemModalById(itemId) {
   console.log('Fetching Item ID:', itemId);
   try {
     const res = await fetch(`/manage_inventory/get-item-by-id/${itemId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const item = await res.json();
+
     console.log('✅ Item data received:', item);
 
     const itemData = {
-      accession_id: item.accession_id,       // match your DB field
-      name: item.item_name,                  // updated field name
+      accession_id: item.accession_id,
+      item_name: item.item_name,
       brand_model: item.brand_model,
-      serial_no: item.serial_no,             // ✅ new field
-      municipal_serial_no: item.municipal_serial_no, // ✅ new field
-      acquisition_cost: item.acquisition_cost,       // ✅ new field
-      date_acquired: item.date_acquired,             // ✅ new field
-      accountable: item.accountable,                 // ✅ new field
+      serial_no: item.serial_no,
+      municipal_serial_no: item.municipal_serial_no,
+      acquisition_cost: item.acquisition_cost,
+      date_acquired: item.date_acquired,
+      accountable: item.accountable,
       quantity: item.quantity,
-      category: item.device_type,            // renamed from item.category
+      device_type: item.device_type,
       status: item.status,
       department_id: item.department_id,
       department_name: item.department_name
@@ -344,6 +345,7 @@ async function openItemModalById(itemId) {
     alert('Failed to load item data.');
   }
 }
+
 
     // --- SECTION SWITCHING & DYNAMIC ADD BUTTON LOGIC ---
 let currentSection = "pc"; // default view is Manage PC
