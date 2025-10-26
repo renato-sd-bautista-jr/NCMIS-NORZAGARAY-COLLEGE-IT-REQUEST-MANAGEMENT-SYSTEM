@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 23, 2025 at 10:18 AM
+-- Generation Time: Oct 26, 2025 at 06:54 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -134,15 +134,16 @@ INSERT INTO `concern_history` (`id`, `concern_id`, `user_id`, `description`, `st
 
 CREATE TABLE `departments` (
   `department_id` int(11) NOT NULL,
-  `department_name` varchar(100) NOT NULL
+  `department_name` varchar(100) NOT NULL,
+  `department_code` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `departments`
 --
 
-INSERT INTO `departments` (`department_id`, `department_name`) VALUES
-(1, 'Dean\'s Office');
+INSERT INTO `departments` (`department_id`, `department_name`, `department_code`) VALUES
+(1, 'Dean\'s Office', 'DO');
 
 -- --------------------------------------------------------
 
@@ -184,28 +185,27 @@ CREATE TABLE `devices_full` (
   `device_id` int(11) DEFAULT NULL,
   `item_name` varchar(255) NOT NULL,
   `brand_model` varchar(255) DEFAULT NULL,
-  `serial_number` varchar(255) DEFAULT NULL,
   `quantity` int(11) DEFAULT 1,
+  `acquisition_cost` decimal(12,2) DEFAULT NULL,
+  `date_acquired` date DEFAULT NULL,
+  `accountable` varchar(255) DEFAULT NULL,
+  `serial_no` varchar(255) NOT NULL,
+  `municipal_serial_no` varchar(255) DEFAULT NULL,
   `device_type` varchar(255) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Available',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `devices_full`
 --
 
-INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `serial_number`, `quantity`, `device_type`, `department_id`, `status`, `created_at`) VALUES
-(2, NULL, '3', '1', '1', 1, '1', 1, 'Available', '2025-10-14 17:00:09'),
-(3, NULL, 'inplay keyboard 1', 'inplay', '9', 1, 'keyboard', 1, 'Available', '2025-10-14 19:26:41'),
-(4, NULL, 'w', 'w', 'w', 1, 'w', 1, 'Available', '2025-10-14 19:32:43'),
-(5, NULL, '5', '3', '3', 1, '3', 1, 'Available', '2025-10-14 19:40:21'),
-(6, NULL, '4', '54', '5', 1, '5', 1, 'Available', '2025-10-14 19:48:47'),
-(7, NULL, 'e', 'Epson EB-X0778e', 'e', 1, 'e', 1, 'Available', '2025-10-14 19:50:30'),
-(9, NULL, '55', '333', '66', 1, '22', 1, 'Available', '2025-10-14 19:51:48'),
-(10, NULL, '4542', '25235', '23423', 1, '234234', 1, 'Available', '2025-10-14 19:53:10'),
-(11, NULL, 'a4Tech Mouse', 'a4Tech', 'm2025', 1, 'Mouse', 1, 'Available', '2025-10-21 17:07:19');
+INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `device_type`, `department_id`, `status`, `created_at`, `updated_at`) VALUES
+(14, NULL, 'Mouse', 'a4Tech', 1, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'Available', '2025-10-25 13:19:00', '2025-10-25 13:19:00'),
+(15, NULL, 'inplay keyboard 1', 'inplay', 5, 1000.00, '0000-00-00', 'John Doe', 'SN-000001', 'MUN-0001252', 'keynoard', 1, 'Available', '2025-10-26 02:09:23', '2025-10-26 02:09:23'),
+(16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Available', '2025-10-26 17:13:39', '2025-10-26 17:13:39');
 
 -- --------------------------------------------------------
 
@@ -320,23 +320,12 @@ CREATE TABLE `pcinfofull` (
 --
 
 INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`) VALUES
-(1, 'PC-LAB-01', 1, 'Computer Lab A', 1, 45000.00, '2025-10-20', 'John Doe', 'SN-000001f', 'MUN-000123', 'Active', 'For student usedsss', 'AOC 24-inch', 'ASUS PRIME B450', '16GB DDR4', '512GB SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'WiFi Card', '2025-10-20 07:43:02', '2025-10-20 08:25:02'),
-(2, 'PC-LAB-02', 1, 'Computer Lab A', 1, 45000.00, '2025-10-13', 'John Doe', 'SN-000002', 'MUN-000124', 'Active', 'number 2', 'AOC 24-inch', 'ASUS PRIME B450', '16GB DDR4', '512GB SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-20 08:29:07', '2025-10-20 08:29:07'),
-(3, 'PC3', 1, 'Computer Lab A', 1, 40000.00, '2025-10-22', 'John Doe', 'SN-000003', 'MUN-000125', 'Active', '3', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', '500wats', 'CoolerMaster', '22', '2025-10-21 17:09:37', '2025-10-21 17:09:37'),
-(4, 'PC4', 1, 'Computer Lab A', 1, 50000.00, '2025-10-23', 'John Doe', 'SN-000004', 'MUN-000126', 'Active', '333', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '22', '2025-10-21 17:17:39', '2025-10-21 17:17:39'),
-(7, 'PC5', 1, 'Computer Lab A', 1, 30000.00, '2025-10-22', 'John Doe', 'SN-000005', 'MUN-0050126', 'Active', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-21 17:22:08', '2025-10-21 17:22:08'),
-(8, 'PC7', 1, 'Computer Lab A', 1, 50000.00, '2025-10-22', 'John Doe', 'SN-000006', 'MUN-00501263', 'Active', '3333', '4', '4', '4', '4', '2', '3', '1', '2', '2025-10-21 17:24:47', '2025-10-21 17:24:47'),
-(9, 'pc8', 1, 'Computer Lab A', 1, 80000.00, '2025-10-22', 'John Doe', 'SN-0000063', 'MUN-005012633', 'Active', '33', 'AOC 24-inch', 'gigabyte a320m', '22', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-21 17:27:50', '2025-10-21 17:27:50'),
-(10, 'pc9', 1, 'Computer Lab A', 1, 50000.00, '2025-10-22', 'John Doe', 'SN-00000633', 'MUN-0050126331', 'Active', '33', '3', '1', '2', '1', '1', '1', '1', '1', '2025-10-21 17:32:32', '2025-10-21 17:32:32'),
-(11, 'pc10', 1, 'it', 1, 3.00, '2025-10-23', '3', 'SN-0000043', 'MUN-0050126321', 'Active', '3', '3', '2', '3', '2', '1', '2', '2', '2', '2025-10-21 17:35:37', '2025-10-21 17:35:37'),
-(12, 'PC11', 1, 'Computer Lab A', 1, 333333.00, '0000-00-00', 'John Doe', 'SN-0000021', 'MUN-0001243', 'Active', '3', '3', '4', '3', '4', '3', '1', '2', '2', '2025-10-21 17:37:17', '2025-10-21 17:37:17'),
-(13, 'pc12', 1, 'Computer Lab A', 1, 33333.00, '2025-10-22', 'John Doe', 'SN-000001f3', 'MUN-0001254', 'Active', '4', '1', '3', '1', '3', '1', '3', '2', '3', '2025-10-21 17:57:15', '2025-10-21 17:57:15'),
-(14, 'PC133', 1, 'Computer Lab A', 1, 33333.00, '2025-10-22', '', 'SN-000001f31', 'MUN-0001252', 'Active', '3', 'yh', 'w', 't', 'w', 't', 'e', 't', 'r', '2025-10-21 17:58:41', '2025-10-21 17:58:41'),
-(16, 'PC53', 1, 'Computer Lab A', 1, 333333.00, '2025-10-22', 'John Doe', 'SN-000001f23', 'MUN-00012523', 'Active', '3', 'nvision 24\"', 'gigabyte a320m', 'ramsta 8gb', '4', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-21 18:02:30', '2025-10-21 18:02:30'),
-(17, 'PC532', 1, 'Computer Lab A', 1, 333333.00, '2025-10-22', 'John Doe', 'SN-0000052', 'MUN-0001251', 'Active', '32', 's', 's', 's', 's', 's', 's', 's', 's', '2025-10-21 18:09:37', '2025-10-21 18:09:37'),
-(20, 'PC1335', 1, 'Computer Lab A', 1, 333.00, '2025-10-22', 'John Doe', 'SN-003', 'MUN-000125221', 'Active', '46', 'qetr', 'qwe', 't', 'wqe', 'wq', 'wqe', 're', 'q', '2025-10-21 19:16:24', '2025-10-21 19:16:24'),
-(21, 'PC1333', 1, 'Computer Lab A', 1, 3333333.00, '2025-10-22', 'John Doe', 'SN-0000051', 'MUN-00012524', 'Active', '4', '2', '23', '213', '23', '213', '23', '213', '23', '2025-10-21 19:21:18', '2025-10-21 19:21:18'),
-(22, 'pc418pm', 1, 'it', 1, 43333.00, '2025-10-23', 'John Doe', 'SN-000001f24', 'MUN-0001252244', 'Active', '2', 'qetr', 'qwe', 't', 'ramsta 500gb', 'wq', 'Corsair 500W', 'CoolerMaster', '2', '2025-10-23 08:18:17', '2025-10-23 08:18:17');
+(69, 'pc-do-01', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-504548', 'MSN-1761440668046-967852', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
+(70, 'pc-do-02', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-169661', 'MSN-1761440668046-344605', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
+(71, 'pc-do-03', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-427934', 'MSN-1761440668046-927513', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
+(72, 'pc-do-04', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-768370', 'MSN-1761440694335-395613', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-10-26 01:04:54'),
+(73, 'pc-do-05', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-256874', 'MSN-1761440694335-926256', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-10-26 01:04:54'),
+(75, 'pc', 1, 'Computer Lab C', 1, 35000.00, '2025-10-27', 'John Doe', 'SN-000074', '', 'Available', '3', '5', '5', '5', '5', '5', '5', '5', '5', '2025-10-26 17:14:15', '2025-10-26 17:14:15');
 
 --
 -- Triggers `pcinfofull`
@@ -376,7 +365,6 @@ CREATE TABLE `pcparts` (
 --
 
 INSERT INTO `pcparts` (`part_id`, `pcid`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`) VALUES
-(4, '1', '33', '222', '22', '22', '22', '22', '22', '22'),
 (7, 'PC-953FF49C', '1', '1', '1', '1', '1', '1', '1', '1'),
 (8, 'PC-30143C90', '7', '7', '66', '5', '4', '4', '3', 'e');
 
@@ -399,7 +387,6 @@ CREATE TABLE `pcs` (
 --
 
 INSERT INTO `pcs` (`pcid`, `pcname`, `department_id`, `status`, `note`) VALUES
-('1', 'PC1', 1, 'Active', '3'),
 ('PC-30143C90', '66', 1, 'Active', '88'),
 ('PC-953FF49C', '2', 1, 'Active', '1');
 
@@ -436,17 +423,23 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permissions`)),
+  `first_name` varchar(50) DEFAULT NULL,
+  `middle_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `username`, `faculty_name`, `email`, `password`, `is_admin`, `created_at`, `updated_at`) VALUES
-(9, 'admin', 'auro', 'matthewjohnsantos2004@gmail.com', '$2y$10$nvmP/E2tXSJ3zYIOp2Z.iu29/gNxPA/pmF/iZOiJoijB.k48zCj22', 1, '2025-03-24 02:34:16', '2025-03-24 02:49:06'),
-(10, 'user', 'me', 'matthewjohnsantos143@gmail.com', '$2y$10$3HWZONw6vWb8WNkqsDA3ReMbUiyuvdqP.MSWD2CuFdrN4UDfVtNSG', 0, '2025-03-24 09:25:58', '2025-03-24 09:25:58');
+INSERT INTO `users` (`user_id`, `username`, `faculty_name`, `email`, `password`, `is_admin`, `is_active`, `created_at`, `updated_at`, `permissions`, `first_name`, `middle_name`, `last_name`) VALUES
+(9, 'admin', 'santos, matthew S.', 'matthewjohnsantos2004@gmail.com', 'scrypt:32768:8:1$ryLUIe9RsrDae4ph$d62414102427f2911938fc93a342514c4064c148112be99a3aa808a83bf62eca63b5ab43f9b0cc8341e01f21f8968882b1eb26c91b737a8872e9950ff25befd0', 1, 1, '2025-03-24 02:34:16', '2025-10-26 16:30:19', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'matthew', 's', 'santos'),
+(10, 'user', 'me', 'matthewjohnsantos143@gmail.com', 'scrypt:32768:8:1$LQ4mixntjhzilHyY$7e9f133cb8da3b06625ac3ee3164c9d8fb97983226c64ddfecddad0fa9fd76a5821f391e3d1595c4029544ae4a3f253a0952f1496174f3b46093503766ff5fcb', 0, 0, '2025-03-24 09:25:58', '2025-10-26 16:42:33', '{\"dashboard\": {\"view\": true, \"edit\": false}, \"inventory\": {\"view\": true, \"edit\": false}, \"qrlist\": {\"view\": true, \"edit\": false}, \"report\": {\"view\": true, \"edit\": false}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
+(11, 'rbautista', '', 'renatobautista17@gmail.com', 'scrypt:32768:8:1$Gc5JBZzptDeAvn9b$cf555f0d8ead0898962845e3fba4f6ef99fc3ab7e7c0a4f86f09d766054ed4dcfdc99174d15db62bad4701f583feb1fea555bcd14f9593675ee30e3b7891a037', 1, 1, '2025-10-26 15:24:49', '2025-10-26 16:41:18', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'Renato', 'sd', 'Bautista');
 
 --
 -- Indexes for dumped tables
@@ -496,7 +489,8 @@ ALTER TABLE `devices`
 --
 ALTER TABLE `devices_full`
   ADD PRIMARY KEY (`accession_id`),
-  ADD UNIQUE KEY `serial_number` (`serial_number`),
+  ADD UNIQUE KEY `serial_no` (`serial_no`),
+  ADD UNIQUE KEY `municipal_serial_no` (`municipal_serial_no`),
   ADD KEY `fk_department` (`department_id`);
 
 --
@@ -587,7 +581,7 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
@@ -605,7 +599,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `pcinfofull`
 --
 ALTER TABLE `pcinfofull`
-  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT for table `pcparts`
@@ -617,7 +611,7 @@ ALTER TABLE `pcparts`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `user_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
