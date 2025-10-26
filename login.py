@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from db import get_db_connection
 import bcrypt,json
 from datetime import datetime
-
+from werkzeug.security import check_password_hash
 # Blueprint setup
 login_bp = Blueprint('login_bp', __name__, url_prefix='/login')
 
@@ -20,7 +20,7 @@ def login():
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT user_id, username, is_admin, password, permissions FROM users WHERE username=%s",
+                    "SELECT user_id, username, is_admin, password, permissions,is_active FROM users WHERE username=%s",
                     (username,)
                 )
                 user = cursor.fetchone()
@@ -32,9 +32,13 @@ def login():
             flash("Invalid username. Please try again.", "error")
             return redirect(url_for('login_bp.login'))
 
-        # Wrong password
-        if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+       # Wrong password check
+        if not check_password_hash(user['password'], password):
             flash("Incorrect password. Please try again.", "error")
+            return redirect(url_for('login_bp.login'))
+        
+        if user.get('is_active') == 0:
+            flash("Your account is inactive. Please contact the administrator.", "error")
             return redirect(url_for('login_bp.login'))
 
         # Decode permissions JSON safely

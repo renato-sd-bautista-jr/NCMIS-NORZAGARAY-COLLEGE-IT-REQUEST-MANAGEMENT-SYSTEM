@@ -71,6 +71,9 @@
           <button id="apply-filters" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
             Apply Filter
           </button>
+           <button id="export-excel" type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
+            Export Excel
+          </button>
         </div>
       </form>
 
@@ -145,6 +148,14 @@
     // 🚀 Load Default Data
     // -------------------------------
     window.addEventListener("DOMContentLoaded", () => loadReports());
+
+    document.getElementById("export-excel").addEventListener("click", () => {
+  const form = document.getElementById("filter-form");
+  const filters = Object.fromEntries(new FormData(form).entries());
+  const params = new URLSearchParams(filters).toString();
+  // Trigger download
+  window.location.href = `/export-reports?${params}`;
+});
   </script>
 </body>
 </html>

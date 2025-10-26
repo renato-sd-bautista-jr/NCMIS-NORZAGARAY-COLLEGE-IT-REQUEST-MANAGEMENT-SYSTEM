@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR Code Generator - NCMIS</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="flex min-h-screen bg-gray-200 text-gray-800">
+<body class="flex min-h-screen bg-gray-100 text-gray-800">
 
   {% include 'sidebar.html' %}
 
@@ -17,249 +16,100 @@
   <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40 md:hidden"></div>
 
   <!-- Main -->
-  <main class="flex-1 ml-0 md:ml-64 p-6 space-y-8 transition-all duration-300">
+  <main class="flex-1 ml-0 md:ml-64 p-6 space-y-6 transition-all duration-300">
 
-    <!-- Header (Inverted Style) -->
+    <!-- Header -->
     <header class="flex items-center justify-between bg-blue-700 text-white shadow-lg p-4 rounded-xl sticky top-4 z-30 border border-blue-800 backdrop-blur-md">
-      <!-- Left: Title with icon -->
       <div class="flex items-center gap-2 font-medium">
         <i data-lucide="qr-code" class="w-6 h-6 text-white"></i>
-        <h2 class="text-2xl font-bold">QR Code Generator</h2>
+        <h2 class="text-2xl font-bold">Device QR Codes</h2>
       </div>
 
-      <!-- Right: Add Button -->
-      <button id="addItemBtn"
+      <!-- Scan QR Button -->
+      <button id="scanQRBtn"
         class="flex items-center gap-2 bg-white hover:bg-gray-100 text-blue-700 px-4 py-2 rounded-lg shadow transition focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 focus:ring-offset-blue-700">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-        <span class="font-medium">Add QR Item</span>
+        <i data-lucide="camera" class="w-4 h-4"></i>
+        <span class="font-medium">Scan QR</span>
       </button>
     </header>
 
-    <!-- Items Section -->
-    <section class="bg-white rounded-2xl shadow-lg p-6">
-      <h3 class="text-lg font-semibold text-blue-700 mb-4">Generated QR Items</h3>
-      <div id="itemList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <!-- Devices Grid -->
+    <section class="bg-white rounded-2xl shadow-lg p-4">
+      <div id="deviceGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
     </section>
   </main>
 
-  <!-- Item Modal -->
-  <div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96">
-      <h2 id="modalTitle" class="text-xl font-semibold mb-4 text-blue-600">Add Item</h2>
-      <form id="itemForm" class="grid gap-3 text-gray-800">
-        <input type="hidden" id="editIndex">
-        <input id="Department" type="text" placeholder="Department" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="Location" type="text" placeholder="Location" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="Quantity" type="number" placeholder="Quantity" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="AcquisitionCost" type="number" placeholder="Acquisition Cost" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="DateAcquired" type="date" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="Status" type="text" placeholder="Status" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="Accountable" type="text" placeholder="Accountable" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <input id="SerialNo" type="text" placeholder="Serial No" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-        <textarea id="Description" placeholder="Description" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 h-20"></textarea>
-
-        <div class="flex justify-end space-x-2 mt-4">
-          <button type="button" id="cancelBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Save</button>
-        </div>
-      </form>
+  <!-- QR Modal -->
+  <div id="qrModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-80 text-center relative">
+      <button id="closeQRModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <h3 class="font-semibold text-blue-700 mb-4" id="qrDeviceName">Device Name</h3>
+      <img id="qrImage" class="mx-auto border rounded-lg shadow" alt="QR Code">
     </div>
   </div>
 
-  <!-- Logout Modal -->
-  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <!-- Scan QR Modal (Placeholder) -->
+  <div id="scanModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
-      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
-      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
-      <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
-      <div class="flex justify-center space-x-3">
-        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
-        <form method="post" action="{{ url_for('login_bp.logout') }}">
-          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
-        </form>
-      </div>
+      <button id="closeScanModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <h3 class="font-semibold text-blue-700 mb-4">Scan or Upload QR</h3>
+      <p class="text-gray-600 mb-4">Scanner feature coming soon</p>
+      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Upload QR</button>
     </div>
   </div>
 
- <script>
-  document.addEventListener('DOMContentLoaded', async () => {
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
+
+  const deviceGrid = document.getElementById('deviceGrid');
+  const qrModal = document.getElementById('qrModal');
+  const qrImage = document.getElementById('qrImage');
+  const qrDeviceName = document.getElementById('qrDeviceName');
+  const closeQRModal = document.getElementById('closeQRModal');
+
+  const scanModal = document.getElementById('scanModal');
+  const scanQRBtn = document.getElementById('scanQRBtn');
+  const closeScanModal = document.getElementById('closeScanModal');
+
+  // Fetch devices
+  try {
     const response = await fetch('/get_all_device_qrs');
     const devices = await response.json();
-    const container = document.getElementById('itemList');
-    container.innerHTML = '';
+    deviceGrid.innerHTML = '';
+
     devices.forEach(device => {
-        container.innerHTML += `
-        <div class="bg-white rounded-2xl shadow p-5 border hover:shadow-xl transition">
-            <h3 class="font-bold text-blue-600 mb-2">${device.item_name}</h3>
-            <p class="text-sm text-gray-700">Brand: ${device.brand_model}</p>
-            <p class="text-sm text-gray-700">Serial: ${device.serial_number}</p>
-            <p class="text-sm text-gray-700">Status: ${device.status}</p>
-            <img src="/device_qr/${device.accession_id}" class="mt-3 border rounded shadow" alt="QR">
-            <a href="/device_qr/${device.accession_id}" download="${device.item_name}_QR.png" class="mt-2 inline-block bg-blue-600 text-white px-3 py-1 rounded text-xs">Download QR</a>
-        </div>`;
-    });
-});
-  // Sidebar toggle
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
-  window.toggleSidebar = () => {
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
-  };
-
-
-
-  // Item management (localStorage version)
-  const itemList = document.getElementById('itemList');
-  const itemModal = document.getElementById('itemModal');
-  const itemForm = document.getElementById('itemForm');
-  const addItemBtn = document.getElementById('addItemBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const modalTitle = document.getElementById('modalTitle');
-  let items = [], editIndex = null;
-
-  function loadItems() {
-    const stored = localStorage.getItem('qrItems');
-    items = stored ? JSON.parse(stored) : [];
-    renderList();
-  }
-
-  function saveItems() {
-    localStorage.setItem('qrItems', JSON.stringify(items));
-  }
-
-  addItemBtn?.addEventListener('click', () => {
-    modalTitle.textContent = "Add Item";
-    editIndex = null;
-    itemForm.reset();
-    itemModal.classList.remove('hidden');
-  });
-
-  cancelBtn?.addEventListener('click', () => itemModal.classList.add('hidden'));
-
-  itemForm?.addEventListener('submit', e => {
-    e.preventDefault();
-    const item = {
-      department: Department.value.trim(),
-      location: Location.value.trim(),
-      quantity: Quantity.value.trim(),
-      acquisitionCost: AcquisitionCost.value.trim(),
-      dateAcquired: DateAcquired.value,
-      status: Status.value.trim(),
-      accountable: Accountable.value.trim(),
-      serialNo: SerialNo.value.trim(),
-      description: Description.value.trim()
-    };
-    if (Object.values(item).some(v => !v)) return alert("Please fill out all fields!");
-
-    if (editIndex !== null) items[editIndex] = item;
-    else items.push(item);
-    saveItems();
-    renderList();
-    itemModal.classList.add('hidden');
-  });
-
-  function renderList() {
-    itemList.innerHTML = '';
-    items.forEach((item, index) => {
       const card = document.createElement('div');
-      card.className = "bg-white rounded-2xl shadow-lg p-5 border hover:shadow-2xl transition";
+      card.className = "bg-white rounded-2xl shadow p-3 border hover:shadow-lg cursor-pointer flex flex-col items-center transition";
       card.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="font-semibold text-lg text-blue-600">${item.department}</h3>
-          <div class="flex space-x-2">
-            <button class="text-yellow-500 hover:text-yellow-600 edit-btn" data-index="${index}"><i data-lucide="edit"></i></button>
-            <button class="text-red-600 hover:text-red-700 delete-btn" data-index="${index}"><i data-lucide="trash"></i></button>
-          </div>
-        </div>
-        <p class="text-sm text-gray-700">📍 Location: ${item.location}</p>
-        <p class="text-sm text-gray-700">📦 Quantity: ${item.quantity}</p>
-        <p class="text-sm text-gray-700">💰 Cost: ₱${item.acquisitionCost}</p>
-        <p class="text-sm text-gray-700">🔧 Status: ${item.status}</p>
-        <p class="text-sm text-gray-700 mb-2"># Serial: ${item.serialNo}</p>
-        <p class="text-xs text-gray-500 italic">${item.description}</p>
-        <div class="flex flex-col items-center mt-4 space-y-2">
-          <div id="qr-${index}" class="bg-gray-100 p-3 rounded-lg shadow-inner"></div>
-          <button class="download-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-lg shadow" data-index="${index}">
-            <i data-lucide="download" class="w-3 h-3 inline-block mr-1"></i> Download QR
-          </button>
-        </div>
+        <h4 class="font-bold text-blue-700 text-sm text-center mb-1">${device.item_name}</h4>
+        <p class="text-xs text-gray-700 text-center mb-2">${device.brand_model}</p>
+        <img src="/device_qr/${device.accession_id}" class="w-20 h-20 mb-2" alt="QR">
+        <p class="text-xs text-gray-600">Status: ${device.status}</p>
       `;
-      itemList.appendChild(card);
-      new QRCode(document.getElementById(`qr-${index}`), { text: JSON.stringify(item), width: 100, height: 100 });
-    });
-    
-
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => editItem(e.currentTarget.dataset.index)));
-    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', e => deleteItem(e.currentTarget.dataset.index)));
-    document.querySelectorAll('.download-btn').forEach(btn => btn.addEventListener('click', e => downloadQR(e.currentTarget.dataset.index)));
-  }
-
-  function editItem(index) {
-    const item = items[index];
-    editIndex = index;
-    Department.value = item.department;
-    Location.value = item.location;
-    Quantity.value = item.quantity;
-    AcquisitionCost.value = item.acquisitionCost;
-    DateAcquired.value = item.dateAcquired;
-    Status.value = item.status;
-    Accountable.value = item.accountable;
-    SerialNo.value = item.serialNo;
-    Description.value = item.description;
-    modalTitle.textContent = "Edit Item";
-    itemModal.classList.remove('hidden');
-  }
-
-  function deleteItem(index) {
-    if (confirm("Delete this item?")) {
-      items.splice(index, 1);
-      saveItems();
-      renderList();
-    }
-  }
-
-  function downloadQR(index) {
-    const img = document.getElementById(`qr-${index}`).querySelector('img');
-    if (!img) return alert("QR not ready yet.");
-    const link = document.createElement('a');
-    link.href = img.src;
-    link.download = `${items[index].department}_QR.png`;
-    link.click();
-  }
-
-  // Load server-generated device QRs
-  async function loadDeviceQRs() {
-    try {
-      const response = await fetch('/get_all_device_qrs');
-      const devices = await response.json();
-
-      const container = document.getElementById('itemList');
-      container.innerHTML = '';
-
-      devices.forEach(device => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl shadow p-5 border hover:shadow-xl transition";
-        card.innerHTML = `
-          <h3 class="font-bold text-blue-600 mb-2">${device.item_name}</h3>
-          <p class="text-sm text-gray-700">Brand: ${device.brand_model}</p>
-          <p class="text-sm text-gray-700">Serial: ${device.serial_number}</p>
-          <p class="text-sm text-gray-700">Status: ${device.status}</p>
-           <img src="/device_qr/${device.accession_id}" class="mt-3 border rounded shadow" alt="QR">
-        `;
-        container.appendChild(card);
+      card.addEventListener('click', () => {
+        qrDeviceName.textContent = device.item_name;
+        qrImage.src = `/device_qr/${device.accession_id}`;
+        qrModal.classList.remove('hidden');
       });
-    } catch (err) {
-      console.error('Error loading device QRs:', err);
-    }
+      deviceGrid.appendChild(card);
+    });
+  } catch(err) {
+    deviceGrid.innerHTML = '<p class="text-red-500">Failed to load devices.</p>';
+    console.error(err);
   }
 
-  // Choose one to load depending on your use case:
-  // loadItems();       // LocalStorage version
-  await loadDeviceQRs(); // Server version
-  lucide.createIcons();
+  // Close QR modal
+  closeQRModal.addEventListener('click', () => qrModal.classList.add('hidden'));
 
+  // Scan QR modal
+  scanQRBtn.addEventListener('click', () => scanModal.classList.remove('hidden'));
+  closeScanModal.addEventListener('click', () => scanModal.classList.add('hidden'));
+});
 </script>
 </body>
 </html>

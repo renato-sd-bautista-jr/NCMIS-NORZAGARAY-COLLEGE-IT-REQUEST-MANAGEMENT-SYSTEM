@@ -20,3 +20,31 @@
     </form>
   </div>
 </div>
+
+<script>
+  // Initialize lucide icons
+  lucide.createIcons();
+
+  // Elements
+const activateModal = document.getElementById("activateModal");
+  const cancelActivate = document.getElementById("cancelActivate");
+  const activateItemId = document.getElementById("activateItemId");
+
+
+  // Open modal with user ID
+function openActivateModal(userId) {
+    activateItemId.value = userId;
+    activateModal.classList.remove("hidden");
+  }
+  // Close modal on cancel
+cancelActivate.addEventListener("click", () => {
+    activateModal.classList.add("hidden");
+  });
+
+  // Optional: close modal when clicking outside modal content
+activateModal.addEventListener("click", (e) => {
+    if (e.target === activateModal) {
+      activateModal.classList.add("hidden");
+    }
+  });
+</script>

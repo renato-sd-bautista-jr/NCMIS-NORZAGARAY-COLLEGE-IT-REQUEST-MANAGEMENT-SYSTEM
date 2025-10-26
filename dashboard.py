@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, session, redirect, url_for, flash,
 from db import get_db_connection
 import pymysql
 
+from datetime import datetime
+
 dashboard_bp = Blueprint('dashboard_bp', __name__, template_folder='templates')
 
 
@@ -12,7 +14,56 @@ def dashboard_list():
     """Fallback route for dashboard."""
     return redirect(url_for('dashboard_bp.dashboard_load'))
 
+@dashboard_bp.route('/cost_data/<string:filter_type>')
+def cost_data(filter_type):
+    """
+    Returns JSON for cost chart.
+    Currently only supports monthly totals for the current year.
+    """
+    conn = get_db_connection()
+    try:
+        current_year = datetime.now().year
 
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Initialize a dictionary with 12 months
+            monthly_cost = {m: 0 for m in range(1, 13)}
+
+            # Sum acquisition cost per month from devices_full
+            cur.execute("""
+                SELECT MONTH(created_at) AS month, SUM(acquisition_cost) AS total
+                FROM devices_full
+                WHERE YEAR(created_at) = %s
+                GROUP BY MONTH(created_at)
+            """, (current_year,))
+            for row in cur.fetchall():
+                monthly_cost[row['month']] += float(row['total'] or 0)
+
+            # Sum acquisition cost per month from pcinfofull
+            cur.execute("""
+                SELECT MONTH(created_at) AS month, SUM(acquisition_cost) AS total
+                FROM pcinfofull
+                WHERE YEAR(created_at) = %s
+                GROUP BY MONTH(created_at)
+            """, (current_year,))
+            for row in cur.fetchall():
+                monthly_cost[row['month']] += float(row['total'] or 0)
+
+        # Prepare chart data
+        labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+        cost_in = [monthly_cost[i] for i in range(1,13)]
+
+        return jsonify({
+            'labels': labels,
+            'cost_in': cost_in
+        })
+
+    except Exception as e:
+        print("❌ Cost chart error:", e)
+        return jsonify({'labels': [], 'cost_in': []})
+    finally:
+        conn.close()
+
+        
 @dashboard_bp.route('/dashboardload')
 def dashboard_load():
     """Main dashboard data loading route."""
@@ -20,13 +71,7 @@ def dashboard_load():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
 
-            cur.execute("""
-                SELECT item_name AS item_name, brand_model AS action, created_at 
-                FROM devices_full 
-                ORDER BY created_at DESC 
-                LIMIT 5
-            """)
-            recent_transactions = cur.fetchall()
+            
 
             # 🔹 Manage Items Count (devices_full)
             cur.execute("SELECT COUNT(*) AS total FROM devices_full")
@@ -65,6 +110,14 @@ def dashboard_load():
 
             total_cost_in = float(device_cost) + float(pc_cost)
 
+            cur.execute("""
+                SELECT item_name AS item_name, brand_model AS action, created_at 
+                FROM devices_full 
+                ORDER BY created_at DESC 
+                LIMIT 5
+            """)
+            recent_transactions = cur.fetchall()
+
             
             
 
@@ -97,29 +150,3 @@ def dashboard_load():
     )
 
 
-@dashboard_bp.route('/cost_data/<filter_type>')
-def cost_data(filter_type):
-    """Mock data for cost chart (replace with SQL aggregation if needed)."""
-    data = {}
-    if filter_type == 'Weekly':
-        data = {
-            "labels": ["Week 1", "Week 2", "Week 3", "Week 4"],
-            "cost_in": [5000, 8000, 6000, 9000],
-            "cost_out": [3000, 4000, 3500, 4500]
-        }
-    elif filter_type == 'Monthly':
-        data = {
-            "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-            "cost_in": [20000, 18000, 15000, 22000, 25000, 30000],
-            "cost_out": [12000, 10000, 8000, 15000, 17000, 20000]
-        }
-    elif filter_type == 'Yearly':
-        data = {
-            "labels": ["2020", "2021", "2022", "2023", "2024"],
-            "cost_in": [150000, 160000, 175000, 180000, 200000],
-            "cost_out": [100000, 95000, 110000, 120000, 130000]
-        }
-    else:
-        data = {"labels": [], "cost_in": [], "cost_out": []}
-
-    return jsonify(data)

@@ -67,83 +67,80 @@
       {% else %}
         <div class="overflow-x-auto rounded-xl border border-gray-200">
           <table class="min-w-full text-sm text-gray-800">
-            <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold tracking-wider">
-              <tr>
-                <th class="px-4 py-3 text-left">Faculty Name</th>
-                <th class="px-4 py-3 text-left">Username</th>
-                <th class="px-4 py-3 text-left">Email</th>
-                <th class="px-4 py-3 text-left">Role</th>
-                <th class="px-4 py-3 text-left">Status</th>
-                <th class="px-4 py-3 text-left">Created At</th>
-                <th class="px-4 py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in users %}
-              <tr class="hover:bg-blue-50 transition">
-                <td class="px-4 py-2 border-t">{{ user.faculty_name }}</td>
-                <td class="px-4 py-2 border-t">{{ user.username }}</td>
-                <td class="px-4 py-2 border-t">{{ user.email }}</td>
-                <td class="px-4 py-2 border-t">
-                  {% if user.is_admin == 1 %}
-                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Admin</span>
-                  {% else %}
-                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Staff</span>
-                  {% endif %}
-                </td>
-                <td class="px-4 py-2 border-t">
-                  {% if user.is_active == 1 %}
-                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Active</span>
-                  {% else %}
-                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Inactive</span>
-                  {% endif %}
-                </td>
-                <td class="px-4 py-2 border-t">{{ user.created_at }}</td>
-                <td class="px-4 py-2 border-t space-x-2">
-                  <button type="button"
-                    onclick='openUserModal("edit", {{ user|tojson }})'
-                    class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs shadow-sm transition">
-                    Edit
-                  </button>
+  <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold tracking-wider">
+    <tr>
+      <th class="px-4 py-3 text-left">Full Name</th>
+      <th class="px-4 py-3 text-left">Username</th>
+      <th class="px-4 py-3 text-left">Email</th>
+      <th class="px-4 py-3 text-left">Role</th>
+      <th class="px-4 py-3 text-left">Status</th>
+      <th class="px-4 py-3 text-left">Created At</th>
+      <th class="px-4 py-3 text-left">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr class="hover:bg-blue-50 transition">
+      <td class="px-4 py-2 border-t">
+        {{ user.last_name }}, {{ user.first_name }}{% if user.middle_name %} {{ user.middle_name[0] }}.{% endif %}
+      </td>
+      <td class="px-4 py-2 border-t">{{ user.username }}</td>
+      <td class="px-4 py-2 border-t">{{ user.email }}</td>
+      <td class="px-4 py-2 border-t">
+        {% if user.is_admin == 1 %}
+          <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Admin</span>
+        {% else %}
+          <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Staff</span>
+        {% endif %}
+      </td>
+      <td class="px-4 py-2 border-t">
+        {% if user.is_active == 1 %}
+          <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Active</span>
+        {% else %}
+          <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Inactive</span>
+        {% endif %}
+      </td>
+      <td class="px-4 py-2 border-t">{{ user.created_at }}</td>
+      
+     
+      <td class="px-4 py-2 border-t space-x-2">
+        <button type="button" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs shadow-sm transition"
+                onclick='openUserModal("edit", {{ user|tojson|safe }})'>
+          <span>Edit</span>
+        </button>
+        <button type="button"
+        class="forgotPassBtn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs shadow-sm transition"
+        data-user-id="{{ user.user_id }}">
+  Reset Password
+</button>
+    
+          
 
-                  {% if user.is_active == 1 %}
-                    <button type="button"
-                      onclick='openDeactivateModal({{ user.user_id }})'
-                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
-                      Deactivate
-                    </button>
-                  {% else %}
-                    <button type="button"
-                      onclick='openActivateModal({{ user.user_id }})'
-                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
-                      Activate
-                    </button>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <button type="button"
+            onclick='openDeactivateModal({{ user.user_id }})'
+            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
+            Deactivate
+          </button>
+       
+          <button type="button"
+            onclick='openActivateModal({{ user.user_id }})'
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow-sm transition">
+            Activate
+          </button>
+        
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
         </div>
       {% endif %}
     </section>
   </main>
 
-  <!-- Logout Confirmation Modal -->
-  <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
-      <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
-      <h2 class="text-lg font-semibold text-blue-600 mb-2">Confirm Logout</h2>
-      <p class="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
-      <div class="flex justify-center space-x-3">
-        <button id="cancelLogout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
-        <form method="post" action="{{ url_for('login_bp.logout') }}">
-          <button type="submit" id="confirmLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Logout</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
+ 
   {% include 'deactivate_modal.html' %}
   {% include 'activate_modal.html' %}
   {% include 'usermodal.html' %}
@@ -201,6 +198,89 @@
       activateModal.classList.remove("hidden");
     }
     cancelActivate.addEventListener("click", () => activateModal.classList.add("hidden"));
+
+function openUserModal(mode, user = null) {
+  const modal = document.getElementById('userModal');
+  const title = document.getElementById('modalTitle');
+  const idField = document.getElementById('user_id');
+  const first = document.getElementById('firstName');
+  const middle = document.getElementById('middleName');
+  const last = document.getElementById('lastName');
+  const username = document.getElementById('username');
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const role = document.getElementById('is_admin');
+
+  if (mode === 'add') {
+    title.textContent = 'Add User';
+    idField.value = '';
+    first.value = '';
+    middle.value = '';
+    last.value = '';
+    username.value = '';
+    email.value = '';
+    password.value = '';
+    role.value = '0';
+  } else if (mode === 'edit' && user) {
+    title.textContent = 'Edit User';
+    idField.value = user.user_id;
+
+    // Directly assign first, middle, last names
+    last.value = user.last_name || '';
+    first.value = user.first_name || '';
+    middle.value = user.middle_name || '';
+
+    username.value = user.username || '';
+    email.value = user.email || '';
+    role.value = user.is_admin || '0';
+    password.value = ''; // leave empty on edit
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').classList.add('hidden');
+}
+
+// Attach edit button listeners
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".editUserBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!btn.dataset.user) return;
+      const user = JSON.parse(btn.dataset.user);
+      openUserModal("edit", user);
+    });
+  });
+});
+
+    const forgotModal = document.getElementById('forgotModal');
+
+  // Open modal function
+  function openForgotModal(userId) {
+    document.getElementById('forgotUserId').value = userId;
+    forgotModal.classList.remove('hidden');
+  }
+
+  // Close modal function
+  function closeForgotModal() {
+    forgotModal.classList.add('hidden');
+  }
+
+  // Attach events after DOM loads
+  document.addEventListener("DOMContentLoaded", () => {
+    // Open modal on all buttons
+    document.querySelectorAll(".forgotPassBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const userId = btn.dataset.userId;
+        openForgotModal(userId);
+      });
+    });
+
+    // Close modal buttons
+    document.getElementById('forgotCloseBtn').addEventListener('click', closeForgotModal);
+    document.getElementById('forgotCancelBtn').addEventListener('click', closeForgotModal);
+  });
   </script>
 </body>
 </html>

@@ -22,12 +22,26 @@
             class="space-y-8">
         <input type="hidden" name="user_id" id="user_id">
 
-        <!-- Full Name -->
-        <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Full Name</label>
-          <input type="text" name="faculty_name" id="faculty_name"
-                 class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                 placeholder="Enter full name" required>
+        <!-- Name Fields -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label for="lastName" class="text-sm font-medium text-gray-700">Last Name</label>
+            <input type="text" id="lastName" name="last_name"
+              class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Enter last name" required>
+          </div>
+          <div>
+            <label for="firstName" class="text-sm font-medium text-gray-700">First Name</label>
+            <input type="text" id="firstName" name="first_name"
+              class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Enter first name" required>
+          </div>
+          <div>
+            <label for="middleName" class="text-sm font-medium text-gray-700">Middle Initial</label>
+            <input type="text" id="middleName" name="middle_name"
+              class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Enter middle initial">
+          </div>
         </div>
 
         <!-- Username & Email -->
@@ -43,6 +57,33 @@
             <input type="email" name="email" id="email"
                    class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none"
                    placeholder="Enter email address" required>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div id="passwordSection">
+          <label class="block text-gray-700 text-sm font-medium mb-1">Password</label>
+          <input type="password" name="password" id="password"
+                class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                placeholder="Enter password">
+        </div>
+
+        <!-- Change Password (for Edit mode only) -->
+        <div id="changePasswordContainer" class="hidden mt-2">
+          <button type="button" id="toggleChangePassword"
+                  class="text-blue-600 text-sm font-medium hover:underline focus:outline-none">
+            Change Password?
+          </button>
+
+          <div id="changePasswordSection" class="hidden mt-3 space-y-3">
+            <label class="block text-gray-700 text-sm font-medium mb-1">New Password</label>
+            <input type="password" name="new_password" id="new_password"
+                  class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  placeholder="Enter new password">
+
+            <input type="password" name="confirm_password" id="confirm_password"
+                  class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  placeholder="Confirm new password">
           </div>
         </div>
 
@@ -165,18 +206,14 @@
           </div>
         </div>
 
-        <!-- Password -->
-        <div id="passwordSection">
-          <label class="block text-gray-700 text-sm font-medium mb-1">Password</label>
-          <input type="password" name="password" id="password"
-                 class="border border-gray-300 rounded-xl px-4 py-3 w-full text-gray-800 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                 placeholder="Enter password">
-        </div>
+        
+
+
       </form>
     </div>
 
     <!-- Sticky Footer -->
-    <div class="sticky bottom-0 bg-white z-10 border-t border-gray-200 p-6 flex justify-end gap-4 rounded-b-3xl">
+<div class="sticky bottom-0 bg-white z-10 border-t border-gray-200 p-6 rounded-b-3xl flex justify-end gap-4">
       <button type="button" id="cancelBtn"
               class="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition">
         Cancel
@@ -190,6 +227,7 @@
       </button>
     </div>
   </div>
+  
 </div>
 
 <script>
@@ -201,51 +239,78 @@
   const selectAllCheckbox = document.getElementById('selectAllPermissions');
   const permissionCheckboxes = document.querySelectorAll('.permCheckbox');
 
-  function openUserModal(mode = 'add', user = null) {
-    document.getElementById('modalTitle').innerText = mode === 'add' ? 'Add User' : 'Edit User';
-    document.querySelector('[data-lucide="user-plus"]').setAttribute('data-lucide', mode === 'add' ? 'user-plus' : 'user-cog');
-    lucide.createIcons();
+function openUserModal(mode = 'add', user = null) {
+  document.getElementById('modalTitle').innerText = mode === 'add' ? 'Add User' : 'Edit User';
+  document.querySelector('[data-lucide="user-plus"]').setAttribute(
+    'data-lucide',
+    mode === 'add' ? 'user-plus' : 'user-cog'
+  );
+  lucide.createIcons();
+    const passwordSection = document.getElementById('passwordSection');
+  const changePasswordContainer = document.getElementById('changePasswordContainer');
+  const changePasswordSection = document.getElementById('changePasswordSection');
 
-    document.getElementById('passwordSection').style.display = mode === 'add' ? 'block' : 'none';
-    document.getElementById('userForm').reset();
+  document.getElementById('userForm').reset();
+  changePasswordSection.classList.add('hidden');
 
-    permissionCheckboxes.forEach(cb => cb.checked = false);
-    selectAllCheckbox.checked = false;
-
-    if (mode === 'edit' && user) {
-      document.getElementById('user_id').value = user.user_id;
-      document.getElementById('faculty_name').value = user.faculty_name;
-      document.getElementById('username').value = user.username;
-      document.getElementById('email').value = user.email;
-      document.getElementById('is_admin').value = user.is_admin;
-
-      if (user.permissions) {
-  try {
-    const perms = typeof user.permissions === "string"
-      ? JSON.parse(user.permissions)
-      : user.permissions;
-
-    Object.keys(perms).forEach(section => {
-      if (perms[section].view) {
-        const cb = document.querySelector(`.permCheckbox[value="${section}_view"]`);
-        if (cb) cb.checked = true;
-      }
-      if (perms[section].edit) {
-        const cb = document.querySelector(`.permCheckbox[value="${section}_edit"]`);
-        if (cb) cb.checked = true;
-      }
-    });
-
-    const allChecked = Array.from(permissionCheckboxes).every(cb => cb.checked);
-    selectAllCheckbox.checked = allChecked;
-  } catch (e) {
-    console.error("Invalid permission format:", e);
+    if (mode === 'add') {
+    passwordSection.style.display = 'block';
+    changePasswordContainer.classList.add('hidden');
+  } else {
+    passwordSection.style.display = 'none';
+    changePasswordContainer.classList.remove('hidden');
   }
-}
+
+  // Hide/Show password sections
+  document.getElementById('passwordSection').style.display = mode === 'add' ? 'block' : 'none';
+  document.getElementById('changePasswordSection').classList.toggle('hidden', mode !== 'edit');
+
+  // Reset permissions
+  permissionCheckboxes.forEach(cb => cb.checked = false);
+  selectAllCheckbox.checked = false;
+
+  if (mode === 'edit' && user) {
+    document.getElementById('user_id').value = user.user_id;
+    document.getElementById('lastName').value = user.last_name || '';
+    document.getElementById('firstName').value = user.first_name || '';
+    document.getElementById('middleName').value = user.middle_name || '';
+    document.getElementById('username').value = user.username || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('is_admin').value = user.is_admin || '0';
+
+    // Clear password fields
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+
+    // Populate permissions
+    if (user.permissions) {
+      try {
+        const perms = typeof user.permissions === "string" ? JSON.parse(user.permissions) : user.permissions;
+        Object.keys(perms).forEach(section => {
+          if (perms[section].view) {
+            const cb = document.querySelector(`.permCheckbox[value="${section}_view"]`);
+            if (cb) cb.checked = true;
+          }
+          if (perms[section].edit) {
+            const cb = document.querySelector(`.permCheckbox[value="${section}_edit"]`);
+            if (cb) cb.checked = true;
+          }
+        });
+        selectAllCheckbox.checked = Array.from(permissionCheckboxes).every(cb => cb.checked);
+      } catch (e) {
+        console.error("Invalid permission format:", e);
+      }
     }
+  
 
-    userModal.classList.remove('hidden');
-  }
+  userModal.classList.remove('hidden');
+}
+
+
+  // Show modal
+  document.getElementById('userModal').classList.remove('hidden');
+}
+
 
   function closeUserModal() {
     userModal.classList.add('hidden');
@@ -265,4 +330,23 @@
       selectAllCheckbox.checked = allChecked;
     });
   });
+// Toggle Change Password visibility
+document.getElementById('toggleChangePassword').addEventListener('click', (e) => {
+  const section = document.getElementById('changePasswordSection');
+  const expanded = !section.classList.contains('hidden');
+  section.classList.toggle('hidden');
+  e.target.innerText = expanded ? 'Change Password?' : 'Cancel Change Password';
+});
+ document.getElementById('userForm').addEventListener('submit', (e) => {
+  const mode = document.getElementById('user_id').value ? 'edit' : 'add';
+  const newPass = document.getElementById('new_password')?.value.trim();
+  const confirmPass = document.getElementById('confirm_password')?.value.trim();
+
+  if (mode === 'edit' && !document.getElementById('changePasswordSection').classList.contains('hidden')) {
+    if (newPass && newPass !== confirmPass) {
+      e.preventDefault();
+      alert('Passwords do not match!');
+    }
+  }
+});
 </script>

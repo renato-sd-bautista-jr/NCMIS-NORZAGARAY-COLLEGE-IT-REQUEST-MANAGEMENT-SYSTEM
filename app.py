@@ -15,6 +15,7 @@ from sidebar import get_user_access
 
 
 
+
 app = Flask(__name__)
 app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
 app.register_blueprint(login_bp)
@@ -28,7 +29,6 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(manage_department_bp)
 app.register_blueprint(manage_inventory_bp)
 app.register_blueprint(notification_bp)
-
 
 # ✅ Context processor to make user access available globally in templates
 @app.context_processor

@@ -196,3 +196,7 @@ def get_pc_by_id(pcid):
 @manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
+
+@manage_inventory_bp.route('/manage_inventory/device-filter-modal')
+def device_filter_modal():
+    return render_template('itemfiltermodal.html')    

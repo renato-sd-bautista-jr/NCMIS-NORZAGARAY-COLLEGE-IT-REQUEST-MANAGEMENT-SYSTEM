@@ -95,21 +95,9 @@
       
     </div>
 
-    <!-- CHARTS + TRANSACTIONS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- INVENTORY OVERVIEW -->
-<div class="bg-white rounded-2xl shadow p-6 border flex flex-col items-center">
-  <h3 class="text-xl font-bold text-blue-700 mb-4">Inventory Overview</h3>
-  <div class="w-36 h-36">
-    <canvas id="inventoryChart"></canvas>
-  </div>
 
-  <!-- NEW: Text overview below chart -->
-  <div class="mt-4 text-sm text-gray-700 space-y-1 text-center">
-    <p><span class="font-semibold text-emerald-600">{{ available_items }}</span> Available</p>
-    <p><span class="font-semibold text-yellow-600">{{ in_use_items }}</span> In Use</p>
-    <p><span class="font-semibold text-red-600">{{ damaged_items }}</span> Damaged</p>
-  </div>
+
+
 </div>
       <!-- RECENT TRANSACTIONS -->
 <div class="bg-white rounded-2xl shadow p-6 border">
@@ -133,11 +121,9 @@
     <section class="bg-white rounded-2xl shadow p-6 border relative">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-blue-700">
-          Cost In vs Cost Out (<span id="filterLabel">Monthly</span>)
+          Cost In vs Cost Out 
         </h3>
-        <button id="openFilterModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          <i data-lucide="filter" class="inline w-4 h-4 mr-2"></i> Filter
-        </button>
+       
       </div>
       <div class="w-full h-48">
         <canvas id="costChart"></canvas>
@@ -163,53 +149,40 @@
   <script>
     lucide.createIcons();
 
-    // INVENTORY PIE CHART
-    const ctx1 = document.getElementById('inventoryChart');
-    new Chart(ctx1, {
-      type: 'pie',
-      data: {
-        labels: ['Available', 'In Use', 'Damaged'],
-        datasets: [{
-          data: [{ available_items }, { in_use_items }, { damaged_items }],
-          backgroundColor: ['#22c55e', '#facc15', '#ef4444']
-        }]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom' } },
-        maintainAspectRatio: false
+   
+
+
+const ctx2 = document.getElementById('costChart').getContext('2d');
+const costChart = new Chart(ctx2, {
+  type: 'bar',
+  data: { labels: [], datasets: [] },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { y: { beginAtZero: true } },
+    maintainAspectRatio: false
+  }
+});
+
+async function loadCostData() {
+  try {
+    const res = await fetch(`/cost_data/Monthly`);
+    const data = await res.json();
+    costChart.data.labels = data.labels;
+    costChart.data.datasets = [
+      {
+        label: 'Cost In',
+        data: data.cost_in,
+        backgroundColor: '#3b82f6'
       }
+    ];
+    costChart.update();
+  } catch (err) {
+    console.error('Error fetching cost data:', err);
+  }
+}
 
-    });
-
-
-    // COST CHART
-    const ctx2 = document.getElementById('costChart');
-    const costChart = new Chart(ctx2, {
-      type: 'bar',
-      data: { labels: [], datasets: [] },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true } },
-        maintainAspectRatio: false
-      }
-    });
-
-    async function loadCostData(filterType = 'Monthly') {
-      try {
-        const res = await fetch(`/cost_data/${filterType}`);
-        const data = await res.json();
-        costChart.data.labels = data.labels;
-        costChart.data.datasets = [
-          { label: 'Cost In', data: data.cost_in, backgroundColor: '#3b82f6' },
-        ];
-        costChart.update();
-      } catch (err) {
-        console.error('Error fetching cost data:', err);
-      }
-    }
-
-    loadCostData('Monthly');
+loadCostData();
 
     const modal = document.getElementById('filterModal');
     const openModal = document.getElementById('openFilterModal');

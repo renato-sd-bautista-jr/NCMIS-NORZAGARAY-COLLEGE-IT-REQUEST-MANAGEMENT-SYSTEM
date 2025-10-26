@@ -2,7 +2,7 @@ import pymysql
 import json
 from db import get_db_connection
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for
-
+from werkzeug.security import generate_password_hash
 manage_user_bp = Blueprint('manage_user_bp', __name__, template_folder='templates')
 
 
@@ -21,7 +21,9 @@ def manage_user_page():
                  SELECT 
                 user_id,
                 username,
-                faculty_name,
+                first_name,
+                middle_name,
+                last_name,
                 email,
                 is_admin,
                 is_active,
@@ -51,7 +53,9 @@ def get_users():
                 SELECT 
                     user_id,
                     username,
-                    faculty_name,
+                    first_name,
+                    middle_name,
+                    last_name,
                     email,
                     is_admin,
                     is_active,
@@ -69,19 +73,21 @@ def get_users():
 # ========================
 # ADD OR UPDATE USER
 # ========================
+
 @manage_user_bp.route('/add-or-update-user', methods=['POST'])
 def add_or_update_user():
-    """
-    Add or update a user, including permissions.
-    """
     data = request.form
     user_id = data.get('user_id')
-    faculty_name = data.get('faculty_name')
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    first_name = data.get('first_name', '').strip()
+    middle_name = data.get('middle_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
     is_admin = int(data.get('is_admin', 0))
-    permissions = data.getlist('permissions')  # comes from checkboxes
+    new_password = data.get('new_password', '').strip()
+    confirm_password = data.get('confirm_password', '').strip()
+    permissions = data.getlist('permissions')
 
     # Build structured JSON for permissions
     perm_data = {
@@ -92,28 +98,54 @@ def add_or_update_user():
         "dept": {"view": "dept_view" in permissions, "edit": "dept_edit" in permissions}
     }
 
-    if not faculty_name or not username or not email:
+    if not first_name or not last_name or not username or not email:
         return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             if user_id:  # Update existing user
-                sql = """
-                    UPDATE users
-                    SET faculty_name=%s, username=%s, email=%s, is_admin=%s, permissions=%s, updated_at=NOW()
-                    WHERE user_id=%s
-                """
-                cursor.execute(sql, (
-                    faculty_name, username, email, is_admin, json.dumps(perm_data), user_id
-                ))
+                if new_password:
+                    if new_password != confirm_password:
+                        return jsonify({"error": "Passwords do not match"}), 400
+                    hashed_pw = generate_password_hash(new_password)
+                    sql = """
+                        UPDATE users
+                        SET first_name=%s, middle_name=%s, last_name=%s,
+                            username=%s, email=%s, password=%s, is_admin=%s,
+                            permissions=%s, updated_at=NOW()
+                        WHERE user_id=%s
+                    """
+                    cursor.execute(sql, (
+                        first_name, middle_name, last_name,
+                        username, email, hashed_pw, is_admin,
+                        json.dumps(perm_data), user_id
+                    ))
+                else:
+                    sql = """
+                        UPDATE users
+                        SET first_name=%s, middle_name=%s, last_name=%s,
+                            username=%s, email=%s, is_admin=%s,
+                            permissions=%s, updated_at=NOW()
+                        WHERE user_id=%s
+                    """
+                    cursor.execute(sql, (
+                        first_name, middle_name, last_name,
+                        username, email, is_admin,
+                        json.dumps(perm_data), user_id
+                    ))
+
             else:  # Add new user
+                hashed_pw = generate_password_hash(password)
                 sql = """
-                    INSERT INTO users (faculty_name, username, email, password, is_admin, permissions, is_active, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, 1, NOW(), NOW())
+                    INSERT INTO users 
+                    (first_name, middle_name, last_name, username, email, password, is_admin, permissions, is_active, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, NOW(), NOW())
                 """
                 cursor.execute(sql, (
-                    faculty_name, username, email, password, is_admin, json.dumps(perm_data)
+                    first_name, middle_name, last_name,
+                    username, email, hashed_pw,
+                    is_admin, json.dumps(perm_data)
                 ))
 
         conn.commit()
@@ -166,12 +198,5 @@ def activate_user():
     finally:
         conn.close()
 
-
-# ========================
-# EDIT USER (Placeholder)
-# ========================
-@manage_user_bp.route('/edit-user/<int:id>', methods=['GET', 'POST'])
-def edit_user(id):
-    return f"Edit user {id}"
 
 
