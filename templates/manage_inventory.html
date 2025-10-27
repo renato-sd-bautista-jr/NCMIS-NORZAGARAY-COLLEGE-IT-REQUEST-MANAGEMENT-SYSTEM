@@ -64,46 +64,17 @@
     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
     Add PC
   </button>
-
+  <button 
+    id="filterbtn" 
+    class="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow">
+    <i data-lucide="filter" class="w-4 h-4"></i> Filter
+</button>
   {% endif %}
 </div>
 
       <!-- INVENTORY SECTION -->
       <section id="inventorySection">
-<!-- PC Filter Panel -->
-<div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-200">
-  <div class="flex justify-between items-center cursor-pointer" id="pcFilterToggle">
-    <h4 class="text-lg font-semibold text-blue-600 flex items-center gap-2">
-      <i data-lucide="filter" class="w-5 h-5"></i> PC Filters
-    </h4>
-    <i data-lucide="chevron-down" id="pcFilterIcon" class="w-5 h-5 transition-transform"></i>
-  </div>
 
-  <form id="pcFilterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 hidden">
-
-    <input type="text" name="pcid" placeholder="PC ID" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="pcname" placeholder="PC Name" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="department_id" placeholder="Department" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="location" placeholder="Location" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="number" name="quantity" placeholder="Quantity" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="number" step="0.01" name="acquisition_cost" placeholder="Acquisition Cost" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="date" name="date_acquired" placeholder="Date Acquired" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="accountable" placeholder="Accountable" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="serial_no" placeholder="Serial No" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="municipal_serial_no" placeholder="Municipal Serial No" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="status" placeholder="Status" class="w-full border px-3 py-2 rounded-lg text-sm">
-    <input type="text" name="note" placeholder="Note" class="w-full border px-3 py-2 rounded-lg text-sm">
-
-    <div class="flex gap-2 col-span-full">
-      <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow">
-        Apply Filters
-      </button>
-      <button type="button" id="exportPcExcel" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold shadow">
-        Export Excel
-      </button>
-    </div>
-  </form>
-</div>
         <!-- MANAGE PC SECTION -->
         <div class="bg-white rounded-xl shadow-lg p-6">
           <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
@@ -182,103 +153,8 @@
         </div>
       </section>
 
-<!-- MANAGE DEVICES SECTION -->
+      <!-- MANAGE DEVICES SECTION -->
 <section id="itemsSection" class="hidden">
-
-  <!-- Filter Form -->
-  <form id="deviceFilterForm" 
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-
-    <!-- Device Name -->
-    <div>
-      <label for="filter_item_name" class="block text-sm font-medium mb-1">Device Name</label>
-      <input id="filter_item_name" name="item_name" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="Search by device name">
-    </div>
-
-    <!-- Brand / Model -->
-    <div>
-      <label for="filter_brand_model" class="block text-sm font-medium mb-1">Brand / Model</label>
-      <input id="filter_brand_model" name="brand_model" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="Search by brand or model">
-    </div>
-
-    <!-- Serial No -->
-    <div>
-      <label for="filter_serial_no" class="block text-sm font-medium mb-1">Serial No</label>
-      <input id="filter_serial_no" name="serial_no" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="Enter serial number">
-    </div>
-
-    <!-- Municipal Serial No -->
-    <div>
-      <label for="filter_municipal_serial_no" class="block text-sm font-medium mb-1">Municipal Serial No</label>
-      <input id="filter_municipal_serial_no" name="municipal_serial_no" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="Enter municipal serial">
-    </div>
-
-    <!-- Acquisition Cost -->
-    <div>
-      <label for="filter_acquisition_cost" class="block text-sm font-medium mb-1">Acquisition Cost</label>
-      <input id="filter_acquisition_cost" name="acquisition_cost" type="number" step="0.01"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="e.g. 5000">
-    </div>
-
-    <!-- Date Acquired -->
-    <div>
-      <label for="filter_date_acquired" class="block text-sm font-medium mb-1">Date Acquired</label>
-      <input id="filter_date_acquired" name="date_acquired" type="date"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400">
-    </div>
-
-    <!-- Accountable -->
-    <div>
-      <label for="filter_accountable" class="block text-sm font-medium mb-1">Accountable</label>
-      <input id="filter_accountable" name="accountable" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        placeholder="Accountable person">
-    </div>
-
-    <!-- Department -->
-    <div>
-      <label for="filter_department" class="block text-sm font-medium mb-1">Department</label>
-      <select id="filter_department" name="department_id"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400">
-        <option value="all">All Departments</option>
-        {% for dept in departments %}
-        <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Status -->
-    <div>
-      <label for="filter_status" class="block text-sm font-medium mb-1">Status</label>
-      <select id="filter_status" name="status"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400">
-        <option value="all">All</option>
-        <option value="Available">Available</option>
-        <option value="In Used">In Used</option>
-        <option value="Inactive">Inactive</option>
-        <option value="Damaged">Damaged</option>
-      </select>
-    </div>
-
-    <!-- Buttons -->
-    <div class="flex items-end gap-2">
-        <button id="applyDeviceFilters" type="submit"
-    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow font-semibold">
-    Apply Filters
-  </button>
-  
-      
-    </div>
-  </form>
   <div class="bg-white rounded-xl shadow-lg p-6">
     <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
       <i data-lucide="package" class="w-6 h-6"></i> Manage Devices
@@ -303,7 +179,7 @@
             <th class="px-4 py-2 border-b text-left">Actions</th>
           </tr>
         </thead>
-        <tbody id="deviceTableBody">
+        <tbody>
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
             <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
@@ -478,16 +354,25 @@ function showSection(id) {
   document.getElementById(id).classList.remove('hidden');
 
   const addBtn = document.getElementById('addButton');
+  const filterbtn = document.getElementById('filterbtn');
   
   if (id === 'inventorySection') {
     currentSection = 'pc';
+    filterbtn.textContent = 'Filter PCs';
     addBtn.textContent = 'Add PC';
   } else if (id === 'itemsSection') {
     currentSection = 'item';
+    filterbtn.textContent = 'Filter Devices';
     addBtn.textContent = 'Add Device';
   }
 }
-
+filterbtn.addEventListener('click', () => {
+  if (currentSection === 'pc') {
+    openPcFilterModalFromFile();
+  } else if (currentSection === 'item') {
+    openDeviceFilterModalFromFile();
+  }
+});
 function handleAddButtonClick() {
   if (currentSection === 'pc') {
     openPcModal(); // opens your existing Add PC modal
@@ -613,130 +498,6 @@ async function openDeviceFilterModalFromFile() {
   lucide.createIcons();
   await loadDeviceFilterOptions(); // optional function for dropdowns/search values
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  const filterForm = document.getElementById("deviceFilterForm");
-
-  filterForm.addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(filterForm);
-
-    try {
-      const res = await fetch("/filter-devices", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const tableRows = await res.text();
-
-      const tbody = document.querySelector("#itemsSection table tbody");
-      tbody.innerHTML = tableRows || `<tr><td colspan="10" class="text-center p-4 text-gray-600">No devices found.</td></tr>`;
-
-      lucide.createIcons();
-    } catch (err) {
-      console.error("❌ Filter error:", err);
-      alert("Failed to apply filters.");
-    }
-  });
-
-
-
-    window.location.href = `/manage_inventory/export-devices-excel?${params.toString()}`;
-  });
-
-
-
-
-
-// Toggle filter form
-  const pcFilterToggle = document.getElementById('pcFilterToggle');
-  const pcFilterForm = document.getElementById('pcFilterForm');
-  const pcFilterIcon = document.getElementById('pcFilterIcon');
-
-  pcFilterToggle.addEventListener('click', () => {
-    pcFilterForm.classList.toggle('hidden');
-    pcFilterIcon.classList.toggle('rotate-180');
-  });
-
-  async function loadPcDepartments() {
-  try {
-    const res = await fetch("/manage_inventory/manage_inventory/get-departments");
-    const departments = await res.json();
-    const select = document.getElementById("filter_pc_department");
-    departments.forEach(dep => {
-      const opt = document.createElement("option");
-      opt.value = dep.department_id;
-      opt.textContent = dep.department_name;
-      select.appendChild(opt);
-    });
-  } catch (err) {
-    console.error("❌ Error loading departments:", err);
-  }
-}
-loadPcDepartments();
-
-document.getElementById("pcFilterForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-
-  try {
-    // Store fetch response in a variable
-    const res = await fetch("/manage_inventory/filter-pcs", {
-      method: "POST",
-      body: formData
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    // Parse JSON once
-    const pc_list = await res.json();
-    const tbody = document.getElementById("pcTableBody");
-
-    tbody.innerHTML = "";
-
-    if (!pc_list.length) {
-      tbody.innerHTML = `<tr><td colspan="12" class="text-center p-4 text-gray-600">No PCs found.</td></tr>`;
-      return;
-    }
-
-    pc_list.forEach(pc => {
-      tbody.innerHTML += `
-        <tr class="hover:bg-gray-100 transition">
-          <td class="px-4 py-2 border-b">${pc.pcid}</td>
-          <td class="px-4 py-2 border-b">${pc.pcname}</td>
-          <td class="px-4 py-2 border-b">${pc.department_name || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.location || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.acquisition_cost || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.date_acquired || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.accountable || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.serial_no || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.municipal_serial_no || '—'}</td>
-          <td class="px-4 py-2 border-b">${pc.note || '—'}</td>
-          <td class="px-4 py-2 border-b">
-            <span class="${pc.status === 'Available' ? 'text-green-600' : pc.status === 'In Used' ? 'text-blue-600' : pc.status === 'Inactive' ? 'text-gray-500' : 'text-red-600'} font-medium">
-              ${pc.status}
-            </span>
-          </td>
-           
-          <td class="px-4 py-2 border-b flex gap-2">
-            <button onclick="openPcModalById(${pc.pcid})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">Edit</button>
-            <button type="button" onclick="openDeleteModal('/delete-pc/${pc.pcid}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">Delete</button>
-          </td>
-        </tr>
-      `;
-    });
-
-  } catch (err) {
-    console.error("❌ Filter error:", err);
-    alert("Failed to apply filters.");
-  }
-});
-
-
-
   </script>
 </body>
 </html>

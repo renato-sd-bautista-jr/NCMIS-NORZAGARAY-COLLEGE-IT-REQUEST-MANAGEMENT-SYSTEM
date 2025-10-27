@@ -196,7 +196,7 @@ def get_item_list():
     finally:
         conn.close()
 
-@manage_inventory_bp.route('/manage_inventory/get-item-by-id/<int:item_id>')
+@manage_inventory_bp.route('get-item-by-id/<int:item_id>')
 def get_item_by_id(item_id):
     """Fetch a single device record with full details."""
     conn = get_db_connection()
@@ -236,7 +236,7 @@ def get_item_by_id(item_id):
         conn.close()
 
 
-@manage_inventory_bp.route('/manage_inventory/get-pc-by-id/<int:pcid>')
+@manage_inventory_bp.route('get-pc-by-id/<int:pcid>')
 def get_pc_by_id(pcid):
 
     
@@ -290,3 +290,8 @@ def pc_filter_modal():
 @manage_inventory_bp.route('/manage_inventory/device-filter-modal')
 def device_filter_modal():
     return render_template('itemfiltermodal.html')    
+
+
+@manage_inventory_bp.route('/pc-edit-modal')
+def open_pc_edit_modal():
+        return render_template('pceditmodal.html')
