@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, flash, jsonify
+from flask import Blueprint, render_template, flash, jsonify,request
 from db import get_db_connection
 import pymysql
 
-manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='templates')
+manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='templates', url_prefix='/manage_inventory')
 
 
 @manage_inventory_bp.route('/manage_inventory')
@@ -15,6 +15,8 @@ def inventory_load():
         flash("Error loading data. Please try again.", "danger")
 
     return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
+
+
 @manage_inventory_bp.route('/manage_inventory/get-departments')
 def get_departments():
     conn = get_db_connection()
@@ -72,6 +74,94 @@ def get_pc_list():
         return []
     finally:
         conn.close()
+
+@manage_inventory_bp.route('/filter-pcs', methods=['POST'])
+def filter_pcs():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    query = """
+        SELECT 
+            p.pcid,
+            p.pcname,
+            p.department_id,
+            d.department_name,
+            p.location,
+            p.quantity,
+            p.acquisition_cost,
+            p.date_acquired,
+            p.accountable,
+            p.serial_no,
+            p.municipal_serial_no,
+            p.status,
+            p.note
+
+        FROM pcinfofull p
+        LEFT JOIN departments d ON p.department_id = d.department_id
+        WHERE 1=1
+    """
+
+    filters = []
+    data = request.form
+
+    if data.get('pcid'):
+        query += " AND p.pcid = %s"
+        filters.append(data['pcid'])
+
+    if data.get('pcname'):
+        query += " AND p.pcname LIKE %s"
+        filters.append(f"%{data['pcname']}%")
+
+    if data.get('department_id') and data['department_id'] != 'all':
+        query += " AND p.department_id = %s"
+        filters.append(data['department_id'])
+
+    if data.get('location'):
+        query += " AND p.location LIKE %s"
+        filters.append(f"%{data['location']}%")
+
+    if data.get('quantity'):
+        query += " AND p.quantity = %s"
+        filters.append(data['quantity'])
+
+    if data.get('acquisition_cost'):
+        query += " AND p.acquisition_cost = %s"
+        filters.append(data['acquisition_cost'])
+
+    if data.get('date_acquired'):
+        query += " AND p.date_acquired = %s"
+        filters.append(data['date_acquired'])
+
+    if data.get('accountable'):
+        query += " AND p.accountable LIKE %s"
+        filters.append(f"%{data['accountable']}%")
+
+    if data.get('serial_no'):
+        query += " AND p.serial_no LIKE %s"
+        filters.append(f"%{data['serial_no']}%")
+
+    if data.get('municipal_serial_no'):
+        query += " AND p.municipal_serial_no LIKE %s"
+        filters.append(f"%{data['municipal_serial_no']}%")
+
+    if data.get('status') and data['status'] != 'all':
+        query += " AND p.status = %s"
+        filters.append(data['status'])
+
+    if data.get('note'):
+        query += " AND p.note LIKE %s"
+        filters.append(f"%{data['note']}%")
+    
+    query += " ORDER BY p.pcid"
+
+    cursor.execute(query, tuple(filters))
+    pc_list = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    # Return table rows only
+    return jsonify(pc_list)
+
 
 
 def get_item_list():
