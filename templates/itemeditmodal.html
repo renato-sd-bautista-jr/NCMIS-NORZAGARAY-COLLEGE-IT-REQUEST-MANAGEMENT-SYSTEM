@@ -4,10 +4,10 @@
     <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
       <i data-lucide="plus-circle"></i>
       <span>Add Device</span>
-      <!-- Error Message Container -->
-<div id="itemModalError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
-
     </h3>
+
+    <!-- Error Message -->
+    <div id="itemModalError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
 
     <form id="itemForm" method="post" class="space-y-4">
       <input type="hidden" name="accession_id" id="accession_id">
@@ -29,15 +29,15 @@
       <!-- Serial No -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Serial No</label>
-        <input type="text" name="serial_no" id="serial_no" required
-          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        <input type="text" name="serial_no" id="serial_no" readonly
+          class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
       </div>
 
       <!-- Municipal Serial No -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Municipal Serial No</label>
-        <input type="text" name="municipal_serial_no" id="municipal_serial_no"
-          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        <input type="text" name="municipal_serial_no" id="municipal_serial_no" readonly
+          class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
       </div>
 
       <!-- Quantity -->
@@ -106,26 +106,36 @@
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
           Add Device
         </button>
-        
       </div>
     </form>
   </div>
 </div>
+
 <script>
 async function openItemModal(itemData = null) {
   const modal = document.getElementById('itemModal');
   const title = document.getElementById('modalTitle');
   const form = document.getElementById('itemForm');
   const quantity = document.getElementById('quantity');
+  const serialInput = document.getElementById('serial_no');
+  const municipalInput = document.getElementById('municipal_serial_no');
   const submitBtn = document.getElementById('itemSubmitBtn');
   const deptSelect = document.getElementById('department_id');
   const statusSelect = document.getElementById('status');
+  const errorDiv = document.getElementById('itemModalError');
 
-  // Reset the form
+  errorDiv.classList.add('hidden');
+  errorDiv.textContent = '';
+
+  // Reset form
   form.reset();
+  
   document.getElementById('accession_id').value = '';
 
-  // Load departments dynamically
+  serialInput.readOnly = false;
+
+  
+  // Load departments
   try {
     const res = await fetch('/get-departments');
     const departments = await res.json();
@@ -140,53 +150,98 @@ async function openItemModal(itemData = null) {
     deptSelect.innerHTML = '<option value="">Error loading departments</option>';
   }
 
-  // --- Edit mode ---
   if (itemData) {
+    // EDIT MODE
     title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
     form.action = "{{ url_for('manage_item_bp.update_device') }}";
     submitBtn.textContent = "Update Device";
 
-    // Populate fields
     Object.entries(itemData).forEach(([key, value]) => {
       const input = document.getElementById(key);
       if (!input) return;
-
-      // Format date for date input
-      if (key === 'date_acquired' && value) {
+      if (key === 'date_acquired' && value && value !== "0000-00-00") {
         const dateObj = new Date(value);
-        input.value = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+        input.value = dateObj.toISOString().split('T')[0];
       } else {
         input.value = value ?? '';
       }
     });
 
-    // Disable quantity
-    if (quantity) {
-      quantity.readOnly = true;
-      quantity.classList.add('bg-gray-100', 'cursor-not-allowed');
-    }
-
-    deptSelect.value = itemData.department_id || '';
-    statusSelect.value = itemData.status || 'Available';
-  } 
-  // --- Add mode ---
-  else {
+    serialInput.readOnly = false;
+    serialInput.classList.remove('bg-gray-100');
+    municipalInput.readOnly = false;
+    municipalInput.classList.remove('bg-gray-100');
+    quantity.readOnly = true;
+    quantity.classList.add('bg-gray-100', 'cursor-not-allowed');
+  } else {
+    // ADD MODE
     title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
     form.action = "{{ url_for('manage_item_bp.add_device') }}";
     submitBtn.textContent = "Add Device";
 
-    if (quantity) {
-      quantity.readOnly = false;
-      quantity.value = 1;
-      quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
+    quantity.readOnly = false;
+    quantity.value = 1;
+    quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
+
+    // Generate Serials
+    function generateSerial(prefix="SN") {
+      return prefix + Date.now().toString().slice(-6) + Math.floor(Math.random()*100);
     }
 
-    statusSelect.value = 'Available';
+    serialInput.value = generateSerial("SN");
+    municipalInput.value = generateSerial("MSN");
+    serialInput.readOnly = true;
+    municipalInput.readOnly = true;
+    serialInput.classList.add('bg-gray-100');
+    municipalInput.classList.add('bg-gray-100');
   }
 
   lucide.createIcons();
   modal.classList.remove('hidden');
 }
 
+// CLOSE MODAL
+function closeItemModal() {
+  const modal = document.getElementById('itemModal');
+  modal.classList.add('hidden');
+}
 
+// SUBMIT FORM WITH DUPLICATE CHECK
+document.getElementById("itemForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const errorDiv = document.getElementById('itemModalError');
+  errorDiv.classList.add('hidden');
+  errorDiv.textContent = '';
+
+  const data = new FormData(form);
+  const serial_no = data.get('serial_no');
+  const municipal_serial_no = data.get('municipal_serial_no');
+  const accession_id = data.get('accession_id');
+
+  try {
+    // Check duplicate serial no or municipal serial no
+    const res = await fetch(`/manage_inventory/check-serial-duplicate?serial_no=${encodeURIComponent(serial_no)}&municipal_serial_no=${encodeURIComponent(municipal_serial_no)}&accession_id=${accession_id || ''}`);
+    const result = await res.json();
+
+    if (result.duplicate) {
+      errorDiv.textContent = "Serial No or Municipal Serial No already exists!";
+      errorDiv.classList.remove('hidden');
+      return; // stop submission
+    }
+
+    // Submit form via fetch
+    const actionUrl = form.action;
+    const formData = new URLSearchParams(data);
+    const submitRes = await fetch(actionUrl, { method: 'POST', body: formData });
+    if (!submitRes.ok) throw new Error(`HTTP ${submitRes.status}`);
+
+    // Reload or refresh the table
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    errorDiv.textContent = "Error submitting form. See console.";
+    errorDiv.classList.remove('hidden');
+  }
+});
 </script>

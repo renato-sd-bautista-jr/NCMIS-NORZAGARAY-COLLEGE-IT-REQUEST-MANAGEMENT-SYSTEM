@@ -23,12 +23,13 @@ app.register_blueprint(report_bp)
 app.register_blueprint(userborrow_bp)
 app.register_blueprint(manage_pc_bp)
 app.register_blueprint(qrcode_bp)
-app.register_blueprint(manage_item_bp)
 app.register_blueprint(manage_user_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(manage_department_bp)
 app.register_blueprint(manage_inventory_bp)
 app.register_blueprint(notification_bp)
+app.register_blueprint(manage_item_bp, url_prefix='/manage_inventory')
+
 
 # ✅ Context processor to make user access available globally in templates
 @app.context_processor

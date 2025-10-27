@@ -2,6 +2,7 @@ from db import get_db_connection
 import pymysql
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 import qrcode, os
+import time,random
 
 manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
@@ -50,45 +51,56 @@ def get_departments():
     return jsonify(results)
 
 
-# ✅ Add Device
 @manage_item_bp.route('/add-device', methods=['POST'])
 def add_device():
     conn = get_db_connection()
     try:
         form = request.form
+        item_name = form.get('item_name')
+        brand_model = form.get('brand_model')
+        device_type = form.get('device_type')
+        acquisition_cost = form.get('acquisition_cost')
+        date_acquired = form.get('date_acquired')
+        accountable = form.get('accountable')
+        department_id = form.get('department_id')
+        status = form.get('status') or 'Available'
+        quantity = int(form.get('quantity', 1))
+
+        inserted_ids = []
+
         with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO devices_full (
-                    item_name, brand_model, serial_no, municipal_serial_no, quantity,
+            for _ in range(quantity):
+                # Auto-generate serials
+                serial_no = generate_unique_serial("SN")
+                municipal_serial_no = generate_unique_serial("MSN")
+
+                # Ensure uniqueness in DB
+                while True:
+                    cur.execute("""
+                        SELECT COUNT(*) AS count FROM devices_full
+                        WHERE serial_no=%s OR municipal_serial_no=%s
+                    """, (serial_no, municipal_serial_no))
+                    if cur.fetchone()['count'] == 0:
+                        break
+                    serial_no = generate_unique_serial("SN")
+                    municipal_serial_no = generate_unique_serial("MSN")
+
+                cur.execute("""
+                    INSERT INTO devices_full (
+                        item_name, brand_model, serial_no, municipal_serial_no, quantity,
+                        device_type, acquisition_cost, date_acquired, accountable,
+                        department_id, status
+                    ) VALUES (%s,%s,%s,%s,1,%s,%s,%s,%s,%s,%s)
+                """, (
+                    item_name, brand_model, serial_no, municipal_serial_no,
                     device_type, acquisition_cost, date_acquired, accountable,
                     department_id, status
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                form.get('item_name'),
-                form.get('brand_model'),
-                form.get('serial_no'),
-                form.get('municipal_serial_no'),
-                int(form.get('quantity', 1)),
-                form.get('device_type'),
-                form.get('acquisition_cost'),
-                form.get('date_acquired'),
-                form.get('accountable'),
-                form.get('department_id'),
-                form.get('status', 'Available')
-            ))
-            conn.commit()
-            accession_id = cur.lastrowid
+                ))
+                inserted_ids.append(cur.lastrowid)
 
-        # ✅ Generate QR Code
-        qr_data = f"http://localhost:5000/device/{accession_id}"
-        qr_img = qrcode.make(qr_data)
-        qr_folder = os.path.join('static', 'device_qr')
-        os.makedirs(qr_folder, exist_ok=True)
-        qr_img.save(os.path.join(qr_folder, f"{accession_id}.png"))
-
-        flash("Device added successfully with QR code!", "success")
+        conn.commit()
+        flash(f"{quantity} device(s) added successfully!", "success")
         return redirect(url_for('manage_inventory.inventory_load'))
-
     except Exception as e:
         conn.rollback()
         print(f"❌ Error adding device: {e}")
@@ -97,8 +109,6 @@ def add_device():
     finally:
         conn.close()
 
-
-# ✅ Update Device with duplicate check
 @manage_item_bp.route('/update-device', methods=['POST'])
 def update_device():
     conn = get_db_connection()
@@ -106,48 +116,37 @@ def update_device():
         form = request.form
         accession_id = form.get('accession_id')
         if not accession_id:
-            return {"success": False, "error": "Missing device ID."}, 400
+            flash("Missing device ID.", "danger")
+            return redirect(url_for('manage_inventory.inventory_load'))
 
-        serial_no = form.get('serial_no')
-        municipal_serial_no = form.get('municipal_serial_no')
-
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            # Check for duplicate serial_no
+        with conn.cursor() as cur:
+            # Check for duplicates before updating
             cur.execute("""
-                SELECT accession_id FROM devices_full 
-                WHERE serial_no = %s AND accession_id != %s
-            """, (serial_no, accession_id))
-            if cur.fetchone():
-                return {"success": False, "error": "Serial number already exists."}, 400
+                SELECT COUNT(*) AS count FROM devices_full
+                WHERE (serial_no=%s OR municipal_serial_no=%s) AND accession_id != %s
+            """, (form.get('serial_no'), form.get('municipal_serial_no'), accession_id))
+            if cur.fetchone()['count'] > 0:
+                flash("Serial No or Municipal Serial No already exists!", "danger")
+                return redirect(url_for('manage_inventory.inventory_load'))
 
-            # Check for duplicate municipal_serial_no
-            if municipal_serial_no:
-                cur.execute("""
-                    SELECT accession_id FROM devices_full 
-                    WHERE municipal_serial_no = %s AND accession_id != %s
-                """, (municipal_serial_no, accession_id))
-                if cur.fetchone():
-                    return {"success": False, "error": "Municipal serial number already exists."}, 400
-
-            # ✅ No duplicates, proceed with update
             cur.execute("""
                 UPDATE devices_full
-                SET item_name = %s,
-                    brand_model = %s,
-                    serial_no = %s,
-                    municipal_serial_no = %s,
-                    device_type = %s,
-                    acquisition_cost = %s,
-                    date_acquired = %s,
-                    accountable = %s,
-                    department_id = %s,
-                    status = %s
-                WHERE accession_id = %s
+                SET item_name=%s,
+                    brand_model=%s,
+                    serial_no=%s,
+                    municipal_serial_no=%s,
+                    device_type=%s,
+                    acquisition_cost=%s,
+                    date_acquired=%s,
+                    accountable=%s,
+                    department_id=%s,
+                    status=%s
+                WHERE accession_id=%s
             """, (
                 form.get('item_name'),
                 form.get('brand_model'),
-                serial_no,
-                municipal_serial_no,
+                form.get('serial_no'),
+                form.get('municipal_serial_no'),
                 form.get('device_type'),
                 form.get('acquisition_cost'),
                 form.get('date_acquired'),
@@ -157,16 +156,15 @@ def update_device():
                 accession_id
             ))
             conn.commit()
-
-        return {"success": True, "message": "Device updated successfully!"}
-
+        flash("Device updated successfully!", "success")
+        return redirect(url_for('manage_inventory.inventory_load'))
     except Exception as e:
         conn.rollback()
         print(f"❌ Error updating device: {e}")
-        return {"success": False, "error": "Error updating device."}, 500
+        flash("Error updating device.", "danger")
+        return redirect(url_for('manage_inventory.inventory_load'))
     finally:
         conn.close()
-
 
 # ✅ Delete Device
 @manage_item_bp.route('/delete-item/<int:id>', methods=['POST'])
@@ -221,3 +219,37 @@ def get_item_by_id(item_id):
         return jsonify({'error': 'Database error'}), 500
     finally:
         conn.close()
+
+
+# ✅ Check if serial_no or municipal_serial_no already exists
+@manage_item_bp.route('/check-serial-duplicate')
+def check_serial_duplicate():
+    serial_no = request.args.get('serial_no', '').strip()
+    municipal_serial_no = request.args.get('municipal_serial_no', '').strip()
+    accession_id = request.args.get('accession_id')  # optional for edit mode
+
+    if not serial_no and not municipal_serial_no:
+        return jsonify({'duplicate': False})  # return valid JSON even if empty
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            query = """
+                SELECT COUNT(*) AS count FROM devices_full
+                WHERE (serial_no=%s OR municipal_serial_no=%s)
+            """
+            params = [serial_no, municipal_serial_no]
+            if accession_id:
+                query += " AND accession_id != %s"
+                params.append(accession_id)
+
+            cur.execute(query, params)
+            result = cur.fetchone()
+            duplicate = result['count'] > 0
+        return jsonify({"duplicate": duplicate})
+    finally:
+        conn.close()
+
+def generate_unique_serial(prefix="SN"):
+    """Generate a unique serial number"""
+    return f"{prefix}{int(time.time()*1000) % 1000000}{random.randint(10,99)}"
