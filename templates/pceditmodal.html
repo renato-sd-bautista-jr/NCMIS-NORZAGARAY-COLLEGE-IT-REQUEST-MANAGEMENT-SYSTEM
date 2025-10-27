@@ -286,15 +286,38 @@ async function openPcModal(pcData = null) {
 function closePcModal() {
   document.getElementById('pcModal').classList.add('hidden');
 }
-
 document.getElementById("pcForm").addEventListener("submit", async function (e) {
   e.preventDefault();
+
   const form = e.target;
   const formData = new FormData(form);
+  const pcid = formData.get("pcid"); // will be filled during edit
   const batchCount = parseInt(document.getElementById("batchCount").value || "1", 10);
 
+  // 🟡 If editing an existing PC
+  if (pcid) {
+    try {
+      const res = await fetch("{{ url_for('manage_pc_bp.update_pcinfofull') }}", {
+        method: "POST",
+        body: formData
+      });
+      if (res.ok) {
+        showPopup("success", "PC updated successfully!");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        const data = await res.json();
+        showPopup("error", data.error || "Failed to update PC.");
+      }
+    } catch (err) {
+      console.error("❌ Update error:", err);
+      showPopup("error", "Something went wrong while updating PC.");
+    }
+    return; // Stop here
+  }
+
+  // 🟩 ADD MODE (supports batch add)
   if (batchCount > 1) {
-    // Batch Add Mode
+    // Batch add logic...
     const baseName = formData.get("pcname").trim() || "PC";
     const batchPcs = [];
 
@@ -326,11 +349,11 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
     }
 
   } else {
-    // Single Add Mode
+    // Single Add
     try {
       const res = await fetch("{{ url_for('manage_pc_bp.add_pcinfofull') }}", {
         method: "POST",
-        body: formData,
+        body: formData
       });
       const data = await res.json();
 

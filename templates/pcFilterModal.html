@@ -1,201 +1,57 @@
 <!-- PC Filter Modal -->
+<div id="pcFilterModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 relative">
+    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+      <i data-lucide="filter"></i> Filter PCs
+    </h2>
 
-<div id="pcFilterModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-  <div id="pcFilterModalContent" class="bg-white p-8 rounded-2xl w-full max-w-5xl shadow-2xl overflow-y-auto max-h-[90vh] transform scale-95 transition-transform duration-300">
+    <form id="pcFilterForm" class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Department</label>
+        <select id="filter_department" name="department_id" class="w-full border rounded-lg p-2">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Status</label>
+        <select id="filter_status" name="status" class="w-full border rounded-lg p-2">
+          <option value="">All</option>
+          <option value="Available">Available</option>
+          <option value="In Use">In Use</option>
+          <option value="Damaged">Damaged</option>
+          <option value="Disposed">Disposed</option>
+        </select>
+      </div>
 
-```
-<!-- Header -->
-<div class="flex items-center justify-between mb-6 border-b pb-3">
-  <div class="flex items-center gap-3">
-    <i data-lucide="filter" class="w-6 h-6 text-blue-600"></i>
-    <h3 class="text-2xl font-semibold text-blue-600">Filter PCs</h3>
-  </div>
-  <button type="button" onclick="closePcFilterModal()" class="text-gray-500 hover:text-gray-700 transition">
-    <i data-lucide="x" class="w-6 h-6"></i>
-  </button>
-</div>
+      <div>
+        <label class="block text-sm font-medium">Location</label>
+        <input type="text" id="filter_location" name="location" class="w-full border rounded-lg p-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Accountable</label>
+        <input type="text" id="filter_accountable" name="accountable" class="w-full border rounded-lg p-2">
+      </div>
 
-<!-- Filter Form -->
-<form id="pcFilterForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  
-  <div>
-  <label class="label">Facilities</label>
-  <input list="departmentOptions" name="department" placeholder="Type or choose department" class="input">
-  <datalist id="departmentOptions"></datalist>
-</div>
+      <div>
+        <label class="block text-sm font-medium">Serial / Municipal No.</label>
+        <input type="text" id="filter_serial" name="serial_no" class="w-full border rounded-lg p-2">
+      </div>
 
-  <div>
-  <label class="label">Location</label>
-  <input list="locationOptions" name="location" placeholder="Type or choose location" class="input">
-  <datalist id="locationOptions"></datalist>
-</div>
+      <div class="col-span-2 flex gap-2">
+        <div class="flex-1">
+          <label class="block text-sm font-medium">Date From</label>
+          <input type="date" id="filter_date_from" name="date_from" class="w-full border rounded-lg p-2">
+        </div>
+        <div class="flex-1">
+          <label class="block text-sm font-medium">Date To</label>
+          <input type="date" id="filter_date_to" name="date_to" class="w-full border rounded-lg p-2">
+        </div>
+      </div>
 
-  <div>
-    <label class="label">Device Type</label>
-    <input type="text" name="device_type" placeholder="e.g., Desktop, Laptop" class="input">
-  </div>
-
-  <div>
-    <label class="label">Brand</label>
-    <input type="text" name="brand" placeholder="e.g., Dell, Lenovo" class="input">
-  </div>
-
-  <div>
-  <label class="label">Accountable</label>
-  <input list="accountableOptions" name="accountable" placeholder="Type or choose accountable" class="input">
-  <datalist id="accountableOptions"></datalist>
-</div>
-
-  <div>
-    <label class="label">Serial No</label>
-    <input type="text" name="serial_no" placeholder="e.g., SN-123456" class="input">
-  </div>
-
-  <div>
-    <label class="label">Municipal Serial No</label>
-    <input type="text" name="municipal_serial_no" placeholder="e.g., MSN-987654" class="input">
-  </div>
-
-  <div>
-    <label class="label">Status</label>
-    <select name="status" class="input">
-      <option value="">Any</option>
-      <option value="Available">Available</option>
-      <option value="Inactive">Inactive</option>
-      <option value="In Used">In Used</option>
-      <option value="Damaged">Damaged</option>
-    </select>
-  </div>
-
-  <div>
-    <label class="label">Date Acquired</label>
-    <input type="date" name="date_acquired" class="input">
-  </div>
-
-  <div>
-    <label class="label">Acquisition Cost (₱)</label>
-    <input type="number" name="acquisition_cost" step="0.01" placeholder="e.g., 35000" class="input">
-  </div>
-
-  <div class="md:col-span-2">
-    <label class="label">Description / Notes</label>
-    <textarea name="note" rows="2" placeholder="Search notes or details" class="input"></textarea>
-  </div>
-
-  <!-- Buttons -->
-  <div class="md:col-span-2 flex justify-end gap-3 mt-8 pt-4 border-t">
-    <button type="button" onclick="resetPcFilter()" class="btn-gray">
-      <i data-lucide='rotate-ccw' class="w-4 h-4"></i> Reset
-    </button>
-    <button type="button" onclick="closePcFilterModal()" class="btn-gray">
-      <i data-lucide='x-circle' class="w-4 h-4"></i> Cancel
-    </button>
-    <button type="submit" class="btn-blue">
-      <i data-lucide='check-circle' class="w-4 h-4"></i> Apply Filter
-    </button>
-  </div>
-</form>
-```
-
+      <div class="col-span-2 flex justify-end gap-2 mt-4">
+        <button type="button" onclick="closePcFilterModal()" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Close</button>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Apply Filter</button>
+      </div>
+    </form>
   </div>
 </div>
-
-<script>
-function openPcFilterModal() {
-  const modal = document.getElementById('pcFilterModal');
-  modal.classList.remove('hidden');
-  setTimeout(() => document.getElementById('pcFilterModalContent').classList.add('scale-100'), 50);
-  lucide.createIcons();
-}
-
-function closePcFilterModal() {
-  document.getElementById('pcFilterModal').classList.add('hidden');
-}
-
-function resetPcFilter() {
-  document.getElementById('pcFilterForm').reset();
-}
-
-async function loadPcFilterOptions() {
-  try {
-    const res = await fetch("/manage_inventory/get-pc-filter-options");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    populateOptions('departmentOptions', data.departments);
-    populateOptions('locationOptions', data.locations);
-    populateOptions('accountableOptions', data.accountables);
-
-  } catch (err) {
-    console.error('❌ Failed to load PC filter options:', err);
-  }
-}
-
-function populateOptions(id, values) {
-  const datalist = document.getElementById(id);
-  datalist.innerHTML = values.map(v => `<option value="${v}">`).join('');
-}
-
-document.getElementById('pcFilterForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-  const filterData = {};
-
-  // Only include non-empty fields
-  formData.forEach((value, key) => {
-    if (value && value.trim() !== "") {
-      filterData[key] = value.trim();
-    }
-  });
-
-  console.log("🧩 Applying filters:", filterData);
-
-  try {
-    const res = await fetch('/manage_inventory/filter-pcs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(filterData)
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    updatePcTable(data);
-    closePcFilterModal();
-
-  } catch (err) {
-    console.error("❌ Filter error:", err);
-    alert("Failed to apply filters.");
-  }
-});
-
-function updatePcTable(pcs) {
-  const tbody = document.querySelector('#pcTableBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  if (pcs.length === 0) {
-    tbody.innerHTML = `
-      <tr><td colspan="8" class="text-center text-gray-500 py-4">No PCs match your filters.</td></tr>
-    `;
-    return;
-  }
-
-  pcs.forEach(pc => {
-    tbody.insertAdjacentHTML('beforeend', `
-      <tr class="hover:bg-gray-100 transition">
-        <td class="px-4 py-2 border-b">${pc.pcname || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.department_name || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.location || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.accountable || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.serial_no || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.municipal_serial_no || ''}</td>
-        <td class="px-4 py-2 border-b">${pc.status || ''}</td>
-      </tr>
-    `);
-  });
-}
-
-</script>

@@ -25,6 +25,80 @@ def delete_pc(pcid):
 
 
 
+@manage_pc_bp.route('/filter-pcs', methods=['GET'])
+def filter_pcs():
+    """Filter PC list based on query parameters."""
+    conn = get_db_connection()
+    try:
+        department_id = request.args.get('department_id')
+        status = request.args.get('status')
+        location = request.args.get('location')
+        accountable = request.args.get('accountable')
+        serial_no = request.args.get('serial_no')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+
+        query = """
+            SELECT 
+                p.pcid,
+                p.pcname,
+                p.department_id,
+                d.department_name,
+                p.location,
+                p.quantity,
+                p.acquisition_cost,
+                p.date_acquired,
+                p.accountable,
+                p.serial_no,
+                p.municipal_serial_no,
+                p.status,
+                p.note,
+                p.monitor,
+                p.motherboard,
+                p.ram,
+                p.storage,
+                p.gpu,
+                p.psu,
+                p.casing,
+                p.other_parts
+            FROM pcinfofull p
+            LEFT JOIN departments d ON p.department_id = d.department_id
+            WHERE 1=1
+        """
+        params = []
+
+        if department_id:
+            query += " AND p.department_id = %s"
+            params.append(department_id)
+        if status:
+            query += " AND p.status = %s"
+            params.append(status)
+        if location:
+            query += " AND p.location LIKE %s"
+            params.append(f"%{location}%")
+        if accountable:
+            query += " AND p.accountable LIKE %s"
+            params.append(f"%{accountable}%")
+        if serial_no:
+            query += " AND (p.serial_no LIKE %s OR p.municipal_serial_no LIKE %s)"
+            params.extend([f"%{serial_no}%", f"%{serial_no}%"])
+        if date_from and date_to:
+            query += " AND p.date_acquired BETWEEN %s AND %s"
+            params.extend([date_from, date_to])
+
+        query += " ORDER BY p.pcid"
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute(query, params)
+            pcs = cur.fetchall()
+
+        return jsonify(pcs)
+
+    except Exception as e:
+        print(f"❌ Error filtering PCs: {e}")
+        return jsonify({"error": "Error filtering PCs."}), 500
+    finally:
+        conn.close()
 
 @manage_pc_bp.route('/add-pcinfofull', methods=['POST'])
 def add_pcinfofull():

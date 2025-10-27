@@ -74,6 +74,7 @@ def get_pc_list():
         conn.close()
 
 
+
 def get_item_list():
     """Fetch all devices from devices_full (for Manage Items section)."""
     conn = get_db_connection()
