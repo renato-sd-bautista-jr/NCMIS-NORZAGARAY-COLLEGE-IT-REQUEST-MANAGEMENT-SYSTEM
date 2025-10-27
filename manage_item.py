@@ -253,3 +253,100 @@ def check_serial_duplicate():
 def generate_unique_serial(prefix="SN"):
     """Generate a unique serial number"""
     return f"{prefix}{int(time.time()*1000) % 1000000}{random.randint(10,99)}"
+
+
+@manage_item_bp.route('/filter-device', methods=['GET'])
+def filter_devices():
+    """Filter devices dynamically based on query parameters."""
+    conn = get_db_connection()
+    try:
+        # Get all possible query parameters
+        department_id = request.args.get('department_id')
+        status = request.args.get('status')
+        location = request.args.get('location')
+        accountable = request.args.get('accountable')
+        serial_no = request.args.get('serial_no')
+        item_name = request.args.get('item_name')
+        brand_model = request.args.get('brand_model')
+        device_type = request.args.get('device_type')
+        quantity = request.args.get('quantity')
+        acquisition_cost = request.args.get('acquisition_cost')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+
+        query = """
+            SELECT 
+                df.accession_id,
+                df.item_name,
+                df.brand_model,
+                df.serial_no,
+                df.municipal_serial_no,
+                df.quantity,
+                df.device_type,
+                df.acquisition_cost,
+                df.date_acquired,
+                df.accountable,
+                df.status,
+                dep.department_id,
+                dep.department_name
+            FROM devices_full df
+            LEFT JOIN departments dep ON df.department_id = dep.department_id
+            WHERE 1=1
+        """
+        params = []
+
+        # Apply filters dynamically
+        if department_id:
+            query += " AND df.department_id = %s"
+            params.append(department_id)
+        if status:
+            query += " AND df.status = %s"
+            params.append(status)
+        if location:
+            query += " AND df.location LIKE %s"
+            params.append(f"%{location}%")
+        if accountable:
+            query += " AND df.accountable LIKE %s"
+            params.append(f"%{accountable}%")
+        if serial_no:
+            query += " AND (df.serial_no LIKE %s OR df.municipal_serial_no LIKE %s)"
+            params.extend([f"%{serial_no}%", f"%{serial_no}%"])
+        if item_name:
+            query += " AND df.item_name LIKE %s"
+            params.append(f"%{item_name}%")
+        if brand_model:
+            query += " AND df.brand_model LIKE %s"
+            params.append(f"%{brand_model}%")
+        if device_type:
+            query += " AND df.device_type LIKE %s"
+            params.append(f"%{device_type}%")
+        if quantity:
+            query += " AND df.quantity = %s"
+            params.append(quantity)
+        if acquisition_cost:
+            query += " AND df.acquisition_cost = %s"
+            params.append(acquisition_cost)
+
+        if date_from and date_to:
+            query += " AND df.date_acquired BETWEEN %s AND %s"
+            params.extend([date_from, date_to])
+
+        query += " ORDER BY df.accession_id"
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute(query, params)
+            devices = cur.fetchall()
+
+        return jsonify(devices)
+
+    except Exception as e:
+        print(f"❌ Error filtering devices: {e}")
+        return jsonify({"error": "Error filtering devices."}), 500
+    finally:
+        conn.close()
+
+
+@manage_item_bp.route('/device-filter-modal')
+def device_filter_modal():
+    departments = get_departments()
+    return render_template('partials/filter_device_modal.html', departments=departments)

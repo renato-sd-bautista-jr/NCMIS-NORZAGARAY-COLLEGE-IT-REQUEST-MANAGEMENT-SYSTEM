@@ -1,0 +1,81 @@
+<!-- Filter Device Modal -->
+<div id="filterDeviceModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 relative">
+    <h2 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+      <i data-lucide="filter"></i> Filter Devices
+    </h2>
+
+    <form id="filterDeviceForm" class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Department</label>
+        <select name="department_id" class="w-full border-gray-300 rounded-lg p-2">
+          <option value="">All</option>
+          {% for dept in departments %}
+          <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Status</label>
+        <select name="status" class="w-full border-gray-300 rounded-lg p-2">
+          <option value="">All</option>
+          <option value="Available">Available</option>
+          <option value="In Used">In Used</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Damaged">Damaged</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Accountable</label>
+        <input type="text" name="accountable" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Serial No</label>
+        <input type="text" name="serial_no" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Item Name</label>
+        <input type="text" name="item_name" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Brand / Model</label>
+        <input type="text" name="brand_model" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Device Type</label>
+        <input type="text" name="device_type" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Date From</label>
+        <input type="date" name="date_from" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Date To</label>
+        <input type="date" name="date_to" class="w-full border-gray-300 rounded-lg p-2" />
+      </div>
+
+  
+
+      <div class="col-span-2 flex justify-end mt-4 gap-3">
+        <button type="button" onclick="closeDeviceFilterModal()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">
+          Cancel
+        </button>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+          Apply Filters
+        </button>
+      </div>
+    </form>
+
+    <button onclick="closeDeviceFilterModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+</div>

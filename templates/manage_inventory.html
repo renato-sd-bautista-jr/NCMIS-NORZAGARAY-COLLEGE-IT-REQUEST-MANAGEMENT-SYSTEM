@@ -11,6 +11,7 @@
 
   {% include 'sidebar.html' %}
   {% include 'delete_modal.html' %}
+  {% include 'partials/filter_device_modal.html' %}
   <!-- Overlay for mobile -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
@@ -161,7 +162,12 @@
     <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
       <i data-lucide="package" class="w-6 h-6"></i> Manage Devices
     </h3>
-
+<button 
+  type="button"
+  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+  onclick="openDeviceFilterModalFromFile()">
+  <i data-lucide="filter"></i> Filter Devices
+</button>
     {% if item_list|length == 0 %}
     <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No devices found.</div>
     {% else %}
@@ -182,7 +188,7 @@
             <th class="px-4 py-2 border-b text-left">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="deviceTableBody">
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
             <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
@@ -482,31 +488,12 @@ async function openPcFilterModalFromFile() {
 }
 
 lucide.createIcons();
-async function openDeviceFilterModalFromFile() {
-  if (!document.getElementById("itemFilterModal")) {
-    try {
-      const res = await fetch("/manage_inventory/device-filter-modal");
-      if (!res.ok) throw new Error(`Failed to load modal: ${res.status}`);
-      const html = await res.text();
-      document.body.insertAdjacentHTML("beforeend", html);
-      lucide.createIcons();
-    } catch (err) {
-      console.error("❌ Error loading Device Filter Modal:", err);
-      alert("Failed to load Device Filter Modal.");
-      return;
-    }
-  }
 
-  const modal = document.getElementById('itemFilterModal');
-  modal.classList.remove('hidden');
-  setTimeout(() => {
-    document.getElementById('deviceFilterModalContent').classList.add('scale-100');
-  }, 50);
-  lucide.createIcons();
-  await loadDeviceFilterOptions(); // optional function for dropdowns/search values
-}
   </script>
 
   <script src="{{ url_for('static', filename='js/pc_filter.js') }}"></script>
+<script src="{{ url_for('static', filename='js/filter_device_modal.js') }}"></script>
+
+
 </body>
 </html>
