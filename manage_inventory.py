@@ -54,7 +54,6 @@ def get_pc_list():
                     p.municipal_serial_no,
                     p.status,
                     p.note,
-                    p.monitor,
                     p.motherboard,
                     p.ram,
                     p.storage,
@@ -169,7 +168,6 @@ def get_pc_by_id(pcid):
                     p.municipal_serial_no,
                     p.status,
                     p.note,
-                    p.monitor,
                     p.motherboard,
                     p.ram,
                     p.storage,
@@ -198,6 +196,4 @@ def get_pc_by_id(pcid):
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
 
-@manage_inventory_bp.route('/manage_inventory/device-filter-modal')
-def device_filter_modal():
-    return render_template('itemfiltermodal.html')    
+

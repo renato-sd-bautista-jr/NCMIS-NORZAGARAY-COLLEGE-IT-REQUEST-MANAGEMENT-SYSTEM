@@ -53,7 +53,6 @@ def filter_pcs():
                 p.municipal_serial_no,
                 p.status,
                 p.note,
-                p.monitor,
                 p.motherboard,
                 p.ram,
                 p.storage,
@@ -124,13 +123,13 @@ def add_pcinfofull():
             cur.execute("""
                 INSERT INTO pcinfofull 
                 (pcname, department_id, location, quantity, acquisition_cost, date_acquired, accountable, serial_no, municipal_serial_no, status, note,
-                 monitor, motherboard, ram, storage, gpu, psu, casing, other_parts)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                motherboard, ram, storage, gpu, psu, casing, other_parts)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
                 data['pcname'], data['department_id'], data['location'], data['quantity'],
                 data['acquisition_cost'], data['date_acquired'], data['accountable'],
-                data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],
-                data['monitor'], data['motherboard'], data['ram'], data['storage'],
+                data['serial_no'], data['municipal_serial_no'], data['status'], data['note']
+                , data['motherboard'], data['ram'], data['storage'],
                 data['gpu'], data['psu'], data['casing'], data['other_parts']
             ))
             conn.commit()
@@ -158,14 +157,14 @@ def update_pcinfofull():
             cur.execute("""
                 UPDATE pcinfofull SET
                     pcname=%s, department_id=%s, location=%s, quantity=%s, acquisition_cost=%s, date_acquired=%s,
-                    accountable=%s, serial_no=%s, municipal_serial_no=%s, status=%s, note=%s,
-                    monitor=%s, motherboard=%s, ram=%s, storage=%s, gpu=%s, psu=%s, casing=%s, other_parts=%s
+                    accountable=%s, serial_no=%s, municipal_serial_no=%s, status=%s, note=%s=
+                        , motherboard=%s, ram=%s, storage=%s, gpu=%s, psu=%s, casing=%s, other_parts=%s
                 WHERE pcid=%s
             """, (
                 data['pcname'], data['department_id'], data['location'], data['quantity'],
                 data['acquisition_cost'], data['date_acquired'], data['accountable'],
                 data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],
-                data['monitor'], data['motherboard'], data['ram'], data['storage'],
+                 data['motherboard'], data['ram'], data['storage'],
                 data['gpu'], data['psu'], data['casing'], data['other_parts'], data['pcid']
             ))
             conn.commit()
@@ -245,13 +244,13 @@ def batch_add_pcinfofull():
                     INSERT INTO pcinfofull (
                         pcname, department_id, location, quantity, acquisition_cost,
                         date_acquired, accountable, serial_no, municipal_serial_no, status, note,
-                        monitor, motherboard, ram, storage, gpu, psu, casing, other_parts,
+                         motherboard, ram, storage, gpu, psu, casing, other_parts,
                         created_at, updated_at
                     )
                     VALUES (
                         %(pcname)s, %(department_id)s, %(location)s, %(quantity)s, %(acquisition_cost)s,
                         %(date_acquired)s, %(accountable)s, %(serial_no)s, %(municipal_serial_no)s,
-                        %(status)s, %(note)s, %(monitor)s, %(motherboard)s, %(ram)s, %(storage)s,
+                        %(status)s, %(note)s, %(motherboard)s, %(ram)s, %(storage)s,
                         %(gpu)s, %(psu)s, %(casing)s, %(other_parts)s,
                         NOW(), NOW()
                     )

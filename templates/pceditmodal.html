@@ -97,7 +97,7 @@
           <h4 class="text-lg font-semibold text-blue-600">PC Parts</h4>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {% for part in ['Monitor', 'Motherboard', 'RAM', 'Storage', 'GPU', 'PSU', 'Casing', 'Other Parts'] %}
+          {% for part in ['Motherboard', 'RAM', 'Storage', 'GPU', 'PSU', 'Casing', 'Other Parts'] %}
           <div>
             <label class="label">{{ part }}</label>
             <input type="text" id="{{ part|lower|replace(' ', '_') }}" name="{{ part|lower|replace(' ', '_') }}" class="input">
@@ -243,7 +243,6 @@ async function openPcModal(pcData = null) {
       municipal_serial_no: 'modalMunicipalSerialNo',
       status: 'modalStatus',
       note: 'modalNote',
-      monitor: 'monitor',
       motherboard: 'motherboard',
       ram: 'ram',
       storage: 'storage',
