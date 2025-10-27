@@ -64,11 +64,7 @@
     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
     Add PC
   </button>
-  <button 
-    id="filterbtn" 
-    class="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow">
-    <i data-lucide="filter" class="w-4 h-4"></i> Filter
-</button>
+  
   {% endif %}
 </div>
 
@@ -167,6 +163,7 @@
       <table class="min-w-full border border-gray-200 text-sm text-gray-800">
         <thead class="bg-gray-200 text-gray-700">
           <tr>
+            <th class="px-4 py-2 border-b text-left">ID</th>
             <th class="px-4 py-2 border-b text-left">Device Name</th>
             <th class="px-4 py-2 border-b text-left">Brand / Model</th>
             <th class="px-4 py-2 border-b text-left">Serial No</th>
@@ -182,6 +179,7 @@
         <tbody>
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
+            <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
             <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
             <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
             <td class="px-4 py-2 border-b">{{ item.serial_no or '—' }}</td>
@@ -276,15 +274,24 @@ async function openItemModal(itemData = null) {
     submitBtn.textContent = "Update Device";
 
     document.getElementById('accession_id').value = itemData.accession_id || '';
-    document.getElementById('item_name').value = itemData.name || '';
+    document.getElementById('item_name').value = itemData.item_name || '';
     document.getElementById('brand_model').value = itemData.brand_model || '';
     document.getElementById('serial_no').value = itemData.serial_no || '';
     document.getElementById('municipal_serial_no').value = itemData.municipal_serial_no || '';
     document.getElementById('quantity').value = itemData.quantity || 1;
-    document.getElementById('device_type').value = itemData.category || '';
+    document.getElementById('device_type').value = itemData.device_type || '';
     document.getElementById('acquisition_cost').value = itemData.acquisition_cost || '';
     document.getElementById('date_acquired').value = itemData.date_acquired || '';
     document.getElementById('accountable').value = itemData.accountable || '';
+
+    
+    // Handle invalid date
+    if (!itemData.date_acquired || itemData.date_acquired === '0000-00-00') {
+      document.getElementById('date_acquired').value = '';
+    } else {
+      const d = new Date(itemData.date_acquired);
+      document.getElementById('date_acquired').value = d.toISOString().split('T')[0];
+    }
 
     if (itemData.department_id) {
       deptSelect.value = itemData.department_id;
@@ -354,25 +361,19 @@ function showSection(id) {
   document.getElementById(id).classList.remove('hidden');
 
   const addBtn = document.getElementById('addButton');
-  const filterbtn = document.getElementById('filterbtn');
+ 
   
   if (id === 'inventorySection') {
     currentSection = 'pc';
-    filterbtn.textContent = 'Filter PCs';
+    
     addBtn.textContent = 'Add PC';
   } else if (id === 'itemsSection') {
     currentSection = 'item';
-    filterbtn.textContent = 'Filter Devices';
+    
     addBtn.textContent = 'Add Device';
   }
 }
-filterbtn.addEventListener('click', () => {
-  if (currentSection === 'pc') {
-    openPcFilterModalFromFile();
-  } else if (currentSection === 'item') {
-    openDeviceFilterModalFromFile();
-  }
-});
+
 function handleAddButtonClick() {
   if (currentSection === 'pc') {
     openPcModal(); // opens your existing Add PC modal

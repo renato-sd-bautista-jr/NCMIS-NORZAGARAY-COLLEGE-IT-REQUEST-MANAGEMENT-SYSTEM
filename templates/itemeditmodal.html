@@ -4,6 +4,9 @@
     <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
       <i data-lucide="plus-circle"></i>
       <span>Add Device</span>
+      <!-- Error Message Container -->
+<div id="itemModalError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
+
     </h3>
 
     <form id="itemForm" method="post" class="space-y-4">
@@ -74,10 +77,10 @@
 
       <!-- Department -->
       <div>
-        <label class="block text-gray-700 font-medium mb-1">Department</label>
+        <label class="block text-gray-700 font-medium mb-1">Facilities</label>
         <select name="department_id" id="department_id" required
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-          <option value="">Loading departments...</option>
+          <option value="">Loading Facilities...</option>
         </select>
       </div>
 
@@ -103,6 +106,7 @@
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
           Add Device
         </button>
+        
       </div>
     </form>
   </div>
@@ -138,7 +142,6 @@ async function openItemModal(itemData = null) {
 
   // --- Edit mode ---
   if (itemData) {
-    console.log('Editing item → disabling quantity');
     title.innerHTML = '<i data-lucide="edit"></i><span>Edit Device</span>';
     form.action = "{{ url_for('manage_item_bp.update_device') }}";
     submitBtn.textContent = "Update Device";
@@ -146,7 +149,15 @@ async function openItemModal(itemData = null) {
     // Populate fields
     Object.entries(itemData).forEach(([key, value]) => {
       const input = document.getElementById(key);
-      if (input) input.value = value ?? '';
+      if (!input) return;
+
+      // Format date for date input
+      if (key === 'date_acquired' && value) {
+        const dateObj = new Date(value);
+        input.value = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+      } else {
+        input.value = value ?? '';
+      }
     });
 
     // Disable quantity
@@ -160,7 +171,6 @@ async function openItemModal(itemData = null) {
   } 
   // --- Add mode ---
   else {
-    console.log('Adding new item → enabling quantity');
     title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Device</span>';
     form.action = "{{ url_for('manage_item_bp.add_device') }}";
     submitBtn.textContent = "Add Device";
@@ -176,10 +186,6 @@ async function openItemModal(itemData = null) {
 
   lucide.createIcons();
   modal.classList.remove('hidden');
-}
-
-function closeItemModal() {
-  document.getElementById('itemModal').classList.add('hidden');
 }
 
 
