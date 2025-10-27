@@ -78,18 +78,27 @@ def dashboard_load():
             total_items = cur.fetchone()['total']
 
             # 🔹 PC Inventory Count (pcs)
-            cur.execute("SELECT COUNT(*) AS total FROM pcs")
+            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull")
             total_pcs = cur.fetchone()['total']
 
             # 🔹 Status Counts (from devices_units)
-            cur.execute("SELECT COUNT(*) AS total FROM devices_units WHERE status = 'Available'")
-            available_items = cur.fetchone()['total']
+            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Available'")
+            available_devices = cur.fetchone()['total']
+            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Available'")
+            available_pc = cur.fetchone()['total']
 
-            cur.execute("SELECT COUNT(*) AS total FROM devices_units WHERE status = 'Borrowed'")
+            available_items = available_devices + available_pc
+
+            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'In Used'")
+            
             in_use_items = cur.fetchone()['total']
 
+            
+            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Damaged'")
+            damaged_pc = cur.fetchone()['total']
             cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Damaged'")
-            damaged_items = cur.fetchone()['total']
+            damaged_devices = cur.fetchone()['total']
+            damaged_items= damaged_pc + damaged_devices
 
                 # 🔹 Total Cost In (sum of acquisition_cost from both tables)
             cur.execute("SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM devices_full")
