@@ -1,20 +1,53 @@
-from flask import Blueprint, render_template, flash, jsonify
+from flask import Blueprint, render_template, flash, jsonify,request
 from db import get_db_connection
 import pymysql
+ 
+
+ 
+ 
 
 manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='templates')
 
 
 @manage_inventory_bp.route('/manage_inventory')
 def inventory_load():
-    """Load the Manage Inventory page with PCs and Devices."""
-    pc_list = get_pc_list()
-    item_list = get_item_list()
+    """Load Manage Inventory with pagination for devices."""
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
 
+    pc_list = get_pc_list()
+    item_list, total_items, total_pages = get_item_list_paginated(page, per_page)
+     
     if pc_list is None or item_list is None:
         flash("Error loading data. Please try again.", "danger")
 
-    return render_template('manage_inventory.html', pc_list=pc_list, item_list=item_list)
+    return render_template(
+        'manage_inventory.html',
+        pc_list=pc_list,
+        item_list=item_list,
+        page=page,
+        per_page=per_page,
+        total_items=total_items,
+        total_pages=total_pages
+    )
+
+
+@manage_inventory_bp.route('/manage_inventory/items-paged')
+def items_paged():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    items, total_items, total_pages = get_item_list_paginated(page, per_page)
+
+    return jsonify({
+        "items": items,
+        "page": page,
+        "per_page": per_page,
+        "total_items": total_items,
+        "total_pages": total_pages
+    })
+ 
+
 @manage_inventory_bp.route('/manage_inventory/get-departments')
 def get_departments():
     conn = get_db_connection()
@@ -196,4 +229,52 @@ def get_pc_by_id(pcid):
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
 
+def get_item_list_paginated(page=1, per_page=10):
+    """
+    Fetch paginated devices from devices_full.
+    Returns:
+        items, total_items, total_pages
+    """
+    offset = (page - 1) * per_page
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Get total count
+            cur.execute("SELECT COUNT(*) AS total FROM devices_full")
+            total_items = cur.fetchone()["total"]
+
+            # Get paginated data
+            cur.execute("""
+                SELECT 
+                    df.accession_id AS accession_id,
+                    df.item_name,
+                    df.brand_model,
+                    df.serial_no,
+                    df.municipal_serial_no,
+                    df.quantity,
+                    df.device_type,
+                    df.acquisition_cost,
+                    df.date_acquired,
+                    df.accountable,
+                    df.department_id,
+                    dep.department_name,
+                    df.status,
+                    df.updated_at
+                FROM devices_full df
+                LEFT JOIN departments dep ON df.department_id = dep.department_id
+                ORDER BY df.accession_id DESC
+                LIMIT %s OFFSET %s
+            """, (per_page, offset))
+
+            items = cur.fetchall()
+
+        total_pages = (total_items + per_page - 1) // per_page
+        return items, total_items, total_pages
+
+    except Exception as e:
+        print(f"❌ Error fetching paginated items: {e}")
+        return [], 0, 0
+    finally:
+        conn.close()
 
