@@ -93,7 +93,10 @@ def get_pc_list():
                     p.gpu,
                     p.psu,
                     p.casing,
-                    p.other_parts
+                    p.other_parts,
+                    p.risk_level
+                   
+                
                 FROM pcinfofull p
                 LEFT JOIN departments d ON p.department_id = d.department_id
                 ORDER BY p.pcid

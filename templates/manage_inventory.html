@@ -107,6 +107,7 @@
                   <th class="px-4 py-2 border-b text-left">Note</th>
                   <th class="px-4 py-2 border-b text-left">Status</th>
                   {% if permissions.get('inventory', {}).get('edit', False) %}
+                  <th class="px-4 py-2 border-b text-left">Risk</th>
                   <th class="px-4 py-2 border-b text-left">Actions</th>
                   {% endif %}
                 </tr>
@@ -126,11 +127,28 @@
                   <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.note }}</td>
                   <td class="px-4 py-2 border-b">
-              <span
-                class="{% if pc.status == 'Available' %}text-green-600{% elif pc.status == 'In Used' %}text-blue-600{% elif pc.status == 'Inactive' %}text-gray-500{% else %}text-red-600{% endif %} font-medium">
-                {{ pc.status }}
-              </span>
-            </td>
+  <span
+    title="Last checked: {{ pc.last_checked or 'Never' }}"
+    class="cursor-help
+      {% if pc.status == 'Needs Checking' %}text-yellow-600
+      {% elif pc.status == 'Critical' %}text-red-700 font-bold
+      {% else %}text-green-600
+      {% endif %}">
+    {{ pc.status }}
+  </span>
+</td>
+            <td class="px-4 py-2 border-b">
+  <span
+    class="
+      {% if pc.risk_level == 'Low' %}text-green-600
+      {% elif pc.risk_level == 'Medium' %}text-yellow-600
+      {% elif pc.risk_level == 'High' %}text-red-600
+      {% else %}text-gray-500
+      {% endif %}
+      font-semibold">
+    {{ pc.risk_level or '—' }}
+  </span>
+</td>
 
                 {% if permissions.get('inventory', {}).get('edit', False) %}
                   <td class="px-4 py-2 border-b flex gap-2">
@@ -186,6 +204,7 @@
             <th class="px-4 py-2 border-b text-left">Department</th>
             <th class="px-4 py-2 border-b text-left">Status</th>
             <th class="px-4 py-2 border-b text-left">Actions</th>
+            <th class="px-4 py-2 border-b text-left">Risk</th>
           </tr>
         </thead>
         <tbody id="deviceTableBody">
@@ -206,6 +225,18 @@
                 {{ item.status }}
               </span>
             </td>
+            <td class="px-4 py-2 border-b">
+  <span
+    class="
+      {% if item.risk_level == 'Low' %}text-green-600
+      {% elif item.risk_level == 'Medium' %}text-yellow-600
+      {% elif item.risk_level == 'High' %}text-red-600
+      {% else %}text-gray-500
+      {% endif %}
+      font-semibold">
+    {{ item.risk_level or '—' }}
+  </span>
+</td>
              {% if permissions.get('inventory', {}).get('edit', False) %}
             <td class="px-4 py-2 border-b flex gap-2">
              
