@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, jsonify,request
 from db import get_db_connection
 import pymysql
- 
+from inventory_auto_check import run_inventory_auto_check
 
  
  
@@ -281,3 +281,41 @@ def get_item_list_paginated(page=1, per_page=10):
     finally:
         conn.close()
 
+@manage_inventory_bp.route('/manage_inventory/run-risk-update', methods=['POST'])
+def run_risk_update():
+    
+
+    try:
+        run_inventory_auto_check()
+        return jsonify({
+            "success": True,
+            "message": "Inventory risk levels recalculated."
+        })
+    except Exception as e:
+        print("Risk update error:", e)
+        return jsonify({
+            "success": False,
+            "message": "Risk update failed."
+        }), 500
+    
+@manage_inventory_bp.route('/inventory/pc/<int:pcid>/check', methods=['POST'])
+def mark_pc_checked(pcid):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE pcinfofull
+                SET
+                    last_checked = CURDATE(),
+                    health_score = 100,
+                    risk_level = 'Low',
+                    status = 'Available'
+                WHERE pcid = %s
+            """, (pcid,))
+        conn.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, error=str(e)), 500
+    finally:
+        conn.close()

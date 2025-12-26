@@ -83,6 +83,13 @@
   onclick="openPcFilterModal()">
   <i data-lucide="filter"></i> Filter PCs
 </button>
+<button 
+  type="button"
+  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+  onclick="runRiskUpdate()">
+  <i data-lucide="refresh-cw"></i> Update Risk Levels
+</button>
+
 
         
           
@@ -162,6 +169,15 @@
                     class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
                     Delete
                   </button>
+                  <!-- Mark as Checked -->
+{% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+<button
+    onclick="markPcChecked({{ pc.pcid }})"
+    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
+    Mark Checked
+</button>
+{% endif %}
+
                   </td>
                 {% endif %}
                 </tr>
@@ -564,6 +580,49 @@ async function openPcFilterModalFromFile() {
   lucide.createIcons();
   await loadPcFilterOptions();
     // ✅ Load dropdown + search values here
+}
+async function runRiskUpdate() {
+  if (!confirm("Run inventory risk recalculation now?")) return;
+
+  try {
+    const res = await fetch('/manage_inventory/run-risk-update', {
+      method: 'POST'
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const result = await res.json();
+    alert(result.message || "Risk levels updated successfully.");
+
+    // Reload page to reflect updated status/risk
+    window.location.reload();
+
+  } catch (err) {
+    console.error("Risk update failed:", err);
+    alert("Failed to update risk levels.");
+  }
+}
+function markPcChecked(pcid) {
+    if (!confirm("Mark this PC as checked and reset its health status?")) return;
+
+    fetch(`/inventory/pc/${pcid}/check`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("PC marked as checked successfully.");
+            location.reload();
+        } else {
+            alert("Failed to update PC status.");
+        }
+    })
+    .catch(() => {
+        alert("Server error occurred.");
+    });
 }
   document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
