@@ -94,7 +94,8 @@ def get_pc_list():
                     p.psu,
                     p.casing,
                     p.other_parts,
-                    p.risk_level
+                    p.risk_level,
+                    p.health_score
                    
                 
                 FROM pcinfofull p
@@ -302,7 +303,14 @@ def run_risk_update():
 def mark_pc_checked(pcid):
     conn = get_db_connection()
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT status, risk_level
+                FROM pcinfofull
+                WHERE pcid = %s
+            """, (pcid,))
+            old = cur.fetchone()
+
             cur.execute("""
                 UPDATE pcinfofull
                 SET
@@ -312,10 +320,65 @@ def mark_pc_checked(pcid):
                     status = 'Available'
                 WHERE pcid = %s
             """, (pcid,))
+
+            cur.execute("""
+                INSERT INTO maintenance_logs (
+                    asset_type, asset_id,
+                    previous_status, new_status,
+                    previous_risk_level, new_risk_level,
+                    action
+                ) VALUES (
+                    'PC', %s,
+                    %s, 'Available',
+                    %s, 'Low',
+                    'Manual inspection completed'
+                )
+            """, (
+                pcid,
+                old['status'],
+                old['risk_level']
+            ))
+            cur.execute("""
+                INSERT INTO maintenance_history (
+                    pcid, asset_type, asset_id,
+                    action, old_status, new_status,
+                    risk_level, health_score, performed_by, remarks
+                ) VALUES (
+                    %s, 'PC', %s,
+                    'Manual inspection completed', %s, 'Available',
+                    'Low', 100, %s, %s
+                )
+            """, (
+                pcid,
+                pcid,
+                old['status'],
+                'System',   # you can replace 'System' with current user if available
+                'Marked as checked manually'
+            ))
+
         conn.commit()
         return jsonify(success=True)
+
     except Exception as e:
         conn.rollback()
         return jsonify(success=False, error=str(e)), 500
     finally:
         conn.close()
+
+@manage_inventory_bp.route('/maintenance-history')
+def maintenance_history():
+    asset_id = request.args.get('id', type=int)
+    asset_type = request.args.get('type')
+
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cur:
+        cur.execute("""
+            SELECT *
+            FROM maintenance_logs
+            WHERE asset_type = %s AND asset_id = %s
+            ORDER BY performed_at DESC
+        """, (asset_type, asset_id))
+        logs = cur.fetchall()
+
+    conn.close()
+    return render_template('maintenance_history.html', logs=logs)

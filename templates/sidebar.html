@@ -49,7 +49,15 @@
   <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Facilities
 </a>
 {% endif %}
-
+<a href="{{ url_for('maintenance_bp.maintenance_history_page') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
+          {% if request.endpoint == 'maintenance_bp.maintenance_history_page' %}
+            bg-blue-600 text-white shadow-md
+          {% else %}
+            hover:bg-blue-600/30 hover:text-white
+          {% endif %}">
+  <i data-lucide="wrench" class="w-5 h-5 mr-3"></i> Maintenance History
+</a>
 
 {% if is_admin == 1 %}
 <a href="{{ url_for('manage_user_bp.manage_user_page') }}"

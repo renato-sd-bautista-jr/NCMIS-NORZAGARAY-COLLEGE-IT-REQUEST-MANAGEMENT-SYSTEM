@@ -12,7 +12,7 @@ from manage_department import manage_department_bp
 from manage_inventory import manage_inventory_bp
 from notification import notification_bp
 from sidebar import get_user_access
-
+from maintenance import maintenance_bp
 
 
 
@@ -29,7 +29,7 @@ app.register_blueprint(manage_department_bp)
 app.register_blueprint(manage_inventory_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(manage_item_bp, url_prefix='/manage_inventory')
-
+app.register_blueprint(maintenance_bp)
 
 # ✅ Context processor to make user access available globally in templates
 @app.context_processor

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Maintenance History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+
+  {% include 'sidebar.html' %}
+
+  <main class="flex-1 ml-0 md:ml-64 p-6">
+
+    <!-- HEADER -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl shadow-lg p-4 mb-6 flex items-center justify-between">
+      <h2 class="text-2xl font-bold flex items-center gap-2">
+        <i data-lucide="wrench" class="w-7 h-7"></i>
+        Maintenance History
+      </h2>
+    </div>
+
+    <!-- HISTORY TABLE -->
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+      <table class="min-w-full border border-gray-200 text-sm">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="px-4 py-2 border-b text-left">Date</th>
+            <th class="px-4 py-2 border-b text-left">Asset</th>
+            <th class="px-4 py-2 border-b text-left">Action</th>
+            <th class="px-4 py-2 border-b text-left">Old Status</th>
+            <th class="px-4 py-2 border-b text-left">New Status</th>
+            <th class="px-4 py-2 border-b text-left">Risk</th>
+            <th class="px-4 py-2 border-b text-left">Health</th>
+            <th class="px-4 py-2 border-b text-left">Performed By</th>
+            <th class="px-4 py-2 border-b text-left">Remarks</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if records|length == 0 %}
+          <tr>
+            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+              No maintenance records found.
+            </td>
+          </tr>
+          {% else %}
+          {% for row in records %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 border-b">
+              {{ row.performed_at }}
+            </td>
+
+            <td class="px-4 py-2 border-b font-medium">
+              {% if row.asset_type == 'PC' %}
+                PC — {{ row.pcname or ('#' ~ row.asset_id) }}
+              {% else %}
+                Device — #{{ row.asset_id }}
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.action }}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.old_status or '—' }}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.new_status or '—' }}
+            </td>
+
+            <td class="px-4 py-2 border-b font-semibold
+              {% if row.risk_level == 'High' %}text-red-600
+              {% elif row.risk_level == 'Medium' %}text-yellow-600
+              {% else %}text-green-600{% endif %}">
+              {{ row.risk_level or '—' }}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.health_score if row.health_score is not none else '—' }}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.performed_by or '—' }}
+            </td>
+
+            <td class="px-4 py-2 border-b">
+              {{ row.remarks or '—' }}
+            </td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
