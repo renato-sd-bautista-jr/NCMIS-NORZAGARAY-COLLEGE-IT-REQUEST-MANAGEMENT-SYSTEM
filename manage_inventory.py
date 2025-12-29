@@ -14,9 +14,10 @@ def inventory_load():
     """Load Manage Inventory with pagination for devices."""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
-
-    pc_list = get_pc_list()
-    item_list, total_items, total_pages = get_item_list_paginated(page, per_page)
+    section = request.args.get("section", "pc")
+        # PCs
+    pc_list, pc_total, pc_pages = get_pc_list_paginated(page, per_page)
+    item_list, item_total, item_pages = get_item_list_paginated(page, per_page)
      
     if pc_list is None or item_list is None:
         flash("Error loading data. Please try again.", "danger")
@@ -25,12 +26,17 @@ def inventory_load():
         'manage_inventory.html',
         pc_list=pc_list,
         item_list=item_list,
+
         page=page,
         per_page=per_page,
-        total_items=total_items,
-        total_pages=total_pages
-    )
+        section=section,
 
+        pc_total_items=pc_total,
+        pc_total_pages=pc_pages,
+
+        total_items=item_total,
+        total_pages=item_pages
+    )
 
 @manage_inventory_bp.route('/manage_inventory/items-paged')
 def items_paged():
@@ -47,7 +53,20 @@ def items_paged():
         "total_pages": total_pages
     })
  
+@manage_inventory_bp.route('/manage_inventory/pcs-paged')
+def pcs_paged():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
 
+    pcs, total_items, total_pages = get_pc_list_paginated(page, per_page)
+
+    return jsonify({
+        "pcs": pcs,
+        "page": page,
+        "per_page": per_page,
+        "total_items": total_items,
+        "total_pages": total_pages
+    })
 @manage_inventory_bp.route('/manage_inventory/get-departments')
 def get_departments():
     conn = get_db_connection()
@@ -239,7 +258,57 @@ def get_pc_by_id(pcid):
 @manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
+def get_pc_list_paginated(page=1, per_page=10):
+    """
+    Fetch paginated PCs from pcinfofull.
+    Returns:
+        pcs, total_items, total_pages
+    """
+    offset = (page - 1) * per_page
+    conn = get_db_connection()
 
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Total count
+            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull")
+            total_items = cur.fetchone()["total"]
+
+            # Paginated PC data
+            cur.execute("""
+                SELECT
+                    pc.pcid,
+                    pc.pcname,
+                    pc.department_id,
+                    dep.department_name,
+                    pc.location,
+                    pc.acquisition_cost,
+                    pc.date_acquired,
+                    pc.accountable,
+                    pc.serial_no,
+                    pc.municipal_serial_no,
+                    pc.note,
+                    pc.status,
+                    pc.last_checked,
+                    pc.health_score,
+                    pc.risk_level
+                FROM pcinfofull pc
+                LEFT JOIN departments dep
+                    ON pc.department_id = dep.department_id
+                ORDER BY pc.pcid DESC
+                LIMIT %s OFFSET %s
+            """, (per_page, offset))
+
+            pcs = cur.fetchall()
+
+        total_pages = (total_items + per_page - 1) // per_page
+        return pcs, total_items, total_pages
+
+    except Exception as e:
+        print(f"❌ Error fetching paginated PCs: {e}")
+        return [], 0, 0
+
+    finally:
+        conn.close()
 def get_item_list_paginated(page=1, per_page=10):
     """
     Fetch paginated devices from devices_full.

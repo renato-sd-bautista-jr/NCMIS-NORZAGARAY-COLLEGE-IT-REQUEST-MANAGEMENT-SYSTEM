@@ -110,11 +110,11 @@
                   <th class="px-4 py-2 border-b text-left">Date Acquired</th>
                   <th class="px-4 py-2 border-b text-left">Accountable</th>
                   <th class="px-4 py-2 border-b text-left">Serial No.</th>
-                  <th class="px-4 py-2 border-b text-left">Municipal Serial No.</th>
-                  <th class="px-4 py-2 border-b text-left">Note</th>
+                  <th class="px-4 py-2 border-b text-left">Municipal Serial No.</th> 
                   <th class="px-4 py-2 border-b text-left">Status</th>
                   {% if permissions.get('inventory', {}).get('edit', False) %}
                   <th class="px-4 py-2 border-b text-left">Risk</th>
+                  <th class="px-4 py-2 border-b text-left">Health</th>
                   <th class="px-4 py-2 border-b text-left">Actions</th>
                   {% endif %}
                 </tr>
@@ -131,64 +131,135 @@
                   <td class="px-4 py-2 border-b">{{ pc.date_acquired }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.serial_no }}</td>
-                  <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>
-                  <td class="px-4 py-2 border-b">{{ pc.note }}</td>
-                  <td class="px-4 py-2 border-b">
-  <span
-    title="Last checked: {{ pc.last_checked or 'Never' }}"
-    class="cursor-help
-      {% if pc.status == 'Needs Checking' %}text-yellow-600
-      {% elif pc.status == 'Critical' %}text-red-700 font-bold
-      {% else %}text-green-600
-      {% endif %}">
+                  <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>   
+  <!-- STATUS -->
+  <td class="px-4 py-2 border-b font-medium
+      {% if pc.status == 'Available' %}text-green-600
+      {% elif pc.status == 'In Used' %}text-blue-600
+      {% elif pc.status == 'Inactive' %}text-gray-500
+      {% else %}text-red-600{% endif %}">
     {{ pc.status }}
-  </span>
-  <td>{{ pc.health_score }}%</td>
-<td>
-  <span class="
-    {% if pc.risk_level == 'High' %}text-red-600
-    {% elif pc.risk_level == 'Medium' %}text-yellow-600
-    {% else %}text-green-600{% endif %}">
-    {{ pc.risk_level }}
-  </span>
-</td>
+  </td>
+   <!-- RISK -->
+            <td class="px-4 py-2 border-b">
+              <span class="
+                {% if pc.risk_level == 'High' %}text-red-600
+                {% elif pc.risk_level == 'Medium' %}text-yellow-600
+                {% elif pc.risk_level == 'Low' %}text-green-600
+                {% else %}text-gray-500
+                {% endif %}
+                font-semibold">
+                {{ pc.risk_level or '—' }}
+              </span>
+            </td>
+   <!-- HEALTH SCORE -->
+  <td class="px-4 py-2 border-b">
+    {% if pc.health_score is not none %}
+      <div class="flex items-center gap-2">
+        <div class="w-24 bg-gray-200 rounded-full h-2">
+          <div
+            class="h-2 rounded-full
+            {% if pc.health_score >= 80 %}bg-green-500
+            {% elif pc.health_score >= 50 %}bg-yellow-500
+            {% else %}bg-red-500{% endif %}"
+            style="width: {{ pc.health_score }}%">
+          </div>
+        </div>
+        <span class="text-xs font-semibold">{{ pc.health_score or 0 }}%</span>
+      </div>
+    {% else %}
+      —
+    {% endif %}
+  </td>
+ 
+     <!-- ACTIONS -->
+{% if permissions.get('inventory', {}).get('edit', False) %}
+  <td class="px-4 py-2 border-b flex gap-2">
+    <button
+      onclick="openPcModalById({{ pc.pcid }})"
+      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+      Edit
+    </button>
 
-                {% if permissions.get('inventory', {}).get('edit', False) %}
-                  <td class="px-4 py-2 border-b flex gap-2">
-                   <button 
-                    onclick="openPcModalById({{ pc.pcid }})" 
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-                    Edit
-                 <button 
-                    type="button"
-                    onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')"
-                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
-                    Delete
-                  </button>
-                  <!-- Mark as Checked -->
-{% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
-<button
-    onclick="markPcChecked({{ pc.pcid }})"
-    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
-    Mark Checked
-</button>
-{% endif %}
-<button
+    <button
+      type="button"
+      onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')"
+      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
+      Delete
+    </button>
+ {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+    <button
+      onclick="markPcChecked({{ pc.pcid }})"
+      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
+      Mark Checked
+    </button>
+    {% endif %}
+    <button
     onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')"
     class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs shadow">
     History
 </button>
+  </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+          <!-- PAGINATION -->
+      <div class="flex items-center justify-between mt-4 text-sm">
+        <div class="text-gray-600">
+          Showing page {{ page }} of {{ total_pages }} ({{ total_items }} total records)
+        </div>
 
-                  </td>
-                {% endif %}
-                </tr>
-                {% endfor %}
-                </tbody>
-              </tbody>
-            </table>
-          </div>
+        <div class="flex gap-1">
+          {% if page > 1 %}
+            <a href="?page={{ page - 1 }}&per_page={{ per_page }}&section=pc"
+               class="px-3 py-1 border rounded hover:bg-gray-100">
+              Previous
+            </a>
+          {% endif %}
+
+          {% for p in range(1, total_pages + 1) %}
+            <a href="?page={{ p }}&per_page={{ per_page }}&section=pc"
+               class="px-3 py-1 border rounded
+               {% if p == page %}
+                 bg-blue-600 text-white border-blue-600
+               {% else %}
+                 hover:bg-gray-100
+               {% endif %}">
+              {{ p }}
+            </a>
+          {% endfor %}
+
+          {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}&per_page={{ per_page }}&section=pc"
+               class="px-3 py-1 border rounded hover:bg-gray-100">
+              Next
+            </a>
           {% endif %}
         </div>
+      </div>
+
+      <!-- ROWS PER PAGE -->
+      <form method="get" class="flex items-center gap-2 mt-2">
+        <input type="hidden" name="section" value="pc">
+        <label class="text-sm">Rows:</label>
+        <select name="per_page"
+                onchange="this.form.submit()"
+                class="border rounded px-2 py-1">
+          {% for size in [5, 10, 25, 50] %}
+            <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>
+              {{ size }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+
+    </div>
+    {% endif %}
+  </div>
+
+        
       </section>
 
       <!-- MANAGE DEVICES SECTION -->
