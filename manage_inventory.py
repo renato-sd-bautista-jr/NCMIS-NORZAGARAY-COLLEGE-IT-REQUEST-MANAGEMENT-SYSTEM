@@ -132,6 +132,13 @@ def get_item_list():
                     dep.department_name,
                     df.status,
                     df.updated_at
+                    df.risk_level,
+                    df.health_score,
+                    df.last_checked,
+                    df.maintenance_interval_days
+                    df.note,
+                    df.location,
+                    df.supplier
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
                 ORDER BY df.accession_id DESC
@@ -264,7 +271,11 @@ def get_item_list_paginated(page=1, per_page=10):
                     df.department_id,
                     dep.department_name,
                     df.status,
-                    df.updated_at
+                    df.updated_at,
+                    df.risk_level,
+                    df.health_score,
+                    df.last_checked,
+                    df.maintenance_interval_days
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
                 ORDER BY df.accession_id DESC
@@ -382,3 +393,109 @@ def maintenance_history():
 
     conn.close()
     return render_template('maintenance_history.html', logs=logs)
+
+@manage_inventory_bp.route('/inventory/<string:asset_type>/<int:asset_id>/check', methods=['POST'])
+def mark_asset_checked(asset_type, asset_id):
+    asset_type = asset_type.upper()
+    conn = get_db_connection()
+
+    if asset_type not in ['PC', 'DEVICE']:
+        return jsonify(success=False, error="Invalid asset type"), 400
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            # ---------- TARGET TABLE ----------
+            if asset_type == 'PC':
+                table = 'pcinfofull'
+                id_field = 'pcid'
+            else:
+                table = 'devices_full'
+                id_field = 'accession_id'
+
+            # ---------- FETCH OLD STATE ----------
+            cur.execute(f"""
+                SELECT status, risk_level, health_score
+                FROM {table}
+                WHERE {id_field} = %s
+            """, (asset_id,))
+            old = cur.fetchone()
+
+            if not old:
+                return jsonify(success=False, error="Asset not found"), 404
+
+            # ---------- UPDATE ASSET ----------
+            cur.execute(f"""
+                UPDATE {table}
+                SET
+                    last_checked = CURDATE(),
+                    health_score = 100,
+                    risk_level = 'Low',
+                    status = 'Available'
+                WHERE {id_field} = %s
+            """, (asset_id,))
+
+            # ---------- MAINTENANCE LOG ----------
+            cur.execute("""
+                INSERT INTO maintenance_logs (
+                    asset_type,
+                    asset_id,
+                    previous_status,
+                    new_status,
+                    previous_risk_level,
+                    new_risk_level,
+                    action
+                ) VALUES (
+                    %s, %s,
+                    %s, 'Available',
+                    %s, 'Low',
+                    'Manual inspection completed'
+                )
+            """, (
+                asset_type,
+                asset_id,
+                old['status'],
+                old['risk_level']
+            ))
+
+            # ---------- MAINTENANCE HISTORY ----------
+            cur.execute("""
+                INSERT INTO maintenance_history (
+                    pcid,
+                    asset_type,
+                    asset_id,
+                    action,
+                    old_status,
+                    new_status,
+                    risk_level,
+                    health_score,
+                    performed_by,
+                    remarks
+                ) VALUES (
+                    %s, %s, %s,
+                    'Manual inspection completed',
+                    %s,
+                    'Available',
+                    'Low',
+                    100,
+                    %s,
+                    %s
+                )
+            """, (
+                asset_id if asset_type == 'PC' else None,  # pcid
+                asset_type,
+                asset_id,                                 # accession_id for DEVICE
+                old['status'],
+                'System',
+                'Marked as checked manually'
+            ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()

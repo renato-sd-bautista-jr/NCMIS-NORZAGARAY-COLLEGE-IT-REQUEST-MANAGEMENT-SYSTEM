@@ -220,56 +220,91 @@
             <th class="px-4 py-2 border-b text-left">Accountable</th>
             <th class="px-4 py-2 border-b text-left">Department</th>
             <th class="px-4 py-2 border-b text-left">Status</th>
-            <th class="px-4 py-2 border-b text-left">Actions</th>
             <th class="px-4 py-2 border-b text-left">Risk</th>
+            <th class="px-4 py-2 border-b text-left">Health</th>
+            <th class="px-4 py-2 border-b text-left">Actions</th>
           </tr>
         </thead>
         <tbody id="deviceTableBody">
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
-            <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
-            <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
-            <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
-            <td class="px-4 py-2 border-b">{{ item.serial_no or '—' }}</td>
-            <td class="px-4 py-2 border-b">{{ item.municipal_serial_no or '—' }}</td>
-            <td class="px-4 py-2 border-b">₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</td>
-            <td class="px-4 py-2 border-b">{{ item.date_acquired or '—' }}</td>
-            <td class="px-4 py-2 border-b">{{ item.accountable or '—' }}</td>
-            <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
-            <td class="px-4 py-2 border-b">
-              <span
-                class="{% if item.status == 'Available' %}text-green-600{% elif item.status == 'In Used' %}text-blue-600{% elif item.status == 'Inactive' %}text-gray-500{% else %}text-red-600{% endif %} font-medium">
-                {{ item.status }}
-              </span>
-            </td>
-            <td class="px-4 py-2 border-b">
-  <span
-    class="
+  <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
+  <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
+  <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
+  <td class="px-4 py-2 border-b">{{ item.serial_no or '—' }}</td>
+  <td class="px-4 py-2 border-b">{{ item.municipal_serial_no or '—' }}</td>
+  <td class="px-4 py-2 border-b">₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</td>
+  <td class="px-4 py-2 border-b">{{ item.date_acquired or '—' }}</td>
+  <td class="px-4 py-2 border-b">{{ item.accountable or '—' }}</td>
+  <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
+
+  <!-- STATUS -->
+  <td class="px-4 py-2 border-b font-medium
+      {% if item.status == 'Available' %}text-green-600
+      {% elif item.status == 'In Used' %}text-blue-600
+      {% elif item.status == 'Inactive' %}text-gray-500
+      {% else %}text-red-600{% endif %}">
+    {{ item.status }}
+  </td>
+
+  <!-- RISK LEVEL -->
+  <td class="px-4 py-2 border-b font-semibold
       {% if item.risk_level == 'Low' %}text-green-600
       {% elif item.risk_level == 'Medium' %}text-yellow-600
       {% elif item.risk_level == 'High' %}text-red-600
-      {% else %}text-gray-500
-      {% endif %}
-      font-semibold">
+      {% else %}text-gray-500{% endif %}">
     {{ item.risk_level or '—' }}
-  </span>
-</td>
-             {% if permissions.get('inventory', {}).get('edit', False) %}
-            <td class="px-4 py-2 border-b flex gap-2">
-             
-              <button onclick="openItemModalById({{ item.accession_id }})"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-                Edit
-              </button>
-              <button 
-                type="button"
-                onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item',  id=item.accession_id) }}')"
-                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
-                Delete
-              </button>
-            </td>
-            {% endif %}
-          </tr>
+  </td>
+
+  <!-- HEALTH SCORE -->
+  <td class="px-4 py-2 border-b">
+    {% if item.health_score is not none %}
+      <div class="flex items-center gap-2">
+        <div class="w-24 bg-gray-200 rounded-full h-2">
+          <div
+            class="h-2 rounded-full
+            {% if item.health_score >= 80 %}bg-green-500
+            {% elif item.health_score >= 50 %}bg-yellow-500
+            {% else %}bg-red-500{% endif %}"
+            style="width: {{ item.health_score }}%">
+          </div>
+        </div>
+        <span class="text-xs font-semibold">{{ item.health_score }}%</span>
+      </div>
+    {% else %}
+      —
+    {% endif %}
+  </td>
+
+  <!-- ACTIONS -->
+  {% if permissions.get('inventory', {}).get('edit', False) %}
+  <td class="px-4 py-2 border-b flex gap-2">
+    <button
+      onclick="openItemModalById({{ item.accession_id }})"
+      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
+      Edit
+    </button>
+
+    <button
+      type="button"
+      onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item', id=item.accession_id) }}')"
+      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
+      Delete
+    </button>
+
+    <button
+      onclick="markChecked('DEVICE', {{ item.accession_id }})"
+      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
+      Mark Checked
+    </button>
+    <button
+    onclick="openMaintenanceLog({{ item.accession_id }}, 'DEVICE')"
+    class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs shadow">
+    History
+</button>
+  </td>
+  {% endif %}
+</tr>
           {% endfor %}
         </tbody>
       </table>  
@@ -626,6 +661,19 @@ function markPcChecked(pcid) {
     .catch(() => {
         alert("Server error occurred.");
     });
+}
+function markChecked(type, id) {
+  fetch(`/inventory/${type}/${id}/check`, {
+    method: 'POST'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert(data.error || 'Operation failed');
+    }
+  });
 }
   document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
