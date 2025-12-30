@@ -100,8 +100,18 @@
           <div class="overflow-x-auto rounded-xl">
             <table class="min-w-full border border-gray-200 text-sm text-gray-800">
               <thead class="bg-gray-200 text-gray-700">
+
+                
+<button
+  onclick="bulkMarkPcChecked()"
+  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+  <i data-lucide="check-square"></i>
+  Mark Selected Checked
+</button>
                 <tr>
-                  
+                  <th class="px-4 py-2 border-b text-left">
+  <input type="checkbox" id="selectAllPcs" onclick="toggleSelectAllPcs()">
+</th>
                   <th class="px-4 py-2 border-b text-left">PC ID</th>
                   <th class="px-4 py-2 border-b text-left">PC Name</th>
                   <th class="px-4 py-2 border-b text-left">Department</th>
@@ -123,6 +133,11 @@
                 <tbody id="pcTableBody">
                 {% for pc in pc_list %}
                 <tr class="hover:bg-gray-100 transition">
+                  <td class="px-4 py-2 border-b">
+  <input type="checkbox"
+         class="pc-checkbox"
+         value="{{ pc.pcid }}">
+</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
@@ -281,6 +296,9 @@
       <table class="min-w-full border border-gray-200 text-sm text-gray-800">
         <thead class="bg-gray-200 text-gray-700">
           <tr>
+            <th class="px-4 py-2 border-b text-left">
+  <input type="checkbox" id="selectAllDevices" onclick="toggleSelectAllDevices()">
+</th>
             <th class="px-4 py-2 border-b text-left">ID</th>
             <th class="px-4 py-2 border-b text-left">Device Name</th>
             <th class="px-4 py-2 border-b text-left">Brand / Model</th>
@@ -296,9 +314,32 @@
             <th class="px-4 py-2 border-b text-left">Actions</th>
           </tr>
         </thead>
+        <div class="flex flex-wrap gap-3 mb-4">
+  <select id="bulkDeviceStatus"
+          class="border rounded px-3 py-2 text-sm">
+    <option value="">Select Status</option>
+    <option value="Available">Available</option>
+    <option value="In Used">In Used</option>
+    <option value="Needs Checking">Needs Checking</option>
+    <option value="Damaged">Damaged</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+
+  <button
+    onclick="bulkUpdateDevices()"
+    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+    <i data-lucide="check-square"></i>
+    Apply to Selected
+  </button>
+</div>
         <tbody id="deviceTableBody">
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
+            <td class="px-4 py-2 border-b">
+  <input type="checkbox"
+         class="device-checkbox"
+         value="{{ item.accession_id }}">
+</td>
   <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
   <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
   <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
@@ -753,6 +794,75 @@ function markChecked(type, id) {
       setActiveNav(document.getElementById("itemsBtn"));
     }
   });
+  function toggleSelectAllPcs() {
+  const master = document.getElementById("selectAllPcs");
+  document.querySelectorAll(".pc-checkbox")
+    .forEach(cb => cb.checked = master.checked);
+}
+function bulkMarkPcChecked() {
+  const selected = [...document.querySelectorAll(".pc-checkbox:checked")]
+    .map(cb => cb.value);
+
+  if (selected.length === 0) {
+    alert("Please select at least one PC.");
+    return;
+  }
+
+  if (!confirm(`Mark ${selected.length} PC(s) as checked?`)) return;
+
+  fetch("/inventory/pc/bulk-check", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ pcids: selected })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert(data.error || "Bulk update failed.");
+    }
+  });
+}
+function toggleSelectAllDevices() {
+  const master = document.getElementById("selectAllDevices");
+  document.querySelectorAll(".device-checkbox")
+    .forEach(cb => cb.checked = master.checked);
+}
+
+function bulkUpdateDevices() {
+  const status = document.getElementById("bulkDeviceStatus").value;
+  const selected = [...document.querySelectorAll(".device-checkbox:checked")]
+    .map(cb => cb.value);
+
+  if (!status) {
+    alert("Please select a status.");
+    return;
+  }
+
+  if (selected.length === 0) {
+    alert("Please select at least one device.");
+    return;
+  }
+
+  if (!confirm(`Update ${selected.length} device(s) to "${status}"?`)) return;
+
+  fetch("/inventory/device/bulk-update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      device_ids: selected,
+      new_status: status
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) location.reload();
+    else alert(data.error || "Bulk update failed.");
+  });
+}
 
 lucide.createIcons();
 

@@ -85,6 +85,210 @@ def get_departments():
     finally:
         conn.close()
 
+@manage_inventory_bp.route('/inventory/pc/bulk-check', methods=['POST'])
+def bulk_mark_pc_checked():
+    data = request.get_json()
+    pcids = data.get("pcids", [])
+
+    if not pcids:
+        return jsonify(success=False, error="No PCs selected"), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            for pcid in pcids:
+                # Fetch old state
+                cur.execute("""
+                    SELECT status, risk_level
+                    FROM pcinfofull
+                    WHERE pcid = %s
+                """, (pcid,))
+                old = cur.fetchone()
+
+                if not old:
+                    continue
+
+                # Update PC
+                cur.execute("""
+                    UPDATE pcinfofull
+                    SET
+                        last_checked = CURDATE(),
+                        health_score = 100,
+                        risk_level = 'Low',
+                        status = 'Available'
+                    WHERE pcid = %s
+                """, (pcid,))
+
+                # Maintenance log
+                cur.execute("""
+                    INSERT INTO maintenance_logs (
+                        asset_type, asset_id,
+                        previous_status, new_status,
+                        previous_risk_level, new_risk_level,
+                        action
+                    ) VALUES (
+                        'PC', %s,
+                        %s, 'Available',
+                        %s, 'Low',
+                        'Bulk inspection completed'
+                    )
+                """, (
+                    pcid,
+                    old['status'],
+                    old['risk_level']
+                ))
+
+                # Maintenance history
+                cur.execute("""
+                    INSERT INTO maintenance_history (
+                        pcid,
+                        asset_type,
+                        asset_id,
+                        action,
+                        old_status,
+                        new_status,
+                        risk_level,
+                        health_score,
+                        performed_by,
+                        remarks
+                    ) VALUES (
+                        %s, 'PC', %s,
+                        'Bulk inspection completed',
+                        %s, 'Available',
+                        'Low', 100,
+                        %s, %s
+                    )
+                """, (
+                    pcid,
+                    pcid,
+                    old['status'],
+                    'System',
+                    'Bulk marked as checked'
+                ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()
+
+@manage_inventory_bp.route('/inventory/device/bulk-update', methods=['POST'])
+def bulk_update_devices():
+    data = request.get_json()
+    device_ids = data.get("device_ids", [])
+    new_status = data.get("new_status")
+
+    if not device_ids or not new_status:
+        return jsonify(success=False, error="Invalid input"), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            for accession_id in device_ids:
+
+                # Fetch old state
+                cur.execute("""
+                    SELECT status, risk_level, health_score
+                    FROM devices_full
+                    WHERE accession_id = %s
+                """, (accession_id,))
+                old = cur.fetchone()
+
+                if not old:
+                    continue
+
+                # ---- Risk & health rules ----
+                risk = old["risk_level"]
+                health = old["health_score"]
+
+                if new_status in ("Damaged", "Needs Checking"):
+                    risk = "High"
+                    health = min(health, 40)
+                elif new_status == "Inactive":
+                    risk = "Medium"
+                    health = min(health, 70)
+                elif new_status == "Available":
+                    risk = "Low"
+                    health = 100
+
+                # ---- Update device ----
+                cur.execute("""
+                    UPDATE devices_full
+                    SET
+                        status = %s,
+                        risk_level = %s,
+                        health_score = %s,
+                        updated_at = NOW()
+                    WHERE accession_id = %s
+                """, (new_status, risk, health, accession_id))
+
+                # ---- maintenance_logs ----
+                cur.execute("""
+                    INSERT INTO maintenance_logs (
+                        asset_type, asset_id,
+                        previous_status, new_status,
+                        previous_risk_level, new_risk_level,
+                        action
+                    ) VALUES (
+                        'DEVICE', %s,
+                        %s, %s,
+                        %s, %s,
+                        'Bulk status update'
+                    )
+                """, (
+                    accession_id,
+                    old["status"],
+                    new_status,
+                    old["risk_level"],
+                    risk
+                ))
+
+                # ---- maintenance_history ----
+                cur.execute("""
+                    INSERT INTO maintenance_history (
+                        asset_type,
+                        asset_id,
+                        action,
+                        old_status,
+                        new_status,
+                        risk_level,
+                        health_score,
+                        performed_by,
+                        remarks
+                    ) VALUES (
+                        'DEVICE', %s,
+                        'Bulk status update',
+                        %s, %s,
+                        %s, %s,
+                        %s,
+                        %s
+                    )
+                """, (
+                    accession_id,
+                    old["status"],
+                    new_status,
+                    risk,
+                    health,
+                    'System',
+                    f'Bulk marked as {new_status}'
+                ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()
 
 def get_pc_list():
     """Fetch all PCs with department and part details from pcinfofull."""

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 26, 2025 at 06:54 PM
+-- Generation Time: Dec 30, 2025 at 11:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,23 @@ SET time_zone = "+00:00";
 --
 -- Database: `ncmis`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `asset_maintenance_logs`
+--
+
+CREATE TABLE `asset_maintenance_logs` (
+  `id` int(11) NOT NULL,
+  `asset_type` enum('PC','Device') DEFAULT NULL,
+  `asset_id` int(11) DEFAULT NULL,
+  `action` varchar(100) DEFAULT NULL,
+  `previous_status` varchar(50) DEFAULT NULL,
+  `new_status` varchar(50) DEFAULT NULL,
+  `performed_by` varchar(255) DEFAULT NULL,
+  `performed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -195,17 +212,32 @@ CREATE TABLE `devices_full` (
   `department_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Available',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_checked` date DEFAULT NULL,
+  `maintenance_interval_days` int(11) DEFAULT 30,
+  `health_score` int(11) DEFAULT 100,
+  `risk_level` varchar(20) DEFAULT 'Low'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `devices_full`
 --
 
-INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `device_type`, `department_id`, `status`, `created_at`, `updated_at`) VALUES
-(14, NULL, 'Mouse', 'a4Tech', 1, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'Available', '2025-10-25 13:19:00', '2025-10-25 13:19:00'),
-(15, NULL, 'inplay keyboard 1', 'inplay', 5, 1000.00, '0000-00-00', 'John Doe', 'SN-000001', 'MUN-0001252', 'keynoard', 1, 'Available', '2025-10-26 02:09:23', '2025-10-26 02:09:23'),
-(16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Available', '2025-10-26 17:13:39', '2025-10-26 17:13:39');
+INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `device_type`, `department_id`, `status`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`) VALUES
+(14, NULL, 'Mouse', 'a4Tech', 1, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'Needs Checking', '2025-10-25 13:19:00', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(15, NULL, 'inplay keyboard 1', 'inplay', 5, 1000.00, '0000-00-00', 'John Doe', 'SN-000001', 'MUN-0001252', 'keynoard', 1, 'Needs Checking', '2025-10-26 02:09:23', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Needs Checking', '2025-10-26 17:13:39', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(17, NULL, '3', '2', 1, 213321.00, '2025-10-27', '213', '123', '123', '213', 1, 'Needs Checking', '2025-10-27 02:00:09', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(18, NULL, '4', '3', 1, 3.00, '0000-00-00', '3', '3', '4', '3', 1, 'Needs Checking', '2025-10-27 03:27:22', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(19, NULL, 'ye', 'ye', 1, 123.00, '0000-00-00', 'ye', 'ye', 'ye', 'ye', 1, 'Needs Checking', '2025-10-27 04:52:19', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(20, NULL, '123', '123', 1, 123.00, '2025-10-27', '123', 'SN68546784', 'MSN68546858', '123', 1, 'Needs Checking', '2025-10-27 05:08:05', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(21, NULL, '123', '123', 1, 123.00, '2025-10-27', '123', 'SN70555644', 'MSN70555662', '23', 1, 'Needs Checking', '2025-10-27 05:08:25', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(22, NULL, '123', '123', 1, 123.00, '2025-10-27', '123', 'SN70555772', 'MSN70555748', '23', 1, 'Needs Checking', '2025-10-27 05:08:25', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(23, NULL, '123', '123', 1, 123.00, '2025-10-27', '123', 'SN70555841', 'MSN70555872', '23', 1, 'Needs Checking', '2025-10-27 05:08:25', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(24, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088694', 'MSN73088666', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(25, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088849', 'MSN73088823', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(26, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088928', 'MSN73088926', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(27, NULL, 'e', 'e', 1, 4.00, '2025-10-27', 'e', 'SN73089018', 'MSN73089037', 'e', 1, 'In Used', '2025-10-27 05:08:50', '2025-12-30 22:22:08', '2025-12-30', 30, 100, 'Low');
 
 -- --------------------------------------------------------
 
@@ -264,6 +296,109 @@ INSERT INTO `devices_units` (`accession_id`, `device_id`, `serial_number`, `stat
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `inventory_settings`
+--
+
+CREATE TABLE `inventory_settings` (
+  `id` int(11) NOT NULL,
+  `auto_check_days` int(11) NOT NULL DEFAULT 0,
+  `enabled` tinyint(1) DEFAULT 1,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inventory_status_logs`
+--
+
+CREATE TABLE `inventory_status_logs` (
+  `id` int(11) NOT NULL,
+  `item_type` enum('PC','Device') DEFAULT NULL,
+  `item_id` int(11) DEFAULT NULL,
+  `old_status` varchar(50) DEFAULT NULL,
+  `new_status` varchar(50) DEFAULT NULL,
+  `changed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maintenance_history`
+--
+
+CREATE TABLE `maintenance_history` (
+  `id` int(11) NOT NULL,
+  `pcid` int(11) DEFAULT NULL,
+  `asset_type` enum('PC','Device') NOT NULL,
+  `asset_id` int(11) NOT NULL,
+  `action` varchar(100) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `performed_by` varchar(255) DEFAULT NULL,
+  `old_status` varchar(100) DEFAULT NULL,
+  `new_status` varchar(100) DEFAULT NULL,
+  `risk_level` varchar(20) DEFAULT NULL,
+  `health_score` int(11) DEFAULT NULL,
+  `performed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `maintenance_history`
+--
+
+INSERT INTO `maintenance_history` (`id`, `pcid`, `asset_type`, `asset_id`, `action`, `remarks`, `performed_by`, `old_status`, `new_status`, `risk_level`, `health_score`, `performed_at`) VALUES
+(1, 79, 'PC', 79, 'Manual inspection completed', 'Marked as checked manually', 'System', 'Needs Checking', 'Available', 'Low', 100, '2025-12-27 19:58:06'),
+(2, NULL, 'Device', 27, 'Manual inspection completed', 'Marked as checked manually', 'System', 'Needs Checking', 'Available', 'Low', 100, '2025-12-29 22:18:38'),
+(3, 80, 'PC', 80, 'Manual inspection completed', 'Marked as checked manually', 'System', 'Needs Checking', 'Available', 'Low', 100, '2025-12-29 22:45:47'),
+(4, 81, 'PC', 81, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Available', 'Available', 'Low', 100, '2025-12-30 22:18:04'),
+(5, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as Damaged', 'System', 'Available', 'Damaged', 'High', 40, '2025-12-30 22:21:37'),
+(6, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as Available', 'System', 'Damaged', 'Available', 'Low', 100, '2025-12-30 22:22:02'),
+(7, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as In Used', 'System', 'Available', 'In Used', 'Low', 100, '2025-12-30 22:22:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maintenance_logs`
+--
+
+CREATE TABLE `maintenance_logs` (
+  `id` int(11) NOT NULL,
+  `asset_type` enum('PC','DEVICE') NOT NULL,
+  `asset_id` int(11) NOT NULL,
+  `previous_status` varchar(100) DEFAULT NULL,
+  `new_status` varchar(100) DEFAULT NULL,
+  `previous_risk_level` varchar(20) DEFAULT NULL,
+  `new_risk_level` varchar(20) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `performed_by` varchar(255) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `performed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `maintenance_logs`
+--
+
+INSERT INTO `maintenance_logs` (`id`, `asset_type`, `asset_id`, `previous_status`, `new_status`, `previous_risk_level`, `new_risk_level`, `action`, `performed_by`, `remarks`, `performed_at`) VALUES
+(1, 'PC', 70, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 10:16:56'),
+(2, 'PC', 71, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:28:15'),
+(3, 'PC', 72, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:30:20'),
+(4, 'PC', 73, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:33:01'),
+(5, 'PC', 75, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:40:41'),
+(6, 'PC', 76, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:53:27'),
+(7, 'PC', 77, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:55:58'),
+(8, 'PC', 78, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:56:29'),
+(9, 'PC', 79, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-27 19:58:06'),
+(12, 'DEVICE', 27, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-29 22:18:38'),
+(13, 'PC', 80, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2025-12-29 22:45:47'),
+(14, 'PC', 81, 'Available', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2025-12-30 22:18:04'),
+(15, 'DEVICE', 27, 'Available', 'Damaged', 'Low', 'High', 'Bulk status update', NULL, NULL, '2025-12-30 22:21:37'),
+(16, 'DEVICE', 27, 'Damaged', 'Available', 'High', 'Low', 'Bulk status update', NULL, NULL, '2025-12-30 22:22:02'),
+(17, 'DEVICE', 27, 'Available', 'In Used', 'Low', 'Low', 'Bulk status update', NULL, NULL, '2025-12-30 22:22:08');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `notifications`
 --
 
@@ -312,20 +447,30 @@ CREATE TABLE `pcinfofull` (
   `casing` varchar(255) DEFAULT NULL,
   `other_parts` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_checked` date DEFAULT NULL,
+  `maintenance_interval_days` int(11) DEFAULT 30,
+  `health_score` int(11) DEFAULT 100,
+  `risk_level` varchar(20) DEFAULT 'Low'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pcinfofull`
 --
 
-INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`) VALUES
-(69, 'pc-do-01', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-504548', 'MSN-1761440668046-967852', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
-(70, 'pc-do-02', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-169661', 'MSN-1761440668046-344605', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
-(71, 'pc-do-03', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-427934', 'MSN-1761440668046-927513', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-10-26 01:04:28'),
-(72, 'pc-do-04', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-768370', 'MSN-1761440694335-395613', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-10-26 01:04:54'),
-(73, 'pc-do-05', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-256874', 'MSN-1761440694335-926256', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-10-26 01:04:54'),
-(75, 'pc', 1, 'Computer Lab C', 1, 35000.00, '2025-10-27', 'John Doe', 'SN-000074', '', 'Available', '3', '5', '5', '5', '5', '5', '5', '5', '5', '2025-10-26 17:14:15', '2025-10-26 17:14:15');
+INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`) VALUES
+(69, 'pc-do-00', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-5045499', 'MSN-1761440668046-96785299', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-12-26 14:40:45', '2025-12-26', 30, 100, 'Low'),
+(70, 'pc-do-02', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-169661', 'MSN-1761440668046-344605', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-12-27 10:16:56', '2025-12-27', 30, 100, 'Low'),
+(71, 'pc-do-03', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-427934', 'MSN-1761440668046-927513', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-12-27 19:28:15', '2025-12-28', 30, 100, 'Low'),
+(72, 'pc-do-04', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-768370', 'MSN-1761440694335-395613', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-12-27 19:30:20', '2025-12-28', 30, 100, 'Low'),
+(73, 'pc-do-05', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-256874', 'MSN-1761440694335-926256', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-12-27 19:33:01', '2025-12-28', 30, 100, 'Low'),
+(75, 'pc', 1, 'Computer Lab C', 1, 35000.00, '2025-10-27', 'John Doe', 'SN-000074', '', 'Available', '3', '5', '5', '5', '5', '5', '5', '5', '5', '2025-10-26 17:14:15', '2025-12-27 19:40:41', '2025-12-28', 30, 100, 'Low'),
+(76, 'pc-do-06', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-922706', 'MSN-1761583172156-573704', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:53:27', '2025-12-28', 30, 100, 'Low'),
+(77, 'pc-do-07', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-891456', 'MSN-1761583172156-132853', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:55:58', '2025-12-28', 30, 100, 'Low'),
+(78, 'pc-do-08', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-769494', 'MSN-1761583172156-380486', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:56:29', '2025-12-28', 30, 100, 'Low'),
+(79, 'pc-do-09', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-139349', 'MSN-1761583172156-702518', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:58:06', '2025-12-28', 30, 100, 'Low'),
+(80, '213', 1, '123', 1, 123.00, '0000-00-00', '123', '213', '123', 'Available', '123', NULL, '123', '123', '213', '123', '123', '214', '214', '2025-10-27 16:41:19', '2025-12-29 22:45:47', '2025-12-30', 30, 100, 'Low'),
+(81, 'pc222', 1, 'Computer Lab C', 1, 50000.00, '0000-00-00', 'John Doe', 'SN-0000053434', 'MUN-00012522213', 'Available', '', NULL, '324221', '123', '12412', '123', '2133', '123', '123', '2025-12-30 22:15:43', '2025-12-30 22:18:04', '2025-12-31', 30, 100, 'Low');
 
 --
 -- Triggers `pcinfofull`
@@ -437,13 +582,19 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `username`, `faculty_name`, `email`, `password`, `is_admin`, `is_active`, `created_at`, `updated_at`, `permissions`, `first_name`, `middle_name`, `last_name`) VALUES
-(9, 'admin', 'santos, matthew S.', 'matthewjohnsantos2004@gmail.com', 'scrypt:32768:8:1$ryLUIe9RsrDae4ph$d62414102427f2911938fc93a342514c4064c148112be99a3aa808a83bf62eca63b5ab43f9b0cc8341e01f21f8968882b1eb26c91b737a8872e9950ff25befd0', 1, 1, '2025-03-24 02:34:16', '2025-10-26 16:30:19', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'matthew', 's', 'santos'),
-(10, 'user', 'me', 'matthewjohnsantos143@gmail.com', 'scrypt:32768:8:1$LQ4mixntjhzilHyY$7e9f133cb8da3b06625ac3ee3164c9d8fb97983226c64ddfecddad0fa9fd76a5821f391e3d1595c4029544ae4a3f253a0952f1496174f3b46093503766ff5fcb', 0, 0, '2025-03-24 09:25:58', '2025-10-26 16:42:33', '{\"dashboard\": {\"view\": true, \"edit\": false}, \"inventory\": {\"view\": true, \"edit\": false}, \"qrlist\": {\"view\": true, \"edit\": false}, \"report\": {\"view\": true, \"edit\": false}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
-(11, 'rbautista', '', 'renatobautista17@gmail.com', 'scrypt:32768:8:1$Gc5JBZzptDeAvn9b$cf555f0d8ead0898962845e3fba4f6ef99fc3ab7e7c0a4f86f09d766054ed4dcfdc99174d15db62bad4701f583feb1fea555bcd14f9593675ee30e3b7891a037', 1, 1, '2025-10-26 15:24:49', '2025-10-26 16:41:18', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'Renato', 'sd', 'Bautista');
+(9, 'admin', 'santos, matthew S.', 'matthewjohnsantos2004@gmail.com', 'scrypt:32768:8:1$ryLUIe9RsrDae4ph$d62414102427f2911938fc93a342514c4064c148112be99a3aa808a83bf62eca63b5ab43f9b0cc8341e01f21f8968882b1eb26c91b737a8872e9950ff25befd0', 1, 1, '2025-03-24 02:34:16', '2025-10-27 04:03:59', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
+(10, 'user', 'me', 'matthewjohnsantos143@gmail.com', 'scrypt:32768:8:1$LQ4mixntjhzilHyY$7e9f133cb8da3b06625ac3ee3164c9d8fb97983226c64ddfecddad0fa9fd76a5821f391e3d1595c4029544ae4a3f253a0952f1496174f3b46093503766ff5fcb', 0, 1, '2025-03-24 09:25:58', '2025-10-27 14:31:08', '{\"dashboard\": {\"view\": true, \"edit\": false}, \"inventory\": {\"view\": true, \"edit\": false}, \"qrlist\": {\"view\": true, \"edit\": false}, \"report\": {\"view\": true, \"edit\": false}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
+(11, 'rbautista', '', 'renatobautista17@gmail.com', 'scrypt:32768:8:1$Gc5JBZzptDeAvn9b$cf555f0d8ead0898962845e3fba4f6ef99fc3ab7e7c0a4f86f09d766054ed4dcfdc99174d15db62bad4701f583feb1fea555bcd14f9593675ee30e3b7891a037', 1, 1, '2025-10-26 15:24:49', '2025-10-27 16:44:03', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'Renato', 'sd', 'Bautista');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `asset_maintenance_logs`
+--
+ALTER TABLE `asset_maintenance_logs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `borrow_requests`
@@ -501,6 +652,31 @@ ALTER TABLE `devices_units`
   ADD KEY `device_id` (`device_id`);
 
 --
+-- Indexes for table `inventory_settings`
+--
+ALTER TABLE `inventory_settings`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `inventory_status_logs`
+--
+ALTER TABLE `inventory_status_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `maintenance_history`
+--
+ALTER TABLE `maintenance_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_maintenance_pc` (`pcid`);
+
+--
+-- Indexes for table `maintenance_logs`
+--
+ALTER TABLE `maintenance_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -548,6 +724,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `asset_maintenance_logs`
+--
+ALTER TABLE `asset_maintenance_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `borrow_requests`
 --
 ALTER TABLE `borrow_requests`
@@ -569,7 +751,7 @@ ALTER TABLE `concern_history`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `devices`
@@ -581,13 +763,37 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
 --
 ALTER TABLE `devices_units`
   MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+
+--
+-- AUTO_INCREMENT for table `inventory_settings`
+--
+ALTER TABLE `inventory_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `inventory_status_logs`
+--
+ALTER TABLE `inventory_status_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `maintenance_history`
+--
+ALTER TABLE `maintenance_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `maintenance_logs`
+--
+ALTER TABLE `maintenance_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -599,7 +805,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `pcinfofull`
 --
 ALTER TABLE `pcinfofull`
-  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT for table `pcparts`
@@ -647,6 +853,12 @@ ALTER TABLE `devices_full`
 --
 ALTER TABLE `devices_units`
   ADD CONSTRAINT `devices_units_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
+
+--
+-- Constraints for table `maintenance_history`
+--
+ALTER TABLE `maintenance_history`
+  ADD CONSTRAINT `fk_maintenance_pc` FOREIGN KEY (`pcid`) REFERENCES `pcinfofull` (`pcid`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `pcinfofull`
