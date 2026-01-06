@@ -2,16 +2,26 @@
 // PC Filter Modal Management
 // ===========================
 
-// ✅ Open Modal
+// Open Modal
 async function openPcFilterModal() {
-  const existingModal = document.getElementById('pcFilterModal');
-  if (!existingModal) {
-    const res = await fetch('/manage_inventory/pc-filter-modal');
-    const html = await res.text();
-    document.body.insertAdjacentHTML('beforeend', html);
+  let modal = document.getElementById('pcFilterModal');
+
+  if (!modal) {
+    try {
+      const res = await fetch('/manage_inventory/pc-filter-modal');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      document.body.insertAdjacentHTML('beforeend', html);
+      modal = document.getElementById('pcFilterModal');
+      lucide.createIcons();
+    } catch (err) {
+      console.error("❌ Error loading PC filter modal:", err);
+      alert("Failed to load PC filter modal.");
+      return;
+    }
   }
 
-  // Load department list only once
+  // Load departments once
   const deptSelect = document.getElementById('filter_department');
   if (deptSelect && deptSelect.options.length <= 1) {
     try {
@@ -29,17 +39,16 @@ async function openPcFilterModal() {
     }
   }
 
-  document.getElementById('pcFilterModal').classList.remove('hidden');
-  lucide.createIcons();
+  modal.classList.remove('hidden');
 }
 
-// ✅ Close Modal
+// Close Modal
 function closePcFilterModal() {
   const modal = document.getElementById('pcFilterModal');
   if (modal) modal.classList.add('hidden');
 }
 
-// ✅ Handle Filter Form Submission
+// Filter Form Submission
 document.addEventListener("submit", async (e) => {
   if (e.target.id === "pcFilterForm") {
     e.preventDefault();
@@ -63,32 +72,78 @@ document.addEventListener("submit", async (e) => {
   }
 });
 
-// ✅ Helper: Render filtered PCs into table
+// Render PCs into table
 function renderPcTable(pcs) {
-  const tableBody = document.querySelector("#pcTableBody");
-  if (!tableBody) return;
+  const tbody = document.getElementById("pcTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
 
-  tableBody.innerHTML = "";
+  if (!pcs.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="13" class="text-center py-6 text-gray-500">No PCs found.</td>
+      </tr>`;
+    return;
+  }
 
   pcs.forEach(pc => {
-    const row = document.createElement("tr");
-    row.classList.add("border-b");
-    row.innerHTML = `
-      <td class="px-4 py-2 border-b">${ pc.pcid }</td>
-                  <td class="px-4 py-2 border-b">${ pc.pcname }</td>
-                  <td class="px-4 py-2 border-b">${ pc.department_name }</td>
-                  <td class="px-4 py-2 border-b">${ pc.location }</td>
-                  <td class="px-4 py-2 border-b">${ pc.acquisition_cost }</td>
-                  <td class="px-4 py-2 border-b">${ pc.date_acquired }</td>
-                  <td class="px-4 py-2 border-b">${ pc.accountable }</td>
-                  <td class="px-4 py-2 border-b">${ pc.serial_no }</td>
-                  <td class="px-4 py-2 border-b">${ pc.municipal_serial_no }</td>
-                  <td class="px-4 py-2 border-b">${ pc.note }</td>
-      
-      <td class="px-2 py-1 text-right">
-        <button class="text-blue-600 hover:underline" onclick='openPcModal(${JSON.stringify(pc)})'>Edit</button>
-      </td>
-    `;
-    tableBody.appendChild(row);
+    const riskClass =
+      pc.risk_level === "High" ? "text-red-600" :
+      pc.risk_level === "Medium" ? "text-yellow-600" :
+      "text-green-600";
+
+    const statusClass =
+      pc.status === "Needs Checking" ? "text-yellow-600" :
+      pc.status === "Critical" ? "text-red-700 font-bold" :
+      "text-green-600";
+
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr class="hover:bg-gray-100 transition">
+      <th class="px-4 py-2 border-b text-left">
+  <input type="checkbox" id="selectAllPcs" onclick="toggleSelectAllPCs()">
+</th>
+        <td class="px-4 py-2 border-b">${pc.pcid ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.pcname ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.department_name ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.location ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.acquisition_cost ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.date_acquired ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.accountable ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.serial_no ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.municipal_serial_no ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.note ?? "—"}</td>
+
+        <td class="px-4 py-2 border-b ${statusClass}">${pc.status ?? "—"}</td>
+        <td class="px-4 py-2 border-b font-semibold ${riskClass}">${pc.risk_level ?? "—"}</td>
+        <td class="px-4 py-2 border-b">${pc.health_score ?? "—"}%</td>
+
+        <td class="px-4 py-2 border-b flex gap-2">
+          <button
+            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+            data-pc='${encodeURIComponent(JSON.stringify(pc))}'
+            onclick="openPcModalFromBtn(this)">
+            Edit
+          </button>
+
+          <button
+            onclick="markPcChecked(${pc.pcid})"
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
+            Mark Checked
+          </button>
+
+          <button
+            onclick="openMaintenanceLog(${pc.pcid}, 'PC')"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs">
+            History
+          </button>
+        </td>
+      </tr>
+    `);
   });
+}
+
+// Open PC modal safely from button
+function openPcModalFromBtn(btn) {
+  const pc = JSON.parse(decodeURIComponent(btn.dataset.pc));
+  openPcModal(pc);
 }

@@ -110,7 +110,7 @@
 </button>
                 <tr>
                   <th class="px-4 py-2 border-b text-left">
-  <input type="checkbox" id="selectAllPcs" onclick="toggleSelectAllPcs()">
+  <input type="checkbox" id="selectAllPcs" onclick="toggleSelectAllPCs()">
 </th>
                   <th class="px-4 py-2 border-b text-left">PC ID</th>
                   <th class="px-4 py-2 border-b text-left">PC Name</th>
@@ -703,33 +703,28 @@ function openDeleteModal(actionUrl) {
 document.getElementById('cancelDelete').addEventListener('click', () => {
   document.getElementById('deleteModal').classList.add('hidden');
 });
-async function openPcFilterModalFromFile() {
-  // Check if modal is already loaded in DOM
-  if (!document.getElementById("pcFilterModal")) {
-    try {
-      const res = await fetch("/manage_inventory/pc-filter-modal"); // ✅ Flask route instead of file path
-      if (!res.ok) throw new Error(`Failed to load modal: ${res.status}`);
 
-      const html = await res.text();
-      document.body.insertAdjacentHTML("beforeend", html);
-      lucide.createIcons(); // Re-render icons
-      
-    } catch (err) {
-      console.error("❌ Error loading PC Filter Modal:", err);
-      alert("Failed to load PC Filter Modal.");
-      return;
-    }
-  }
 
-  // Show the modal
-  const modal = document.getElementById('pcFilterModal');
-  modal.classList.remove('hidden');
-  setTimeout(() => {
-    document.getElementById('pcFilterModalContent').classList.add('scale-100');
-  }, 50);
-  lucide.createIcons();
-  await loadPcFilterOptions();
-    // ✅ Load dropdown + search values here
+function toggleSelectAllPCs(master) {
+  document.querySelectorAll(".pc-checkbox").forEach(cb => {
+    cb.checked = master.checked;
+  });
+}
+
+function getSelectedPCs() {
+  return Array.from(document.querySelectorAll(".pc-checkbox:checked"))
+    .map(cb => cb.value);
+}
+
+ 
+function openPcModalFromBtn(btn) {
+  const pc = JSON.parse(decodeURIComponent(btn.dataset.pc));
+  openPcModal(pc);
+}
+
+function openPcModal(btn) {
+  const pc = JSON.parse(btn.dataset.pc);
+  console.log(pc);
 }
 async function runRiskUpdate() {
   if (!confirm("Run inventory risk recalculation now?")) return;
@@ -794,11 +789,7 @@ function markChecked(type, id) {
       setActiveNav(document.getElementById("itemsBtn"));
     }
   });
-  function toggleSelectAllPcs() {
-  const master = document.getElementById("selectAllPcs");
-  document.querySelectorAll(".pc-checkbox")
-    .forEach(cb => cb.checked = master.checked);
-}
+ 
 function bulkMarkPcChecked() {
   const selected = [...document.querySelectorAll(".pc-checkbox:checked")]
     .map(cb => cb.value);
