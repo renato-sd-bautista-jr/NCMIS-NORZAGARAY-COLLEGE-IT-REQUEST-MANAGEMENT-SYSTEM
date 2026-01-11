@@ -290,6 +290,10 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
 
   const form = e.target;
   const formData = new FormData(form);
+
+  if (!validatePcForm(formData)) {
+    return;
+  }
   const pcid = formData.get("pcid"); // will be filled during edit
   const batchCount = parseInt(document.getElementById("batchCount").value || "1", 10);
 
@@ -392,6 +396,38 @@ function generateSerial(prefix = "SN") {
   const randomPart = Math.floor(100000 + Math.random() * 900000); // 6 digits
   return `${prefix}-${Date.now()}-${randomPart}`;
 }
+function validatePcForm(formData) {
+  const requiredFields = [
+    { name: "pcname", label: "PC Name" },
+    { name: "department_id", label: "Department" },
+    { name: "date_acquired", label: "Date Acquired" },
+    { name: "status", label: "Status" }
+  ];
+
+  for (const field of requiredFields) {
+    const value = formData.get(field.name);
+
+    if (!value || value.trim() === "") {
+      showPopup("error", `${field.label} is required.`);
+      return false;
+    }
+  }
+// Quantity validation
+  const quantity = parseInt(formData.get("quantity"), 10);
+  if (isNaN(quantity) || quantity < 1) {
+    showPopup("error", "Quantity must be at least 1.");
+    return false;
+  }
+
+  // Acquisition cost validation
+  const cost = parseFloat(formData.get("acquisition_cost"));
+  if (cost < 0) {
+    showPopup("error", "Acquisition cost cannot be negative.");
+    return false;
+  }
+
+  return true;
+}
 </script>
 
-
+ 

@@ -2,27 +2,28 @@ from flask import request, render_template, redirect, url_for, flash, Blueprint,
 from db import get_db_connection
 import pymysql,re
 import uuid
+from datetime import date
+from utils.inventory_audit import log_inventory_action
 from notification import add_notification
 
 manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 
    
-@manage_pc_bp.route('/delete-pc/<string:pcid>', methods=['POST'])
+@manage_pc_bp.route("/delete-pc/<int:pcid>", methods=["POST"])
 def delete_pc(pcid):
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM pcinfofull WHERE pcid=%s", (pcid,))
+            cur.execute("DELETE FROM pcinfofull WHERE pcid = %s", (pcid,))
             conn.commit()
-            return redirect(url_for('manage_inventory.inventory_load'))
+        flash("PC deleted successfully.", "success")
     except Exception as e:
-        print(f"Error deleting PC: {e}")
         conn.rollback()
-        
+        flash(str(e), "error")
     finally:
-        
         conn.close()
 
+    return redirect(url_for("manage_inventory.inventory_load"))
 
 
 @manage_pc_bp.route('/filter-pcs', methods=['GET'])
@@ -225,34 +226,130 @@ def add_pcinfofull():
 
 
 
+
 @manage_pc_bp.route('/update-pcinfofull', methods=['POST'])
 def update_pcinfofull():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
     conn = get_db_connection()
     data = request.form
+    user_id = session['user']['user_id']
+
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            # 🔹 1. Duplicate check
+            cur.execute("""
+                SELECT COUNT(*) AS count
+                FROM pcinfofull
+                WHERE (serial_no = %s OR municipal_serial_no = %s)
+                  AND pcid != %s
+            """, (
+                data['serial_no'],
+                data['municipal_serial_no'],
+                data['pcid']
+            ))
+
+            if cur.fetchone()['count'] > 0:
+                return jsonify({
+                    "success": False,
+                    "error": "Duplicate entry: Serial No or Municipal Serial No already exists."
+                }), 400
+
+            # 🔹 2. Fetch OLD values
+            cur.execute("SELECT * FROM pcinfofull WHERE pcid = %s", (data['pcid'],))
+            old_pc = cur.fetchone()
+
+            if not old_pc:
+                return jsonify({"success": False, "error": "PC not found"}), 404
+
+            # 🔹 3. Perform UPDATE
             cur.execute("""
                 UPDATE pcinfofull SET
-                    pcname=%s, department_id=%s, location=%s, quantity=%s, acquisition_cost=%s, date_acquired=%s,
-                    accountable=%s, serial_no=%s, municipal_serial_no=%s, status=%s, note=%s=
-                        , motherboard=%s, ram=%s, storage=%s, gpu=%s, psu=%s, casing=%s, other_parts=%s
+                    pcname=%s,
+                    department_id=%s,
+                    location=%s,
+                    quantity=%s,
+                    acquisition_cost=%s,
+                    date_acquired=%s,
+                    accountable=%s,
+                    serial_no=%s,
+                    municipal_serial_no=%s,
+                    status=%s,
+                    note=%s,
+                    motherboard=%s,
+                    ram=%s,
+                    storage=%s,
+                    gpu=%s,
+                    psu=%s,
+                    casing=%s,
+                    other_parts=%s
                 WHERE pcid=%s
             """, (
-                data['pcname'], data['department_id'], data['location'], data['quantity'],
-                data['acquisition_cost'], data['date_acquired'], data['accountable'],
-                data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],
-                 data['motherboard'], data['ram'], data['storage'],
-                data['gpu'], data['psu'], data['casing'], data['other_parts'], data['pcid']
+                data['pcname'],
+                data['department_id'],
+                data['location'],
+                data['quantity'],
+                data['acquisition_cost'],
+                data['date_acquired'],
+                data['accountable'],
+                data['serial_no'],
+                data['municipal_serial_no'],
+                data['status'],
+                data['note'],
+                data['motherboard'],
+                data['ram'],
+                data['storage'],
+                data['gpu'],
+                data['psu'],
+                data['casing'],
+                data['other_parts'],
+                data['pcid']
             ))
+
+            # 🔹 4. AUDIT LOGGING
+            tracked_fields = [
+                'pcname', 'department_id', 'location', 'quantity',
+                'acquisition_cost', 'date_acquired', 'accountable',
+                'serial_no', 'municipal_serial_no', 'status', 'note',
+                'motherboard', 'ram', 'storage', 'gpu',
+                'psu', 'casing', 'other_parts'
+            ]
+
+            for field in tracked_fields:
+                old_value = old_pc.get(field)
+                new_value = data.get(field)
+
+                # Normalize dates
+                if isinstance(old_value, date):
+                    old_value = old_value.strftime('%Y-%m-%d')
+
+                # Skip if both empty
+                if (old_value is None or old_value == '') and (new_value is None or new_value == ''):
+                    continue
+
+                if str(old_value) != str(new_value):
+                    log_inventory_action(
+                        entity_type='PC',
+                        entity_id=data['pcid'],
+                        action='UPDATE',
+                        field_name=field,
+                        old_value=old_value,
+                        new_value=new_value,
+                        performed_by=user_id
+                    )
+
             conn.commit()
-        flash("PC updated successfully!", "success")
+
+        return jsonify({"success": True, "message": "PC updated successfully!"})
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
     finally:
         conn.close()
-    return redirect(url_for('manage_inventory.inventory_load'))
-
-
-
-
 
 @manage_pc_bp.route('/batch_add_pcinfofull', methods=['POST'])
 def batch_add_pcinfofull():

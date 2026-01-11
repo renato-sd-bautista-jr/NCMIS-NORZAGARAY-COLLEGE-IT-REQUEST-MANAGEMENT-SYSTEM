@@ -1,0 +1,30 @@
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.inv-table th,
+.inv-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.inv-table thead {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.inv-row:hover {
+  background: #f3f4f6;
+}
+
+.btn-link {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}

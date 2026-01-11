@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 30, 2025 at 11:25 PM
+-- Generation Time: Jan 11, 2026 at 01:09 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -226,7 +226,7 @@ CREATE TABLE `devices_full` (
 INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `device_type`, `department_id`, `status`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`) VALUES
 (14, NULL, 'Mouse', 'a4Tech', 1, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'Needs Checking', '2025-10-25 13:19:00', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
 (15, NULL, 'inplay keyboard 1', 'inplay', 5, 1000.00, '0000-00-00', 'John Doe', 'SN-000001', 'MUN-0001252', 'keynoard', 1, 'Needs Checking', '2025-10-26 02:09:23', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
-(16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Needs Checking', '2025-10-26 17:13:39', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
+(16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Available', '2025-10-26 17:13:39', '2026-01-08 12:53:11', '2026-01-08', 30, 100, 'Low'),
 (17, NULL, '3', '2', 1, 213321.00, '2025-10-27', '213', '123', '123', '213', 1, 'Needs Checking', '2025-10-27 02:00:09', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
 (18, NULL, '4', '3', 1, 3.00, '0000-00-00', '3', '3', '4', '3', 1, 'Needs Checking', '2025-10-27 03:27:22', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
 (19, NULL, 'ye', 'ye', 1, 123.00, '0000-00-00', 'ye', 'ye', 'ye', 'ye', 1, 'Needs Checking', '2025-10-27 04:52:19', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
@@ -237,7 +237,20 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (24, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088694', 'MSN73088666', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
 (25, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088849', 'MSN73088823', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
 (26, NULL, '444', '444', 1, 4444.00, '2025-10-27', '44', 'SN73088928', 'MSN73088926', '4', 1, 'Needs Checking', '2025-10-27 05:08:50', '2025-12-26 14:38:28', NULL, 30, 100, 'Medium'),
-(27, NULL, 'e', 'e', 1, 4.00, '2025-10-27', 'e', 'SN73089018', 'MSN73089037', 'e', 1, 'In Used', '2025-10-27 05:08:50', '2025-12-30 22:22:08', '2025-12-30', 30, 100, 'Low');
+(27, NULL, 'e', 'e', 1, 4.00, '2025-10-27', 'e', 'SN73089018', 'MSN73089037', 'e', 1, 'Available', '2025-10-27 05:08:50', '2026-01-08 12:52:49', '2026-01-08', 30, 100, 'Low'),
+(28, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335477', 'MSN84335434', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(29, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335566', 'MSN84335570', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(30, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335692', 'MSN84335696', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(31, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335774', 'MSN84335773', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(32, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335776', 'MSN84335780', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(33, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335886', 'MSN84335887', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(34, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335837', 'MSN84335842', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(35, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335981', 'MSN84335979', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(36, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84335952', 'MSN84335917', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(37, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84336013', 'MSN84336085', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(38, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84336064', 'MSN84336071', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
+(39, NULL, 'xiaomi', 'redmi', 1, 24242.00, '2026-01-08', 'John Doe', 'SN89003666', 'MSN89003624', '4', 1, 'Available', '2026-01-08 12:54:50', '2026-01-08 12:54:50', NULL, 30, 100, 'Low'),
+(40, NULL, 'xiaomi', 'redmiew', 1, 24242.00, '2026-01-08', 'John Doe', 'SN89003858', 'MSN89003858', '4', 1, 'Available', '2026-01-08 12:54:50', '2026-01-08 13:13:54', NULL, 30, 100, 'Low');
 
 -- --------------------------------------------------------
 
@@ -292,6 +305,34 @@ INSERT INTO `devices_units` (`accession_id`, `device_id`, `serial_number`, `stat
 (33, 5, NULL, 'Available'),
 (34, 5, NULL, 'Available'),
 (35, 6, 'M03', 'Available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inventory_audit_log`
+--
+
+CREATE TABLE `inventory_audit_log` (
+  `audit_id` bigint(20) UNSIGNED NOT NULL,
+  `entity_type` enum('PC','DEVICE') NOT NULL,
+  `entity_id` int(11) NOT NULL,
+  `action` enum('CREATE','UPDATE','DELETE','SOFT_DELETE','RESTORE','BULK_UPDATE','STATUS_CHANGE','MAINTENANCE','CHECKED') NOT NULL,
+  `field_name` varchar(100) DEFAULT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `performed_by` int(11) NOT NULL,
+  `performed_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `inventory_audit_log`
+--
+
+INSERT INTO `inventory_audit_log` (`audit_id`, `entity_type`, `entity_id`, `action`, `field_name`, `old_value`, `new_value`, `performed_by`, `performed_at`, `ip_address`, `user_agent`) VALUES
+(1, 'PC', 83, 'UPDATE', 'pcname', 'pc300', 'pc3001', 9, '2026-01-08 21:23:32', NULL, NULL),
+(2, 'PC', 83, 'UPDATE', 'pcname', 'pc3001', 'pc30014', 9, '2026-01-08 21:25:21', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -353,7 +394,9 @@ INSERT INTO `maintenance_history` (`id`, `pcid`, `asset_type`, `asset_id`, `acti
 (4, 81, 'PC', 81, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Available', 'Available', 'Low', 100, '2025-12-30 22:18:04'),
 (5, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as Damaged', 'System', 'Available', 'Damaged', 'High', 40, '2025-12-30 22:21:37'),
 (6, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as Available', 'System', 'Damaged', 'Available', 'Low', 100, '2025-12-30 22:22:02'),
-(7, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as In Used', 'System', 'Available', 'In Used', 'Low', 100, '2025-12-30 22:22:08');
+(7, NULL, 'Device', 27, 'Bulk status update', 'Bulk marked as In Used', 'System', 'Available', 'In Used', 'Low', 100, '2025-12-30 22:22:08'),
+(8, NULL, 'Device', 27, 'Manual inspection completed', 'Marked as checked manually', 'System', 'In Used', 'Available', 'Low', 100, '2026-01-08 12:52:49'),
+(9, NULL, 'Device', 16, 'Manual inspection completed', 'Marked as checked manually', 'System', 'Needs Checking', 'Available', 'Low', 100, '2026-01-08 12:53:11');
 
 -- --------------------------------------------------------
 
@@ -394,7 +437,9 @@ INSERT INTO `maintenance_logs` (`id`, `asset_type`, `asset_id`, `previous_status
 (14, 'PC', 81, 'Available', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2025-12-30 22:18:04'),
 (15, 'DEVICE', 27, 'Available', 'Damaged', 'Low', 'High', 'Bulk status update', NULL, NULL, '2025-12-30 22:21:37'),
 (16, 'DEVICE', 27, 'Damaged', 'Available', 'High', 'Low', 'Bulk status update', NULL, NULL, '2025-12-30 22:22:02'),
-(17, 'DEVICE', 27, 'Available', 'In Used', 'Low', 'Low', 'Bulk status update', NULL, NULL, '2025-12-30 22:22:08');
+(17, 'DEVICE', 27, 'Available', 'In Used', 'Low', 'Low', 'Bulk status update', NULL, NULL, '2025-12-30 22:22:08'),
+(18, 'DEVICE', 27, 'In Used', 'Available', 'Low', 'Low', 'Manual inspection completed', NULL, NULL, '2026-01-08 12:52:49'),
+(19, 'DEVICE', 16, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2026-01-08 12:53:11');
 
 -- --------------------------------------------------------
 
@@ -464,13 +509,14 @@ INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quanti
 (71, 'pc-do-03', 1, 'Computer Lab A', 1, 30000.00, '2025-10-26', 'John Doe', 'SN-1761440668046-427934', 'MSN-1761440668046-927513', 'Available', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2025-10-26 01:04:28', '2025-12-27 19:28:15', '2025-12-28', 30, 100, 'Low'),
 (72, 'pc-do-04', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-768370', 'MSN-1761440694335-395613', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-12-27 19:30:20', '2025-12-28', 30, 100, 'Low'),
 (73, 'pc-do-05', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-256874', 'MSN-1761440694335-926256', 'Available', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2025-12-27 19:33:01', '2025-12-28', 30, 100, 'Low'),
-(75, 'pc', 1, 'Computer Lab C', 1, 35000.00, '2025-10-27', 'John Doe', 'SN-000074', '', 'Available', '3', '5', '5', '5', '5', '5', '5', '5', '5', '2025-10-26 17:14:15', '2025-12-27 19:40:41', '2025-12-28', 30, 100, 'Low'),
+(75, 'pc100', 1, 'Computer Lab A', 1, 50000.00, '2026-01-08', 'John Doe', 'SN-0000053477', 'MUN-041252', 'Available', 'where', '5', 'gigabyte a320m', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'yes', '2025-10-26 17:14:15', '2026-01-08 02:33:40', '2025-12-28', 30, 100, 'Low'),
 (76, 'pc-do-06', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-922706', 'MSN-1761583172156-573704', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:53:27', '2025-12-28', 30, 100, 'Low'),
 (77, 'pc-do-07', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-891456', 'MSN-1761583172156-132853', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:55:58', '2025-12-28', 30, 100, 'Low'),
 (78, 'pc-do-08', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-769494', 'MSN-1761583172156-380486', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:56:29', '2025-12-28', 30, 100, 'Low'),
 (79, 'pc-do-09', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-139349', 'MSN-1761583172156-702518', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:58:06', '2025-12-28', 30, 100, 'Low'),
 (80, '213', 1, '123', 1, 123.00, '0000-00-00', '123', '213', '123', 'Available', '123', NULL, '123', '123', '213', '123', '123', '214', '214', '2025-10-27 16:41:19', '2025-12-29 22:45:47', '2025-12-30', 30, 100, 'Low'),
-(81, 'pc222', 1, 'Computer Lab C', 1, 50000.00, '0000-00-00', 'John Doe', 'SN-0000053434', 'MUN-00012522213', 'Available', '', NULL, '324221', '123', '12412', '123', '2133', '123', '123', '2025-12-30 22:15:43', '2025-12-30 22:18:04', '2025-12-31', 30, 100, 'Low');
+(81, 'pc222', 1, 'Computer Lab C', 1, 50000.00, '0000-00-00', 'John Doe', 'SN-0000053434', 'MUN-00012522213', 'Available', '', NULL, '324221', '123', '12412', '123', '2133', '123', '123', '2025-12-30 22:15:43', '2025-12-30 22:18:04', '2025-12-31', 30, 100, 'Low'),
+(83, 'pc30014', 1, 'Computer Lab A', 1, 33333.00, '2025-06-08', 'John Doe', 'SN-300005', 'MUN-301252', 'Available', '5', NULL, 'qwe', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '214', '2026-01-08 02:39:55', '2026-01-08 13:25:21', NULL, 30, 80, 'Low');
 
 --
 -- Triggers `pcinfofull`
@@ -652,6 +698,16 @@ ALTER TABLE `devices_units`
   ADD KEY `device_id` (`device_id`);
 
 --
+-- Indexes for table `inventory_audit_log`
+--
+ALTER TABLE `inventory_audit_log`
+  ADD PRIMARY KEY (`audit_id`),
+  ADD KEY `idx_entity` (`entity_type`,`entity_id`),
+  ADD KEY `idx_action` (`action`),
+  ADD KEY `idx_user` (`performed_by`),
+  ADD KEY `idx_date` (`performed_at`);
+
+--
 -- Indexes for table `inventory_settings`
 --
 ALTER TABLE `inventory_settings`
@@ -763,13 +819,19 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
 --
 ALTER TABLE `devices_units`
   MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+
+--
+-- AUTO_INCREMENT for table `inventory_audit_log`
+--
+ALTER TABLE `inventory_audit_log`
+  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inventory_settings`
@@ -787,13 +849,13 @@ ALTER TABLE `inventory_status_logs`
 -- AUTO_INCREMENT for table `maintenance_history`
 --
 ALTER TABLE `maintenance_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `maintenance_logs`
 --
 ALTER TABLE `maintenance_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -805,7 +867,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `pcinfofull`
 --
 ALTER TABLE `pcinfofull`
-  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `pcparts`
