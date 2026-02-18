@@ -1,0 +1,425 @@
+<!-- Consumable Add/Edit Modal -->
+<div id="consumableModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-2xl w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200">
+    <h3 id="modalTitle" class="text-xl font-semibold text-green-600 mb-4 flex items-center gap-2">
+      <i data-lucide="plus-circle"></i>
+      <span>Add Consumable</span>
+    </h3>
+
+    <!-- Error Message -->
+    <div id="consumableModalError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
+
+    <form id="consumableForm" method="post" class="space-y-6">
+      <input type="hidden" name="accession_id" id="accession_id">
+
+      <!-- Item Name -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Item Name</label>
+        <input type="text" name="item_name" id="item_name" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Brand / Model -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Brand / Model</label>
+        <input type="text" name="brand_model" id="brand_model"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Quantity -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Quantity</label>
+        <input type="number" name="quantity" id="quantity" value="1" min="1"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Acquisition Cost -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Acquisition Cost (₱)</label>
+        <input type="number" step="0.01" name="acquisition_cost" id="acquisition_cost"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Date Acquired -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Date Acquired</label>
+        <input type="date" name="date_acquired" id="date_acquired"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Accountable Person -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Accountable Person</label>
+        <input type="text" name="accountable" id="accountable"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+      </div>
+
+      <!-- Department -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Facilities</label>
+        <select name="department_id" id="department_id" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+          <option value="">Loading Facilities...</option>
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Status</label>
+        <select name="status" id="status" required
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+          <option value="Available">Available</option>
+          <option value="In Used">In Used</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Damaged">Damaged</option>
+        </select>
+      </div>
+
+      <!-- Maintenance Duration -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1"> Duration </label>
+        <input type="number" name="maintenance_interval_days" id="maintenance_interval_days" value="5" min="1" max="3650"
+          class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 text-black">
+        <p class="text-xs text-gray-500 mt-1">Set how many days before maintenance is required</p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" onclick="closeConsumableModal()"
+          class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm">
+          Cancel
+        </button>
+        <button id="consumableSubmitBtn" type="submit"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">
+          Add Consumable
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+async function openConsumableModal(itemData = null) {
+  const modal = document.getElementById('consumableModal');
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('consumableForm');
+  const submitBtn = document.getElementById('consumableSubmitBtn');
+  const deptSelect = document.getElementById('department_id');
+  const errorDiv = document.getElementById('consumableModalError');
+
+  errorDiv.classList.add('hidden');
+  errorDiv.textContent = '';
+
+  // Reset form
+  form.reset();
+  document.getElementById('accession_id').value = '';
+
+  // Load departments
+  try {
+    const res = await fetch('/get-departments');
+    const departments = await res.json();
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    departments.forEach(dep => {
+      const opt = document.createElement('option');
+      opt.value = dep.department_id;
+      opt.textContent = dep.department_name;
+      deptSelect.appendChild(opt);
+    });
+  } catch {
+    deptSelect.innerHTML = '<option value="">Error loading departments</option>';
+  }
+
+  if (itemData) {
+    // EDIT MODE
+    title.innerHTML = '<i data-lucide="edit"></i><span>Edit Consumable</span>';
+    form.action = "{{ url_for('manage_consumable_bp.update_consumable') }}";
+    submitBtn.textContent = "Update Consumable";
+
+    Object.entries(itemData).forEach(([key, value]) => {
+      const input = document.getElementById(key);
+      if (!input) return;
+      if (key === 'date_acquired' && value && value !== "0000-00-00") {
+        const dateObj = new Date(value);
+        input.value = dateObj.toISOString().split('T')[0];
+      } else {
+        input.value = value ?? '';
+      }
+    });
+  } else {
+    // ADD MODE
+    title.innerHTML = '<i data-lucide="plus-circle"></i><span>Add Consumable</span>';
+    form.action = "{{ url_for('manage_consumable_bp.add_consumable') }}";
+    submitBtn.textContent = "Add Consumable";
+  }
+
+  lucide.createIcons();
+  modal.classList.remove('hidden');
+}
+
+// CLOSE MODAL
+function closeConsumableModal() {
+  const modal = document.getElementById('consumableModal');
+  modal.classList.add('hidden');
+}
+
+// SUBMIT FORM WITH DUPLICATE CHECK
+document.getElementById("consumableForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const errorDiv = document.getElementById('consumableModalError');
+  errorDiv.classList.add('hidden');
+  errorDiv.textContent = '';
+
+  const data = new FormData(form);
+  const accession_id = data.get('accession_id');
+
+  try {
+    // Submit form via fetch
+    const actionUrl = form.action;
+    const formData = new URLSearchParams(data);
+    const submitRes = await fetch(actionUrl, { method: 'POST', body: formData });
+    
+    if (!submitRes.ok) {
+      throw new Error(`HTTP ${submitRes.status}`);
+    }
+
+    // Show success message and close modal
+    const isEdit = !!accession_id;
+    const successMessage = isEdit ? 'Consumable updated successfully!' : 'Consumable added successfully!';
+    
+    // Create and show success notification
+    showSuccessNotification(successMessage);
+    
+    // Close the modal
+    closeConsumableModal();
+    
+    // Refresh the table data without full page reload
+    await refreshConsumableTable();
+    
+  } catch (err) {
+    console.error(err);
+    errorDiv.textContent = "Error submitting form. Please try again.";
+    errorDiv.classList.remove('hidden');
+  }
+});
+
+// Success notification function
+function showSuccessNotification(message) {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+  notification.innerHTML = `
+    <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <span>${message}</span>
+  `;
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Initialize Lucide icon
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Refresh consumable table without page reload
+async function refreshConsumableTable() {
+  try {
+    const response = await fetch('/get-consumables');
+    const consumables = await response.json();
+    
+    // Update the table body
+    const tableBody = document.getElementById('consumableTableBody');
+    if (tableBody) {
+      // Re-render the table with new data
+      renderConsumableTable(consumables);
+    }
+    
+    // Update mobile cards as well
+    const mobileContainer = document.querySelector('.lg:hidden.space-y-4');
+    if (mobileContainer) {
+      renderMobileCards(consumables);
+    }
+    
+  } catch (error) {
+    console.error('Error refreshing consumable table:', error);
+    // Fallback to page reload if there's an error
+    location.reload();
+  }
+}
+
+// Function to render table (you may need to adjust this based on your template structure)
+function renderConsumableTable(consumables) {
+  const tableBody = document.getElementById('consumableTableBody');
+  if (!tableBody) return;
+  
+  tableBody.innerHTML = '';
+  
+  consumables.forEach(item => {
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-100 transition';
+    row.innerHTML = `
+      <td class="px-4 py-2 border-b">
+        <input type="checkbox" class="consumable-checkbox" value="${item.accession_id}">
+      </td>
+      <td class="px-4 py-2 border-b">${item.accession_id}</td>
+      <td class="px-4 py-2 border-b">${item.item_name}</td>
+      <td class="px-4 py-2 border-b">${item.brand_model || '—'}</td>
+      <td class="px-4 py-2 border-b font-semibold">${item.quantity}</td>
+      <td class="px-4 py-2 border-b">₱${(item.acquisition_cost || 0).toFixed(2)}</td>
+      <td class="px-4 py-2 border-b">${item.date_acquired || '—'}</td>
+      <td class="px-4 py-2 border-b">${item.accountable || '—'}</td>
+      <td class="px-4 py-2 border-b">${item.department_name || '—'}</td>
+      <td class="px-4 py-2 border-b font-medium
+        ${item.status === 'Available' ? 'text-green-600' : 
+          item.status === 'In Used' ? 'text-blue-600' : 
+          item.status === 'Inactive' ? 'text-gray-500' : 'text-red-600'}">
+        ${item.status}
+      </td>
+      <td class="px-4 py-2 border-b font-semibold
+        ${item.risk_level === 'Low' ? 'text-green-600' : 
+          item.risk_level === 'Medium' ? 'text-yellow-600' : 
+          item.risk_level === 'High' ? 'text-red-600' : 'text-gray-500'}">
+        ${item.risk_level || '—'}
+      </td>
+      <td class="px-4 py-2 border-b">
+        ${item.health_score !== null ? `
+          <div class="flex items-center gap-2">
+            <div class="w-24 bg-gray-200 rounded-full h-2">
+              <div class="h-2 rounded-full ${
+                item.health_score >= 80 ? 'bg-green-500' : 
+                item.health_score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+              }" style="width: ${item.health_score}%"></div>
+            </div>
+            <span class="text-xs font-semibold">${item.health_score}%</span>
+          </div>
+        ` : '—'}
+      </td>
+      <td class="px-4 py-2 border-b">
+        <div class="flex flex-wrap gap-1">
+          <button onclick="openConsumableModal(${item.accession_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
+          <button type="button" onclick="openDeleteModal('/manage_consumable/delete-consumable/${item.accession_id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
+          <button onclick="markChecked('CONSUMABLE', ${item.accession_id})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
+          <button onclick="openMaintenanceLog(${item.accession_id}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// Function to render mobile cards
+function renderMobileCards(consumables) {
+  const mobileContainer = document.querySelector('.lg:hidden.space-y-4');
+  if (!mobileContainer) return;
+  
+  mobileContainer.innerHTML = '';
+  
+  consumables.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'bg-white border border-gray-200 rounded-xl p-4 shadow-sm';
+    card.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" class="consumable-checkbox" value="${item.accession_id}">
+          <div>
+            <h4 class="font-semibold text-gray-900">${item.item_name}</h4>
+            <p class="text-sm text-gray-600">ID: ${item.accession_id}</p>
+          </div>
+        </div>
+        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+          ${item.status === 'Available' ? 'bg-green-100 text-green-600' : 
+            item.status === 'In Used' ? 'bg-blue-100 text-blue-600' : 
+            item.status === 'Inactive' ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-600'}">
+          ${item.status}
+        </span>
+      </div>
+      
+      <div class="space-y-1 text-sm text-gray-600 mb-3">
+        ${item.brand_model ? `<p><span class="font-medium">Brand/Model:</span> ${item.brand_model}</p>` : ''}
+        <p><span class="font-medium">Quantity:</span> <span class="font-semibold">${item.quantity}</span></p>
+        <p><span class="font-medium">Department:</span> ${item.department_name || '—'}</p>
+        <p><span class="font-medium">Accountable:</span> ${item.accountable || '—'}</p>
+        <p><span class="font-medium">Cost:</span> ₱${(item.acquisition_cost || 0).toFixed(2)}</p>
+        <p><span class="font-medium">Risk:</span> 
+          <span class="font-semibold
+            ${item.risk_level === 'Low' ? 'text-green-600' : 
+              item.risk_level === 'Medium' ? 'text-yellow-600' : 
+              item.risk_level === 'High' ? 'text-red-600' : 'text-gray-500'}">
+            ${item.risk_level || '—'}
+          </span>
+        </p>
+        ${item.health_score !== null ? `
+          <p><span class="font-medium">Health:</span> 
+            <div class="flex items-center gap-2 mt-1">
+              <div class="w-20 bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full ${
+                  item.health_score >= 80 ? 'bg-green-500' : 
+                  item.health_score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }" style="width: ${item.health_score}%"></div>
+              </div>
+              <span class="text-xs font-semibold">${item.health_score}%</span>
+            </div>
+          </p>
+        ` : ''}
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="openConsumableModal(${item.accession_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+        <button type="button" onclick="openDeleteModal('/manage_consumable/delete-consumable/${item.accession_id}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
+        <button onclick="markChecked('CONSUMABLE', ${item.accession_id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+        <button onclick="openMaintenanceLog(${item.accession_id}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
+      </div>
+    `;
+    mobileContainer.appendChild(card);
+  });
+}
+
+// ---------- CHECK FUNCTION ----------
+function markChecked(type, id) {
+  fetch(`/inventory/${type}/${id}/check`, { method: "POST" })
+    .then(res => res.json())
+    .then(d => d.success ? location.reload() : alert("Update failed"));
+}
+
+// ---------- MAINTENANCE LOG ----------
+function openMaintenanceLog(id, type) {
+  window.location.href = `/maintenance-history?type=${type}&id=${id}`;
+}
+
+// ---------- DELETE MODAL ----------
+function openDeleteModal(actionUrl) {
+  const modal = document.getElementById("deleteModal");
+  const form = document.getElementById("deleteForm");
+
+  if (!modal || !form) {
+    console.error("Delete modal or form not found in DOM");
+    return;
+  }
+
+  form.action = actionUrl;
+  modal.classList.remove("hidden");
+
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById("deleteModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+// Bind cancel button once DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  const cancelBtn = document.getElementById("cancelDelete");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeDeleteModal);
+  }
+});
+</script>

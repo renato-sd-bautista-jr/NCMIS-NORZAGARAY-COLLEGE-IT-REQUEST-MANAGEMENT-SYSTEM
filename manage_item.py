@@ -26,6 +26,8 @@ def get_devices_with_details():
                     df.date_acquired,
                     df.accountable,
                     df.status AS unit_status,
+                    df.maintenance_interval_days,
+                    df.last_checked,
                     dep.department_id,
                     dep.department_name
                 FROM devices_full df
@@ -65,11 +67,15 @@ def add_device():
         department_id = form.get('department_id')
         status = form.get('status') or 'Available'
         quantity = int(form.get('quantity', 1))
+        maintenance_interval_days = int(form.get('maintenance_interval_days', 30))
 
         inserted_ids = []
 
         with conn.cursor() as cur:
-            for _ in range(quantity):
+            is_consumable = (device_type or '').strip().lower() == 'consumable'
+            insert_count = 1 if is_consumable else quantity
+
+            for _ in range(insert_count):
                 # Auto-generate serials
                 serial_no = generate_unique_serial("SN")
                 municipal_serial_no = generate_unique_serial("MSN")
@@ -89,12 +95,13 @@ def add_device():
                     INSERT INTO devices_full (
                         item_name, brand_model, serial_no, municipal_serial_no, quantity,
                         device_type, acquisition_cost, date_acquired, accountable,
-                        department_id, status
-                    ) VALUES (%s,%s,%s,%s,1,%s,%s,%s,%s,%s,%s)
+                        department_id, status, maintenance_interval_days
+                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     item_name, brand_model, serial_no, municipal_serial_no,
+                    quantity if is_consumable else 1,
                     device_type, acquisition_cost, date_acquired, accountable,
-                    department_id, status
+                    department_id, status, maintenance_interval_days
                 ))
                 inserted_ids.append(cur.lastrowid)
 
@@ -139,8 +146,10 @@ def update_device():
                     acquisition_cost=%s,
                     date_acquired=%s,
                     accountable=%s,
+                    quantity=%s,
                     department_id=%s,
-                    status=%s
+                    status=%s,
+                    maintenance_interval_days=%s
                 WHERE accession_id=%s
             """, (
                 form.get('item_name'),
@@ -151,8 +160,10 @@ def update_device():
                 form.get('acquisition_cost'),
                 form.get('date_acquired'),
                 form.get('accountable'),
+                form.get('quantity', 1),
                 form.get('department_id'),
                 form.get('status'),
+                form.get('maintenance_interval_days', 30),
                 accession_id
             ))
             conn.commit()
@@ -202,6 +213,7 @@ def get_item_by_id(item_id):
                     df.date_acquired,
                     df.accountable,
                     df.status,
+                    df.maintenance_interval_days,
                     dep.department_id,
                     dep.department_name
                 FROM devices_full df
@@ -287,6 +299,8 @@ def filter_devices():
                 df.date_acquired,
                 df.accountable,
                 df.status,
+                df.risk_level,
+                df.health_score,
                 dep.department_id,
                 dep.department_name
             FROM devices_full df

@@ -42,11 +42,27 @@
 </a>
 {% endif %}
 
+{% if permissions.get('damage_report', {}).get('view', False) %}
+<a href="{{ url_for('damage_report_bp.damage_report_page') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
+          {% if request.endpoint == 'damage_report_bp.damage_report_page' %}
+            bg-blue-600 text-white shadow-md
+          {% else %}
+            hover:bg-blue-600/30 hover:text-white
+          {% endif %}">
+  <i data-lucide="alert-triangle" class="w-5 h-5 mr-3"></i> Damage Report
+</a>
+{% endif %}
 
-{% if permissions.get('dept', {}).get('view', False) %}
-<a href="{{ url_for('manage_department_bp.manage_department_page') }}"
-   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
-  <i data-lucide="building-2" class="w-5 h-5 mr-3"></i> Manage Facilities
+{% if permissions.get('receive_item', {}).get('view', False) %}
+<a href="{{ url_for('receive_item.receive_item') }}"
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
+          {% if request.endpoint == 'receive_item.receive_item' %}
+            bg-blue-600 text-white shadow-md
+          {% else %}
+            hover:bg-blue-600/30 hover:text-white
+          {% endif %}">
+  <i data-lucide="package-check" class="w-5 h-5 mr-3"></i> Receive Item
 </a>
 {% endif %}
 <a href="{{ url_for('maintenance_bp.maintenance_history_page') }}"
@@ -63,6 +79,12 @@
 <a href="{{ url_for('manage_user_bp.manage_user_page') }}"
     class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
   <i data-lucide="users" class="w-5 h-5 mr-3"></i> Manage Users
+</a>
+{% endif %}
+{% if is_admin == 1 %}
+<a href="{{ url_for('manage_department_bp.manage_department_page') }}"
+    class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
+  <i data-lucide="building" class="w-5 h-5 mr-3"></i> Manage Department
 </a>
 {% endif %}
     </nav>

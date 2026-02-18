@@ -95,7 +95,9 @@ def add_or_update_user():
         "inventory": {"view": "inventory_view" in permissions, "edit": "inventory_edit" in permissions},
         "qrlist": {"view": "qrlist_view" in permissions, "edit": "qrlist_edit" in permissions},
         "report": {"view": "report_view" in permissions, "edit": "report_edit" in permissions},
-        "dept": {"view": "dept_view" in permissions, "edit": "dept_edit" in permissions}
+        "dept": {"view": "dept_view" in permissions, "edit": "dept_edit" in permissions},
+        "damage_report": {"view": "damage_report_view" in permissions, "edit": "damage_report_edit" in permissions},
+        "receive_item": {"view": "receive_item_view" in permissions, "edit": "receive_item_edit" in permissions}
     }
 
     if not first_name or not last_name or not username or not email:

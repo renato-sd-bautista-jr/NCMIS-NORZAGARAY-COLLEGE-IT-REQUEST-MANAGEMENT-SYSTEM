@@ -23,6 +23,8 @@ def get_user_access(user_id):
         'report': {'view': True, 'edit': False},
         'manage_user': {'view': True, 'edit': False},
         'department': {'view': True, 'edit': False},
+        'damage_report': {'view': True, 'edit': False},
+        'receive_item': {'view': True, 'edit': False},
     }
 
     conn = get_db_connection()

@@ -6,6 +6,22 @@
   <title>QR Code Generator - NCMIS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in { animation: slideIn 0.3s ease-out; }
+    .device-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .device-card:hover { transform: translateY(-2px); }
+    .modal-backdrop { backdrop-filter: blur(4px); }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
+    @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .status-badge { transition: all 0.2s ease; }
+    .qr-preview { transition: transform 0.2s ease; }
+    .qr-preview:hover { transform: scale(1.05); }
+  </style>
 </head>
 
 <body class="flex min-h-screen bg-gray-100 text-gray-800">
@@ -18,47 +34,194 @@
   <!-- Main -->
   <main class="flex-1 ml-0 md:ml-64 p-6 space-y-6 transition-all duration-300">
 
-    <!-- Header -->
-    <header class="flex items-center justify-between bg-blue-700 text-white shadow-lg p-4 rounded-xl sticky top-4 z-30 border border-blue-800 backdrop-blur-md">
-      <div class="flex items-center gap-2 font-medium">
-        <i data-lucide="qr-code" class="w-6 h-6 text-white"></i>
-        <h2 class="text-2xl font-bold">Device QR Codes</h2>
+    <!-- Header with Search -->
+    <header class="bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-xl p-6 rounded-2xl sticky top-4 z-30 border border-blue-900 backdrop-blur-md">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+            <i data-lucide="qr-code" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">Device QR Codes</h2>
+            <p class="text-blue-100 text-sm">Manage and generate QR codes for all devices</p>
+          </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <!-- Search Bar -->
+          <div class="relative">
+            <input type="text" id="searchInput" placeholder="Search devices..." 
+                   class="w-full sm:w-64 pl-10 pr-10 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white placeholder-blue-200 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-blue-200"></i>
+            <button id="clearSearch" class="absolute right-2 top-2.5 text-blue-200 hover:text-white transition-colors">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          
+          <!-- Filter Dropdown -->
+          <select id="statusFilter" class="px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent appearance-none">
+            <option value="" class="text-gray-800">All Status</option>
+            <option value="Available" class="text-gray-800">Available</option>
+            <option value="Maintenance" class="text-gray-800">Maintenance</option>
+          </select>
+          
+          <!-- Scan QR Button -->
+          <button id="scanQRBtn"
+            class="flex items-center gap-2 bg-white hover:bg-gray-100 text-blue-700 px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700">
+            <i data-lucide="camera" class="w-4 h-4"></i>
+            <span class="font-medium">Scan QR</span>
+          </button>
+                    
+        </div>
       </div>
-
-      <!-- Scan QR Button -->
-      <button id="scanQRBtn"
-        class="flex items-center gap-2 bg-white hover:bg-gray-100 text-blue-700 px-4 py-2 rounded-lg shadow transition focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 focus:ring-offset-blue-700">
-        <i data-lucide="camera" class="w-4 h-4"></i>
-        <span class="font-medium">Scan QR</span>
-      </button>
     </header>
 
-    <!-- Devices Grid -->
-    <section class="bg-white rounded-2xl shadow-lg p-4">
-      <div id="deviceGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+    <!-- Devices List -->
+    <section class="bg-white rounded-2xl shadow-xl p-6">
+      <!-- Stats Bar -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-blue-600 text-sm font-medium">Total Devices</p>
+              <p class="text-2xl font-bold text-blue-900" id="totalDevices">0</p>
+            </div>
+            <i data-lucide="box" class="w-8 h-8 text-blue-500"></i>
+          </div>
+        </div>
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-green-600 text-sm font-medium">Available</p>
+              <p class="text-2xl font-bold text-green-900" id="availableDevices">0</p>
+            </div>
+            <i data-lucide="check-circle" class="w-8 h-8 text-green-500"></i>
+          </div>
+        </div>
+        <div class="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-xl border border-red-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-red-600 text-sm font-medium">Maintenance</p>
+              <p class="text-2xl font-bold text-red-900" id="maintenanceDevices">0</p>
+            </div>
+            <i data-lucide="tool" class="w-8 h-8 text-red-500"></i>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden space-y-3">
+        <div class="skeleton h-20 rounded-lg"></div>
+        <div class="skeleton h-20 rounded-lg"></div>
+        <div class="skeleton h-20 rounded-lg"></div>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-12">
+        <i data-lucide="inbox" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-600 mb-2">No devices found</h3>
+        <p class="text-gray-500">Try adjusting your search or filter criteria</p>
+      </div>
+      
+      <div id="deviceGrid" class="space-y-3"></div>
+      
+      <!-- Pagination -->
+      <div id="pagination" class="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+        <div class="text-sm text-gray-600">
+          Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalItems">0</span> devices
+        </div>
+        <div class="flex items-center space-x-2">
+          <!-- Pagination buttons will be generated here -->
+        </div>
+      </div>
     </section>
   </main>
 
   <!-- QR Modal -->
-  <div id="qrModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-80 text-center relative">
-      <button id="closeQRModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-        <i data-lucide="x" class="w-5 h-5"></i>
+  <div id="qrModal" class="hidden fixed inset-0 modal-backdrop bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center relative slide-in">
+      <button id="closeQRModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+        <i data-lucide="x" class="w-6 h-6"></i>
       </button>
-      <h3 class="font-semibold text-blue-700 mb-4" id="qrDeviceName">Device Name</h3>
-      <img id="qrImage" class="mx-auto border rounded-lg shadow" alt="QR Code">
+      
+      <div class="mb-6">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="qr-code" class="w-8 h-8 text-blue-600"></i>
+        </div>
+        <h3 class="font-bold text-xl text-gray-800 mb-2" id="qrDeviceName">Device Name</h3>
+        <p class="text-gray-600 text-sm">Scan this QR code to access device information</p>
+      </div>
+      
+      <div class="qr-preview bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6">
+        <img id="qrImage" class="mx-auto rounded-lg" alt="QR Code">
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="downloadQR" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Download
+        </button>
+        <button id="printQR" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          Print
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Scan QR Modal (Placeholder) -->
-  <div id="scanModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
-      <button id="closeScanModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-        <i data-lucide="x" class="w-5 h-5"></i>
+  <!-- Scan QR Modal -->
+  <div id="scanModal" class="hidden fixed inset-0 modal-backdrop bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-[450px] text-center relative slide-in">
+      <button id="closeScanModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+        <i data-lucide="x" class="w-6 h-6"></i>
       </button>
-      <h3 class="font-semibold text-blue-700 mb-4">Scan or Upload QR</h3>
-      <p class="text-gray-600 mb-4">Scanner feature coming soon</p>
-      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Upload QR</button>
+      
+      <div class="mb-6">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="camera" class="w-8 h-8 text-green-600"></i>
+        </div>
+        <h3 class="font-bold text-xl text-gray-800 mb-2">Scan QR Code</h3>
+        <p class="text-gray-600 text-sm">Upload a QR code image to scan device information</p>
+      </div>
+      
+      <div class="mb-6">
+        <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+          <i data-lucide="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-3 group-hover:text-blue-500 transition-colors"></i>
+          <p class="text-sm font-medium text-gray-700 mb-1">Click to upload or drag and drop</p>
+          <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+          <input type="file" id="qrFileInput" accept="image/*" class="hidden">
+        </div>
+        
+        <div id="previewArea" class="hidden mb-4">
+          <div class="relative inline-block">
+            <img id="previewImage" class="max-h-48 rounded-lg shadow-lg mx-auto" alt="QR Preview">
+            <button id="removeImage" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="scanResult" class="hidden mb-6">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+          <p class="text-sm font-medium text-green-800 mb-2 flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            QR Code Scanned Successfully
+          </p>
+          <div class="bg-white rounded-lg p-3 text-sm font-mono text-gray-700 break-all border" id="scanResultText"></div>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="uploadQRBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors font-medium flex items-center justify-center gap-2">
+          <i data-lucide="scan" class="w-4 h-4"></i>
+          Upload & Scan
+        </button>
+        <button id="clearBtn" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium flex items-center justify-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          Clear
+        </button>
+      </div>
     </div>
   </div>
 
@@ -71,44 +234,570 @@ document.addEventListener('DOMContentLoaded', async () => {
   const qrImage = document.getElementById('qrImage');
   const qrDeviceName = document.getElementById('qrDeviceName');
   const closeQRModal = document.getElementById('closeQRModal');
+  const pagination = document.getElementById('pagination');
+  const downloadQR = document.getElementById('downloadQR');
+  const printQR = document.getElementById('printQR');
 
   const scanModal = document.getElementById('scanModal');
   const scanQRBtn = document.getElementById('scanQRBtn');
   const closeScanModal = document.getElementById('closeScanModal');
+  const uploadArea = document.getElementById('uploadArea');
+  const qrFileInput = document.getElementById('qrFileInput');
+  const previewArea = document.getElementById('previewArea');
+  const previewImage = document.getElementById('previewImage');
+  const removeImage = document.getElementById('removeImage');
+  const uploadQRBtn = document.getElementById('uploadQRBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const scanResult = document.getElementById('scanResult');
+  const scanResultText = document.getElementById('scanResultText');
+  const processScanResult = document.getElementById('processScanResult');
+
+  // Search and filter elements
+  const searchInput = document.getElementById('searchInput');
+  const clearSearchBtn = document.getElementById('clearSearch');
+  const statusFilter = document.getElementById('statusFilter');
+  const testApiBtn = document.getElementById('testApiBtn');
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  
+  // Stats elements
+  const totalDevices = document.getElementById('totalDevices');
+  const availableDevices = document.getElementById('availableDevices');
+  const maintenanceDevices = document.getElementById('maintenanceDevices');
+  
+  // Pagination info elements
+  const showingFrom = document.getElementById('showingFrom');
+  const showingTo = document.getElementById('showingTo');
+  const totalItems = document.getElementById('totalItems');
+
+  let selectedFile = null;
+  let filteredDevices = [];
+
+  let currentPage = 1;
+  const itemsPerPage = 12;
+  let allDevices = [];
 
   // Fetch devices
+  loadingState.classList.remove('hidden');
+  console.log('Starting to fetch devices...');
+  
   try {
+    console.log('Making request to /get_all_device_qrs');
     const response = await fetch('/get_all_device_qrs');
-    const devices = await response.json();
-    deviceGrid.innerHTML = '';
+    console.log('Response received:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Raw data received:', data);
+    
+    allDevices = data;
+    console.log('Devices loaded:', allDevices.length);
+    console.log('Sample device:', allDevices[0]);
+    
+  } catch(err) {
+    console.error('Error loading devices:', err);
+    deviceGrid.innerHTML = `
+      <div class="text-center py-8">
+        <p class="text-red-500 font-semibold">Failed to load devices</p>
+        <p class="text-gray-600 text-sm mt-2">Error: ${err.message}</p>
+        <p class="text-gray-500 text-xs mt-1">Check browser console (F12) for more details</p>
+      </div>
+    `;
+    loadingState.classList.add('hidden');
+    return; // Stop execution if API fails
+  }
+  
+  filteredDevices = [...allDevices];
+  updateStats();
+  renderDevices();
+  renderPagination();
+  loadingState.classList.add('hidden');
 
-    devices.forEach(device => {
+  function updateStats() {
+    const stats = {
+      total: filteredDevices.length,
+      available: filteredDevices.filter(d => d.status === 'Available').length,
+      maintenance: filteredDevices.filter(d => d.status === 'Maintenance').length
+    };
+    
+    totalDevices.textContent = stats.total;
+    availableDevices.textContent = stats.available;
+    maintenanceDevices.textContent = stats.maintenance;
+  }
+  
+  function filterDevices() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const statusValue = statusFilter.value;
+    
+    console.log('=== SEARCH DEBUG ===');
+    console.log('Search term:', searchTerm);
+    console.log('Status filter:', statusValue);
+    console.log('Total devices available:', allDevices.length);
+    console.log('Sample device structure:', allDevices[0]);
+    
+    filteredDevices = allDevices.filter((device, index) => {
+      console.log(`Device ${index}:`, {
+        name: device.item_name,
+        brand: device.brand_model,
+        id: device.accession_id,
+        serial: device.serial_no,
+        status: device.status
+      });
+      
+      let matchesSearch = true; // Default to true if no search term
+      if (searchTerm) {
+        matchesSearch = 
+          (device.item_name && device.item_name.toLowerCase().includes(searchTerm)) ||
+          (device.brand_model && device.brand_model.toLowerCase().includes(searchTerm)) ||
+          (device.accession_id && device.accession_id.toLowerCase().includes(searchTerm)) ||
+          (device.serial_no && device.serial_no.toLowerCase().includes(searchTerm));
+      }
+      
+      const matchesStatus = !statusValue || device.status === statusValue;
+      
+      console.log(`Device ${index} matches:`, { 
+        searchTerm, 
+        matchesSearch, 
+        matchesStatus,
+        nameMatch: device.item_name && device.item_name.toLowerCase().includes(searchTerm),
+        brandMatch: device.brand_model && device.brand_model.toLowerCase().includes(searchTerm),
+        idMatch: device.accession_id && device.accession_id.toLowerCase().includes(searchTerm),
+        serialMatch: device.serial_no && device.serial_no.toLowerCase().includes(searchTerm)
+      });
+      
+      return matchesSearch && matchesStatus;
+    });
+    
+    console.log('Filtered devices count:', filteredDevices.length);
+    console.log('=== END SEARCH DEBUG ===');
+    
+    currentPage = 1;
+    updateStats();
+    renderDevices();
+    renderPagination();
+  }
+  
+  function renderDevices() {
+    console.log('=== RENDER DEBUG ===');
+    console.log('Rendering devices. Total filtered:', filteredDevices.length);
+    
+    deviceGrid.innerHTML = '';
+    
+    if (filteredDevices.length === 0) {
+      console.log('No devices to display - showing empty state');
+      emptyState.classList.remove('hidden');
+      pagination.querySelector('.flex.items-center.space-x-2').innerHTML = '';
+      showingFrom.textContent = '0';
+      showingTo.textContent = '0';
+      totalItems.textContent = '0';
+      return;
+    } else {
+      console.log('Hiding empty state, rendering devices');
+      emptyState.classList.add('hidden');
+    }
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const devicesToShow = filteredDevices.slice(startIndex, endIndex);
+    
+    console.log('Devices to show on this page:', devicesToShow.length);
+    console.log('Start index:', startIndex, 'End index:', endIndex);
+
+    devicesToShow.forEach((device, index) => {
+      console.log(`Creating card for device ${index}:`, device.item_name);
+      
+      const statusColor = {
+        'Available': 'bg-green-100 text-green-800 border-green-200',
+        'Maintenance': 'bg-red-100 text-red-800 border-red-200'
+      }[device.status] || 'bg-gray-100 text-gray-800 border-gray-200';
+      
       const card = document.createElement('div');
-      card.className = "bg-white rounded-2xl shadow p-3 border hover:shadow-lg cursor-pointer flex flex-col items-center transition";
+      card.className = "device-card bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg hover:border-blue-300 cursor-pointer slide-in";
+      card.style.animationDelay = `${index * 50}ms`;
       card.innerHTML = `
-        <h4 class="font-bold text-blue-700 text-sm text-center mb-1">${device.item_name}</h4>
-        <p class="text-xs text-gray-700 text-center mb-2">${device.brand_model}</p>
-        <img src="/device_qr/${device.accession_id}" class="w-20 h-20 mb-2" alt="QR">
-        <p class="text-xs text-gray-600">Status: ${device.status}</p>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+              <i data-lucide="box" class="w-7 h-7 text-blue-600"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-gray-800 text-base">${device.item_name}</h4>
+              <p class="text-sm text-gray-600 mb-1">${device.brand_model}</p>
+              <p class="text-xs text-gray-500 font-mono">ID: ${device.accession_id}</p>
+              <p class="text-xs text-gray-500 font-mono">S/N: ${device.serial_no || 'N/A'}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColor}">
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5 ${device.status === 'Available' ? 'bg-green-500' : 'bg-red-500'}"></span>
+              ${device.status}
+            </span>
+            <p class="text-xs text-blue-600 font-medium mt-2 flex items-center gap-1">
+              <i data-lucide="qr-code" class="w-3 h-3"></i>
+              Click to view QR
+            </p>
+          </div>
+        </div>
       `;
       card.addEventListener('click', () => {
+        console.log('Device card clicked:', device.item_name);
         qrDeviceName.textContent = device.item_name;
         qrImage.src = `/device_qr/${device.accession_id}`;
         qrModal.classList.remove('hidden');
       });
       deviceGrid.appendChild(card);
     });
-  } catch(err) {
-    deviceGrid.innerHTML = '<p class="text-red-500">Failed to load devices.</p>';
-    console.error(err);
+    
+    console.log('Cards added to DOM:', devicesToShow.length);
+    
+    // Update pagination info
+    showingFrom.textContent = filteredDevices.length > 0 ? startIndex + 1 : '0';
+    showingTo.textContent = Math.min(endIndex, filteredDevices.length);
+    totalItems.textContent = filteredDevices.length;
+    
+    // Create Lucide icons for the new cards
+    lucide.createIcons();
+    
+    console.log('=== END RENDER DEBUG ===');
+  }
+
+  function renderPagination() {
+    const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
+    const paginationContainer = pagination.querySelector('.flex.items-center.space-x-2');
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = `px-3 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors flex items-center gap-1`;
+    prevBtn.innerHTML = '<i data-lucide="chevron-left" class="w-4 h-4"></i><span>Previous</span>';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderDevices();
+        renderPagination();
+      }
+    });
+    paginationContainer.appendChild(prevBtn);
+
+    // Page numbers with ellipsis for large page counts
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+      const firstBtn = createPageButton(1);
+      paginationContainer.appendChild(firstBtn);
+      
+      if (startPage > 2) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'px-2 text-gray-500';
+        ellipsis.textContent = '...';
+        paginationContainer.appendChild(ellipsis);
+      }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = createPageButton(i);
+      paginationContainer.appendChild(pageBtn);
+    }
+    
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'px-2 text-gray-500';
+        ellipsis.textContent = '...';
+        paginationContainer.appendChild(ellipsis);
+      }
+      
+      const lastBtn = createPageButton(totalPages);
+      paginationContainer.appendChild(lastBtn);
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = `px-3 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors flex items-center gap-1`;
+    nextBtn.innerHTML = '<span>Next</span><i data-lucide="chevron-right" class="w-4 h-4"></i>';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderDevices();
+        renderPagination();
+      }
+    });
+    paginationContainer.appendChild(nextBtn);
+
+    // Create Lucide icons for pagination
+    lucide.createIcons();
+  }
+  
+  function createPageButton(pageNum) {
+    const pageBtn = document.createElement('button');
+    pageBtn.className = `px-3 py-2 rounded-lg ${pageNum === currentPage ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors`;
+    pageBtn.textContent = pageNum;
+    pageBtn.addEventListener('click', () => {
+      currentPage = pageNum;
+      renderDevices();
+      renderPagination();
+    });
+    return pageBtn;
   }
 
   // Close QR modal
   closeQRModal.addEventListener('click', () => qrModal.classList.add('hidden'));
+  
+  // Download QR functionality
+  downloadQR.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.href = qrImage.src;
+    link.download = `${qrDeviceName.textContent}_QR.png`;
+    link.click();
+  });
+  
+  // Print QR functionality
+  printQR.addEventListener('click', () => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>QR Code - ${qrDeviceName.textContent}</title>
+          <style>
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; text-align: center; }
+            h1 { color: #1e40af; margin-bottom: 20px; }
+            img { max-width: 300px; margin: 20px 0; }
+            p { color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          <h1>${qrDeviceName.textContent}</h1>
+          <p>Device QR Code</p>
+          <img src="${qrImage.src}" alt="QR Code">
+          <p>Scan this QR code to access device information</p>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  });
 
   // Scan QR modal
-  scanQRBtn.addEventListener('click', () => scanModal.classList.remove('hidden'));
-  closeScanModal.addEventListener('click', () => scanModal.classList.add('hidden'));
+  scanQRBtn.addEventListener('click', () => {
+    scanModal.classList.remove('hidden');
+    lucide.createIcons();
+  });
+  
+  closeScanModal.addEventListener('click', () => {
+    clearUpload();
+    scanModal.classList.add('hidden');
+  });
+  
+  // Search and filter event listeners
+  if (searchInput) {
+    searchInput.addEventListener('input', filterDevices);
+    console.log('Search input listener attached'); // Debug log
+  } else {
+    console.error('Search input not found');
+  }
+  
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterDevices();
+    });
+    console.log('Clear search button listener attached'); // Debug log
+  } else {
+    console.error('Clear search button not found');
+  }
+  
+  if (statusFilter) {
+    statusFilter.addEventListener('change', filterDevices);
+    console.log('Status filter listener attached'); // Debug log
+  } else {
+    console.error('Status filter not found');
+  }
+  
+  // Test API button
+  if (testApiBtn) {
+    testApiBtn.addEventListener('click', async () => {
+      console.log('Testing API endpoint...');
+      try {
+        const response = await fetch('/get_all_device_qrs');
+        console.log('Test response status:', response.status);
+        const data = await response.json();
+        console.log('Test data:', data);
+        console.log('First device details:', data[0]);
+        
+        // Test search manually
+        const testSearch = data.filter(device => 
+          device.item_name && device.item_name.toLowerCase().includes('laptop')
+        );
+        console.log('Manual laptop search results:', testSearch.length);
+        
+        alert(`API Test Success! Found ${data.length} devices. Manual laptop search found ${testSearch.length} devices. Check console for details.`);
+      } catch (error) {
+        console.error('API Test Failed:', error);
+        alert(`API Test Failed: ${error.message}. Check console for details.`);
+      }
+    });
+  }
+  
+  // Simple search test
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      console.log('Simple search test - term:', searchTerm);
+      
+      if (searchTerm) {
+        const results = allDevices.filter(device => 
+          device.item_name && device.item_name.toLowerCase().includes(searchTerm)
+        );
+        console.log('Simple search results:', results.length);
+      }
+    });
+  }
+
+  // File upload functions
+  uploadArea.addEventListener('click', () => {
+    qrFileInput.click();
+  });
+
+  // Drag and drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('border-blue-500', 'bg-blue-50');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  });
+
+  qrFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  function handleFileSelect(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB.');
+      return;
+    }
+
+    selectedFile = file;
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      previewImage.src = e.target.result;
+      uploadArea.classList.add('hidden');
+      previewArea.classList.remove('hidden');
+      lucide.createIcons();
+    };
+    
+    reader.readAsDataURL(file);
+  }
+
+  removeImage.addEventListener('click', () => {
+    clearUpload();
+  });
+
+  function clearUpload() {
+    selectedFile = null;
+    qrFileInput.value = '';
+    previewImage.src = '';
+    uploadArea.classList.remove('hidden');
+    previewArea.classList.add('hidden');
+    scanResult.classList.add('hidden');
+    scanResultText.textContent = '';
+  }
+
+  uploadQRBtn.addEventListener('click', async () => {
+    if (!selectedFile) {
+      alert('Please select an image file first.');
+      return;
+    }
+
+    try {
+      const html5QrCode = new Html5Qrcode("temp-scan-area");
+      const imageData = previewImage.src;
+      
+      await html5QrCode.scanFile(selectedFile, true)
+        .then((decodedText) => {
+          scanResultText.textContent = decodedText;
+          scanResult.classList.remove('hidden');
+        })
+        .catch((err) => {
+          console.error('Scan failed:', err);
+          alert('Failed to scan QR code. Please ensure the image contains a clear QR code.');
+        });
+      
+    } catch (error) {
+      console.error('Error scanning QR:', error);
+      alert('Error scanning QR code. Please try again.');
+    }
+  });
+
+  clearBtn.addEventListener('click', clearUpload);
+
+  processScanResult.addEventListener('click', () => {
+    const scannedData = scanResultText.textContent;
+    // You can process the scanned QR data here
+    // For now, just show an alert with the scanned data
+    alert(`Scanned device data: ${scannedData}`);
+    
+    // Reset and close modal
+    clearUpload();
+    scanModal.classList.add('hidden');
+  });
+  
+  // Close modals when clicking outside
+  qrModal.addEventListener('click', (e) => {
+    if (e.target === qrModal) {
+      qrModal.classList.add('hidden');
+    }
+  });
+  
+  scanModal.addEventListener('click', (e) => {
+    if (e.target === scanModal) {
+      clearUpload();
+      scanModal.classList.add('hidden');
+    }
+  });
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      qrModal.classList.add('hidden');
+      if (!scanModal.classList.contains('hidden')) {
+        clearUpload();
+        scanModal.classList.add('hidden');
+      }
+    }
+    
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
 });
 </script>
 </body>

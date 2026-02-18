@@ -25,18 +25,24 @@ function bulkUpdateDevices() {
     return;
   }
 
-  if (!confirm(`Update ${selected.length} device(s)?`)) return;
-
-  fetch("/inventory/device/bulk-update", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      device_ids: selected,
-      new_status: status
-    })
-  })
-    .then(res => res.json())
-    .then(d => d.success ? location.reload() : alert("Bulk update failed"));
+  // Use confirmation modal instead of native confirm
+  showConfirmationModal(
+    'Confirm Bulk Update',
+    `Update ${selected.length} selected device(s) to status "${status}"? This action cannot be undone.`,
+    'Update',
+    function() {
+      fetch("/inventory/device/bulk-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_ids: selected,
+          new_status: status
+        })
+      })
+        .then(res => res.json())
+        .then(d => d.success ? location.reload() : alert("Bulk update failed"));
+    }
+  );
 }
 
 // ---------- DEVICE MODAL ----------
@@ -73,15 +79,32 @@ window.bulkUpdateDevices = function () {
   const ids = [...document.querySelectorAll(".device-checkbox:checked")]
     .map(cb => cb.value);
 
-  if (!status || !ids.length) return alert("Missing selection.");
+  if (!status) {
+    alert("Select a status.");
+    return;
+  }
 
-  fetch("/inventory/device/bulk-update", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ device_ids: ids, new_status: status })
-  }).then(() => location.reload());
+  if (!ids.length) {
+    alert("Select at least one device.");
+    return;
+  }
+
+  // Use confirmation modal instead of native confirm
+  showConfirmationModal(
+    'Confirm Bulk Update',
+    `Update ${ids.length} selected device(s) to status "${status}"? This action cannot be undone.`,
+    'Update',
+    function() {
+      fetch("/inventory/device/bulk-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_ids: ids, new_status: status })
+      })
+        .then(res => res.json())
+        .then(d => d.success ? location.reload() : alert("Bulk update failed"));
+    }
+  );
 };
-
 
 window.toggleSelectAllDevices = function () {
   const master = document.getElementById("selectAllDevices");

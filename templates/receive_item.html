@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receive Item</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 flex min-h-screen">
+
+  {% include 'sidebar.html' %}
+
+  <main class="flex-1 md:ml-64 p-8 space-y-10">
+    <header class="flex items-center justify-between bg-green-700 text-white shadow-lg p-4 rounded-xl border border-green-800 backdrop-blur-md">
+      <div class="flex items-center gap-2 font-medium">
+        <i data-lucide="package-check" class="w-6 h-6 text-white"></i>
+        <h1 class="text-2xl md:text-3xl font-bold">Receive Item</h1>
+      </div>
+    </header>
+
+    <!-- Borrowed Items Section -->
+    <section class="bg-white p-8 rounded-xl shadow-md">
+      <div class="flex items-center mb-6">
+        <i data-lucide="package" class="w-7 h-7 text-blue-600 mr-2"></i>
+        <h2 class="text-2xl font-semibold text-blue-700">Your Borrowed Items</h2>
+      </div>
+
+      <!-- Items Table -->
+      <div class="overflow-x-auto rounded-lg border border-gray-300">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-gray-200 text-sm uppercase">
+            <tr>
+              <th class="p-2 border">Item Name</th>
+              <th class="p-2 border">Category</th>
+              <th class="p-2 border">Location</th>
+              <th class="p-2 border">Department</th>
+              <th class="p-2 border">Borrow Date</th>
+              <th class="p-2 border">Expected Return</th>
+              <th class="p-2 border">Action</th>
+            </tr>
+          </thead>
+          <tbody id="borrowed-items-body" class="text-sm"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Receive Item Modal -->
+  <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-gray-800">Receive Item Condition</h3>
+          <button onclick="closeReceiveModal()" class="text-gray-500 hover:text-gray-700">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <form id="receiveForm">
+          <input type="hidden" id="borrowId">
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Item Details</label>
+            <div id="itemDetails" class="p-3 bg-gray-50 rounded border"></div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Item Condition</label>
+            <select id="itemCondition" required class="w-full p-2 rounded border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500">
+              <option value="">Select Condition</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+              <option value="Damaged">Damaged</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="flex items-center">
+              <input type="checkbox" id="hasDamage" class="mr-2">
+              <span class="text-sm font-medium">Item has damage</span>
+            </label>
+          </div>
+
+          <div id="damageSection" class="mb-4 hidden">
+            <label class="block text-sm font-medium mb-2">Damage Description</label>
+            <textarea id="damageDescription" rows="3" class="w-full p-2 rounded border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500" placeholder="Describe the damage..."></textarea>
+          </div>
+
+          <div class="flex gap-3">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow font-semibold">
+              Confirm Receive
+            </button>
+            <button type="button" onclick="closeReceiveModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow font-semibold">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Load borrowed items
+    async function loadBorrowedItems() {
+      try {
+        const res = await fetch('/get-borrowed-items');
+        const items = await res.json();
+
+        const tbody = document.getElementById("borrowed-items-body");
+        tbody.innerHTML = "";
+
+        if (items.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">No borrowed items found.</td></tr>`;
+          return;
+        }
+
+        items.forEach(item => {
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-100">
+              <td class="p-2 border">${item.item_name}</td>
+              <td class="p-2 border">${item.category}</td>
+              <td class="p-2 border">${item.location}</td>
+              <td class="p-2 border">${item.department}</td>
+              <td class="p-2 border">${item.borrow_date}</td>
+              <td class="p-2 border">${item.expected_return_date}</td>
+              <td class="p-2 border">
+                <button onclick="openReceiveModal(${item.borrow_id}, '${item.item_name}', '${item.category}', '${item.location}', '${item.department}')" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-semibold">
+                  Receive
+                </button>
+              </td>
+            </tr>`;
+        });
+      } catch (error) {
+        console.error('Error loading borrowed items:', error);
+      }
+    }
+
+    function openReceiveModal(borrowId, itemName, category, location, department) {
+      document.getElementById('borrowId').value = borrowId;
+      document.getElementById('itemDetails').innerHTML = `
+        <p><strong>Name:</strong> ${itemName}</p>
+        <p><strong>Category:</strong> ${category}</p>
+        <p><strong>Location:</strong> ${location}</p>
+        <p><strong>Department:</strong> ${department}</p>
+      `;
+      document.getElementById('receiveModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeReceiveModal() {
+      document.getElementById('receiveModal').classList.add('hidden');
+      document.getElementById('receiveForm').reset();
+      document.getElementById('damageSection').classList.add('hidden');
+    }
+
+    // Handle damage checkbox
+    document.getElementById('hasDamage').addEventListener('change', function() {
+      const damageSection = document.getElementById('damageSection');
+      if (this.checked) {
+        damageSection.classList.remove('hidden');
+        document.getElementById('damageDescription').required = true;
+      } else {
+        damageSection.classList.add('hidden');
+        document.getElementById('damageDescription').required = false;
+      }
+    });
+
+    // Handle form submission
+    document.getElementById('receiveForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        borrow_id: document.getElementById('borrowId').value,
+        item_condition: document.getElementById('itemCondition').value,
+        has_damage: document.getElementById('hasDamage').checked,
+        damage_description: document.getElementById('damageDescription').value
+      };
+
+      try {
+        const res = await fetch('/receive-item-submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          alert('Item received successfully!');
+          closeReceiveModal();
+          loadBorrowedItems();
+        } else {
+          alert('Error: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Error receiving item:', error);
+        alert('An error occurred while receiving the item');
+      }
+    });
+
+    // Load data on page load
+    window.addEventListener("DOMContentLoaded", loadBorrowedItems);
+  </script>
+</body>
+</html>

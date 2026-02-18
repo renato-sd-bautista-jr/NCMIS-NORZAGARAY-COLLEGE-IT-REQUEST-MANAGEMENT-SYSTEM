@@ -30,6 +30,7 @@
         <div class="flex items-center gap-2">
           {% include 'pceditmodal.html' %}
           {% include 'itemeditmodal.html' %}
+          {% include 'consumable_modal.html' %}
         </div>
 
       <div class="w-6"></div>
@@ -48,26 +49,31 @@
         class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
         id="itemsBtn">
         <i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
-        Manage Devices
+        Manage Item
+      </button>
+
+      <button onclick="showSection('consumablesSection'); setActiveNav(this)"
+        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 shadow-sm transition-all duration-200"
+        id="consumablesBtn">
+        <i data-lucide="package-open" class="w-5 h-5 mr-2 text-green-600"></i>
+        Manage Consumables
       </button>
     </nav>
 
     <!-- PAGE CONTENT BELOW NAVBAR -->
     <div class="space-y-8">
       <!-- ACTION BAR -->
-<div class="flex justify-end mb-4">
-  
-  
-    {% if permissions.get('inventory', {}).get('edit', False) %}
-    <button 
-    id="addButton"
-    onclick="handleAddButtonClick()" 
-    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
-    Add PC
-  </button>
-  
-  {% endif %}
-</div>
+    <div class="flex justify-between items-center mb-4">
+      <div></div>
+      {% if permissions.get('inventory', {}).get('edit', False) %}
+      <button 
+        id="addButton"
+        onclick="handleAddButtonClick()" 
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+        Add PC
+      </button>
+      {% endif %}
+    </div>
 
       <!-- INVENTORY SECTION -->
       <section id="inventorySection">
@@ -77,37 +83,35 @@
           <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
             <i data-lucide="cpu" class="w-6 h-6"></i> Manage PC
           </h3>
-          <button 
-  type="button"
-  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  onclick="openPcFilterModal()">
-  <i data-lucide="filter"></i> Filter PCs
-</button>
-<button 
-  type="button"
-  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  onclick="runRiskUpdate()">
-  <i data-lucide="refresh-cw"></i> Update Risk Levels
-</button>
-
-
-        
-          
+          <div class="flex flex-wrap gap-3 mb-4">
+            <button 
+              type="button"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              onclick="openPcFilterModal()">
+              <i data-lucide="filter"></i> Filter PCs
+            </button>
+            <button 
+              type="button"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              onclick="confirmRiskUpdate()">
+              <i data-lucide="refresh-cw"></i> Update Risk Levels
+            </button>
+            {% if permissions.get('inventory', {}).get('edit', False) %}
+            <button
+              onclick="bulkMarkPcChecked()"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+              <i data-lucide="check-square"></i>
+              Mark Selected Checked
+            </button>
+            {% endif %}
+          </div>
 
           {% if pc_list|length == 0 %}
           <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No PCs found.</div>
           {% else %}
-          <div class="overflow-x-auto rounded-xl">
+          <div class="hidden lg:block overflow-x-auto rounded-xl">
             <table class="min-w-full border border-gray-200 text-sm text-gray-800">
               <thead class="bg-gray-200 text-gray-700">
-
-                
-<button
-  onclick="bulkMarkPcChecked()"
-  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-  <i data-lucide="check-square"></i>
-  Mark Selected Checked
-</button>
                 <tr>
                   <th class="px-4 py-2 border-b text-left">
 <input
@@ -126,8 +130,7 @@
                   <th class="px-4 py-2 border-b text-left">Municipal Serial No.</th> 
                   <th class="px-4 py-2 border-b text-left">Status</th>
                   {% if permissions.get('inventory', {}).get('edit', False) %}
-                  <th class="px-4 py-2 border-b text-left">Risk</th>
-                  <th class="px-4 py-2 border-b text-left">Health</th>
+                  <th class="px-4 py-2 border-b text-left">Functionality</th>
                   <th class="px-4 py-2 border-b text-left">Actions</th>
                   {% endif %}
                 </tr>
@@ -158,71 +161,95 @@
       {% else %}text-red-600{% endif %}">
     {{ pc.status }}
   </td>
-   <!-- RISK -->
-            <td class="px-4 py-2 border-b">
-              <span class="
-                {% if pc.risk_level == 'High' %}text-red-600
-                {% elif pc.risk_level == 'Medium' %}text-yellow-600
-                {% elif pc.risk_level == 'Low' %}text-green-600
-                {% else %}text-gray-500
-                {% endif %}
-                font-semibold">
-                {{ pc.risk_level or '—' }}
-              </span>
-            </td>
-   <!-- HEALTH SCORE -->
-  <td class="px-4 py-2 border-b">
-    {% if pc.health_score is not none %}
-      <div class="flex items-center gap-2">
-        <div class="w-24 bg-gray-200 rounded-full h-2">
-          <div
-            class="h-2 rounded-full
-            {% if pc.health_score >= 80 %}bg-green-500
-            {% elif pc.health_score >= 50 %}bg-yellow-500
-            {% else %}bg-red-500{% endif %}"
-            style="width: {{ pc.health_score }}%">
-          </div>
-        </div>
-        <span class="text-xs font-semibold">{{ pc.health_score or 0 }}%</span>
-      </div>
+<td class="px-4 py-2 border-b font-medium
+      {% if pc.status == 'Damaged' %}
+          text-red-600
+      {% else %}
+          text-green-600
+      {% endif %}">
+    {% if pc.status == 'Damaged' %}
+        Not Functional
     {% else %}
-      —
+        Functional
     {% endif %}
-  </td>
+</td>
  
      <!-- ACTIONS -->
 {% if permissions.get('inventory', {}).get('edit', False) %}
-  <td class="px-4 py-2 border-b flex gap-2">
-    <button
-      onclick="openPcModalById({{ pc.pcid }})"
-      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-      Edit
-    </button>
-
-    <button
-      type="button"
-      onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')"
-      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
-      Delete
-    </button>
- {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
-    <button
-      onclick="markPcChecked({{ pc.pcid }})"
-      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
-      Mark Checked
-    </button>
-    {% endif %}
-    <button
-    onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')"
-    class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs shadow">
-    History
-</button>
+  <td class="px-4 py-2 border-b">
+    <div class="flex flex-wrap gap-1">
+      {% if permissions.get('inventory', {}).get('edit', False) %}
+      <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
+      <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
+      {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+      <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
+      {% endif %}
+      <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
+      {% endif %}
+    </div>
   </td>
             {% endif %}
           </tr>
           {% endfor %}
         </tbody>
       </table>
+          </div>
+          
+          <!-- Mobile Card View for PCs -->
+          <div class="lg:hidden space-y-4">
+            {% for pc in pc_list %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h4 class="font-semibold text-gray-900">{{ pc.pcname }}</h4>
+                  <p class="text-sm text-gray-600">ID: {{ pc.pcid }}</p>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                      {% if pc.status == 'Available' %}bg-green-100 text-green-600
+                      {% elif pc.status == 'In Used' %}bg-blue-100 text-blue-600
+                      {% elif pc.status == 'Inactive' %}bg-gray-100 text-gray-500
+                      {% else %}bg-red-100 text-red-600{% endif %}">
+                      {{ pc.status }}
+                </span>
+              </div>
+              
+              <div class="space-y-1 text-sm text-gray-600 mb-3">
+                <p><span class="font-medium">Department:</span> {{ pc.department_name }}</p>
+                <p><span class="font-medium">Location:</span> {{ pc.location }}</p>
+                <p><span class="font-medium">Accountable:</span> {{ pc.accountable }}</p>
+                {% if pc.serial_no %}<p><span class="font-medium">Serial:</span> {{ pc.serial_no }}</p>{% endif %}
+                <td class="px-4 py-2 border-b font-medium
+      {% if pc.status == 'Damaged' %}
+          text-red-600
+      {% else %}
+          text-green-600
+      {% endif %}">
+    {% if pc.status == 'Damaged' %}
+        Not Functional
+    {% else %}
+        Functional
+    {% endif %}
+</td>
+              </div>
+              
+              <div class="flex items-center gap-2 mb-3">
+                <input type="checkbox" class="pc-checkbox" value="{{ pc.pcid }}" class="rounded">
+                <label class="text-sm text-gray-600">Select for bulk actions</label>
+              </div>
+              
+              {% if permissions.get('inventory', {}).get('edit', False) %}
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+                <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
+                {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+                <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+                {% endif %}
+                <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
           <!-- PAGINATION -->
       <div class="flex items-center justify-between mt-4 text-sm">
         <div class="text-gray-600">
@@ -284,18 +311,38 @@
 <section id="itemsSection" class="hidden">
   <div class="bg-white rounded-xl shadow-lg p-6">
     <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-      <i data-lucide="package" class="w-6 h-6"></i> Manage Devices
+      <i data-lucide="package" class="w-6 h-6"></i> Manage Item
     </h3>
-<button 
-  type="button"
-  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  onclick="openDeviceFilterModalFromFile()">
-  <i data-lucide="filter"></i> Filter Devices
-</button>
+    <div class="flex flex-wrap gap-3 mb-4">
+      <button 
+        type="button"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+        onclick="openDeviceFilterModalFromFile()">
+        <i data-lucide="filter"></i> Filter Item
+      </button>
+      {% if permissions.get('inventory', {}).get('edit', False) %}
+      <select id="bulkDeviceStatus"
+              class="border rounded px-3 py-2 text-sm">
+        <option value="">Select Status</option>
+        <option value="Available">Available</option>
+        <option value="In Used">In Used</option>
+        <option value="Needs Checking">Needs Checking</option>
+        <option value="Damaged">Damaged</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+
+      <button
+        onclick="bulkUpdateDevices()"
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <i data-lucide="check-square"></i>
+        Apply to Selected
+      </button>
+      {% endif %}
+    </div>
     {% if item_list|length == 0 %}
     <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No devices found.</div>
     {% else %}
-    <div class="overflow-x-auto rounded-xl">
+    <div class="hidden lg:block overflow-x-auto rounded-xl">
       <table class="min-w-full border border-gray-200 text-sm text-gray-800">
         <thead class="bg-gray-200 text-gray-700">
           <tr>
@@ -312,29 +359,10 @@
             <th class="px-4 py-2 border-b text-left">Accountable</th>
             <th class="px-4 py-2 border-b text-left">Department</th>
             <th class="px-4 py-2 border-b text-left">Status</th>
-            <th class="px-4 py-2 border-b text-left">Risk</th>
-            <th class="px-4 py-2 border-b text-left">Health</th>
+            <th class="px-4 py-2 border-b text-left">Functionality</th>
             <th class="px-4 py-2 border-b text-left">Actions</th>
           </tr>
         </thead>
-        <div class="flex flex-wrap gap-3 mb-4">
-  <select id="bulkDeviceStatus"
-          class="border rounded px-3 py-2 text-sm">
-    <option value="">Select Status</option>
-    <option value="Available">Available</option>
-    <option value="In Used">In Used</option>
-    <option value="Needs Checking">Needs Checking</option>
-    <option value="Damaged">Damaged</option>
-    <option value="Inactive">Inactive</option>
-  </select>
-
-  <button
-    onclick="bulkUpdateDevices()"
-    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-    <i data-lucide="check-square"></i>
-    Apply to Selected
-  </button>
-</div>
         <tbody id="deviceTableBody">
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
@@ -362,67 +390,105 @@
     {{ item.status }}
   </td>
 
-  <!-- RISK LEVEL -->
-  <td class="px-4 py-2 border-b font-semibold
-      {% if item.risk_level == 'Low' %}text-green-600
-      {% elif item.risk_level == 'Medium' %}text-yellow-600
-      {% elif item.risk_level == 'High' %}text-red-600
-      {% else %}text-gray-500{% endif %}">
-    {{ item.risk_level or '—' }}
-  </td>
-
-  <!-- HEALTH SCORE -->
-  <td class="px-4 py-2 border-b">
-    {% if item.health_score is not none %}
-      <div class="flex items-center gap-2">
-        <div class="w-24 bg-gray-200 rounded-full h-2">
-          <div
-            class="h-2 rounded-full
-            {% if item.health_score >= 80 %}bg-green-500
-            {% elif item.health_score >= 50 %}bg-yellow-500
-            {% else %}bg-red-500{% endif %}"
-            style="width: {{ item.health_score }}%">
-          </div>
-        </div>
-        <span class="text-xs font-semibold">{{ item.health_score }}%</span>
-      </div>
+<td class="px-4 py-2 border-b font-medium
+      {% if item.status == 'Damaged' %}
+          text-red-600
+      {% else %}
+          text-green-600
+      {% endif %}">
+    {% if item.status == 'Damaged' %}
+        Not Functional
     {% else %}
-      —
+        Functional
     {% endif %}
-  </td>
+
+
 
   <!-- ACTIONS -->
   {% if permissions.get('inventory', {}).get('edit', False) %}
-  <td class="px-4 py-2 border-b flex gap-2">
-    <button
-      onclick="openItemModalById({{ item.accession_id }})"
-      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs shadow">
-      Edit
-    </button>
-
-    <button
-      type="button"
-      onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item', id=item.accession_id) }}')"
-      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs shadow">
-      Delete
-    </button>
-
-    <button
-      onclick="markChecked('DEVICE', {{ item.accession_id }})"
-      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs shadow">
-      Mark Checked
-    </button>
-    <button
-    onclick="openMaintenanceLog({{ item.accession_id }}, 'DEVICE')"
-    class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs shadow">
-    History
-</button>
+  <td class="px-4 py-2 border-b">
+    <div class="flex flex-wrap gap-1">
+      {% if permissions.get('inventory', {}).get('edit', False) %}
+      <button onclick="openItemModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
+      <button type="button" onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
+      <button onclick="markChecked('DEVICE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
+      <button onclick="openMaintenanceLog({{ item.accession_id }}, 'DEVICE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
+      {% endif %}
+    </div>
   </td>
   {% endif %}
 </tr>
           {% endfor %}
         </tbody>
-      </table>  
+      </table>
+      </div>
+      
+      <!-- Mobile Card View for Devices -->
+      <div class="lg:hidden space-y-4">
+        {% for item in item_list %}
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h4 class="font-semibold text-gray-900">{{ item.item_name }}</h4>
+              <p class="text-sm text-gray-600">ID: {{ item.accession_id }}</p>
+            </div>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                  {% if item.status == 'Available' %}bg-green-100 text-green-600
+                  {% elif item.status == 'In Used' %}bg-blue-100 text-blue-600
+                  {% elif item.status == 'Inactive' %}bg-gray-100 text-gray-500
+                  {% else %}bg-red-100 text-red-600{% endif %}">
+                  {{ item.status }}
+            </span>
+          </div>
+          
+          <div class="space-y-1 text-sm text-gray-600 mb-3">
+            {% if item.brand_model %}<p><span class="font-medium">Brand/Model:</span> {{ item.brand_model }}</p>{% endif %}
+            {% if item.serial_no %}<p><span class="font-medium">Serial:</span> {{ item.serial_no }}</p>{% endif %}
+            <p><span class="font-medium">Department:</span> {{ item.department_name or '—' }}</p>
+            <p><span class="font-medium">Accountable:</span> {{ item.accountable or '—' }}</p>
+            <p><span class="font-medium">Cost:</span> ₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</p>
+            <p><span class="font-medium">Risk:</span> 
+              <span class="font-semibold
+                {% if item.risk_level == 'Low' %}text-green-600
+                {% elif item.risk_level == 'Medium' %}text-yellow-600
+                {% elif item.risk_level == 'High' %}text-red-600
+                {% else %}text-gray-500{% endif %}">
+                {{ item.risk_level or '—' }}
+              </span>
+            </p>
+            {% if item.health_score is not none %}
+            <p><span class="font-medium">Health:</span> 
+              <div class="flex items-center gap-2 mt-1">
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="h-2 rounded-full
+                    {% if item.health_score >= 80 %}bg-green-500
+                    {% elif item.health_score >= 50 %}bg-yellow-500
+                    {% else %}bg-red-500{% endif %}"
+                    style="width: {{ item.health_score }}%">
+                  </div>
+                </div>
+                <span class="text-xs font-semibold">{{ item.health_score }}%</span>
+              </div>
+            </p>
+            {% endif %}
+          </div>
+          
+          <div class="flex items-center gap-2 mb-3">
+            <input type="checkbox" class="device-checkbox" value="{{ item.accession_id }}" class="rounded">
+            <label class="text-sm text-gray-600">Select for bulk actions</label>
+          </div>
+          
+          {% if permissions.get('inventory', {}).get('edit', False) %}
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openItemModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+            <button type="button" onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
+            <button onclick="markChecked('DEVICE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+            <button onclick="openMaintenanceLog({{ item.accession_id }}, 'DEVICE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
       <!-- PAGINATION -->
 <div class="flex items-center justify-between mt-4 text-sm">
   <div class="text-gray-600">
@@ -431,14 +497,32 @@
 
   <div class="flex gap-1">
     {% if page > 1 %}
-      <a href="?page={{ page - 1 }}&per_page={{ per_page }}"
+      <a href="?page={{ page - 1 }}&per_page={{ per_page }}&section=items
+        {%- if request.args.get('department_id') %}&department_id={{ request.args.get('department_id') }}{% endif -%}
+        {%- if request.args.get('status') %}&status={{ request.args.get('status') }}{% endif -%}
+        {%- if request.args.get('accountable') %}&accountable={{ request.args.get('accountable') }}{% endif -%}
+        {%- if request.args.get('serial_no') %}&serial_no={{ request.args.get('serial_no') }}{% endif -%}
+        {%- if request.args.get('item_name') %}&item_name={{ request.args.get('item_name') }}{% endif -%}
+        {%- if request.args.get('brand_model') %}&brand_model={{ request.args.get('brand_model') }}{% endif -%}
+        {%- if request.args.get('device_type') %}&device_type={{ request.args.get('device_type') }}{% endif -%}
+        {%- if request.args.get('date_from') %}&date_from={{ request.args.get('date_from') }}{% endif -%}
+        {%- if request.args.get('date_to') %}&date_to={{ request.args.get('date_to') }}{% endif -%}"
          class="px-3 py-1 border rounded hover:bg-gray-100">
         Previous
       </a>
     {% endif %}
 
     {% for p in range(1, total_pages + 1) %}
-      <a href="?page={{ p }}&per_page={{ per_page }}&section=items"
+      <a href="?page={{ p }}&per_page={{ per_page }}&section=items
+        {%- if request.args.get('department_id') %}&department_id={{ request.args.get('department_id') }}{% endif -%}
+        {%- if request.args.get('status') %}&status={{ request.args.get('status') }}{% endif -%}
+        {%- if request.args.get('accountable') %}&accountable={{ request.args.get('accountable') }}{% endif -%}
+        {%- if request.args.get('serial_no') %}&serial_no={{ request.args.get('serial_no') }}{% endif -%}
+        {%- if request.args.get('item_name') %}&item_name={{ request.args.get('item_name') }}{% endif -%}
+        {%- if request.args.get('brand_model') %}&brand_model={{ request.args.get('brand_model') }}{% endif -%}
+        {%- if request.args.get('device_type') %}&device_type={{ request.args.get('device_type') }}{% endif -%}
+        {%- if request.args.get('date_from') %}&date_from={{ request.args.get('date_from') }}{% endif -%}
+        {%- if request.args.get('date_to') %}&date_to={{ request.args.get('date_to') }}{% endif -%}"
          class="px-3 py-1 border rounded
          {% if p == page %}
            bg-blue-600 text-white border-blue-600
@@ -450,7 +534,16 @@
     {% endfor %}
 
     {% if page < total_pages %}
-      <a href="?page={{ page + 1 }}&per_page={{ per_page }}"
+      <a href="?page={{ page + 1 }}&per_page={{ per_page }}&section=items
+        {%- if request.args.get('department_id') %}&department_id={{ request.args.get('department_id') }}{% endif -%}
+        {%- if request.args.get('status') %}&status={{ request.args.get('status') }}{% endif -%}
+        {%- if request.args.get('accountable') %}&accountable={{ request.args.get('accountable') }}{% endif -%}
+        {%- if request.args.get('serial_no') %}&serial_no={{ request.args.get('serial_no') }}{% endif -%}
+        {%- if request.args.get('item_name') %}&item_name={{ request.args.get('item_name') }}{% endif -%}
+        {%- if request.args.get('brand_model') %}&brand_model={{ request.args.get('brand_model') }}{% endif -%}
+        {%- if request.args.get('device_type') %}&device_type={{ request.args.get('device_type') }}{% endif -%}
+        {%- if request.args.get('date_from') %}&date_from={{ request.args.get('date_from') }}{% endif -%}
+        {%- if request.args.get('date_to') %}&date_to={{ request.args.get('date_to') }}{% endif -%}"
          class="px-3 py-1 border rounded hover:bg-gray-100">
         Next
       </a>
@@ -459,6 +552,15 @@
 </div>
 <form method="get" class="flex items-center gap-2">
   <input type="hidden" name="section" value="items">
+  {%- if request.args.get('department_id') %}<input type="hidden" name="department_id" value="{{ request.args.get('department_id') }}">{% endif -%}
+  {%- if request.args.get('status') %}<input type="hidden" name="status" value="{{ request.args.get('status') }}">{% endif -%}
+  {%- if request.args.get('accountable') %}<input type="hidden" name="accountable" value="{{ request.args.get('accountable') }}">{% endif -%}
+  {%- if request.args.get('serial_no') %}<input type="hidden" name="serial_no" value="{{ request.args.get('serial_no') }}">{% endif -%}
+  {%- if request.args.get('item_name') %}<input type="hidden" name="item_name" value="{{ request.args.get('item_name') }}">{% endif -%}
+  {%- if request.args.get('brand_model') %}<input type="hidden" name="brand_model" value="{{ request.args.get('brand_model') }}">{% endif -%}
+  {%- if request.args.get('device_type') %}<input type="hidden" name="device_type" value="{{ request.args.get('device_type') }}">{% endif -%}
+  {%- if request.args.get('date_from') %}<input type="hidden" name="date_from" value="{{ request.args.get('date_from') }}">{% endif -%}
+  {%- if request.args.get('date_to') %}<input type="hidden" name="date_to" value="{{ request.args.get('date_to') }}">{% endif -%}
   <label class="text-sm">Rows:</label>
   <select name="per_page"
           onchange="this.form.submit()"
@@ -475,6 +577,257 @@
     {% endif %}
   </div>
 </section>
+
+      <!-- MANAGE CONSUMABLES SECTION -->
+      <section id="consumablesSection" class="hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-green-600 mb-4 flex items-center gap-2">
+            <i data-lucide="package-open" class="w-6 h-6"></i> Manage Consumables
+          </h3>
+          
+          <!-- FILTER AND SEARCH SECTION -->
+          <div class="bg-gray-50 p-4 rounded-lg mb-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex flex-col sm:flex-row gap-4">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Department</label>
+                  <select id="filterConsumableDepartment" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                      <option value="{{ dept.department_name }}">{{ dept.department_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Status</label>
+                  <select id="filterConsumableStatus" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="In Used">In Used</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Damaged">Damaged</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button id="applyConsumableFilters" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2 font-medium">
+                  <i data-lucide="filter"></i> Apply Filters
+                </button>
+                <button id="clearConsumableFilters" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2 font-medium">
+                  <i data-lucide="x-circle"></i> Clear
+                </button>
+              </div>
+            </div>
+            
+            <!-- SEARCH -->
+            <div class="mt-4">
+              <input type="text" placeholder="Search consumables..." id="searchConsumableInput"
+                     class="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-green-500 w-full">
+            </div>
+          </div>
+
+          <!-- BULK ACTIONS -->
+          {% if permissions.get('inventory', {}).get('edit', False) %}
+          <div class="bg-gray-100 p-4 rounded-lg mb-4 flex flex-wrap gap-2 items-center">
+            <span class="text-sm font-medium text-gray-700">Bulk Actions:</span>
+            <select id="bulkConsumableStatus" class="border border-gray-300 rounded px-3 py-1 text-sm">
+              <option value="">Change Status</option>
+              <option value="Available">Available</option>
+              <option value="In Used">In Used</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Damaged">Damaged</option>
+            </select>
+            <button id="bulkUpdateConsumables" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+              Update Selected
+            </button>
+            <button id="bulkMarkConsumablesChecked" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+              Mark Checked
+            </button>
+          </div>
+          {% endif %}
+
+          {% if consumables|length == 0 %}
+          <div class="bg-gray-100 text-gray-600 p-6 rounded-lg text-center border border-gray-200">
+            <i data-lucide="package-open" class="mx-auto mb-3"></i>
+            <p class="text-lg">No consumables found.</p>
+            <p class="text-sm">Click "Add Consumable" to get started.</p>
+          </div>
+          {% else %}
+          
+          <!-- DESKTOP TABLE -->
+          <div class="hidden lg:block overflow-x-auto rounded-xl border border-gray-200">
+            <table class="min-w-full text-sm text-gray-800">
+              <thead class="bg-gray-50 text-gray-700 border-b border-gray-200">
+                <tr>
+                  <th class="px-6 py-3 text-left font-medium">
+                    <input type="checkbox" id="selectAllConsumables" class="consumable-select-all">
+                  </th>
+                  <th class="px-6 py-3 text-left font-medium">ID</th>
+                  <th class="px-6 py-3 text-left font-medium">Item Name</th>
+                  <th class="px-6 py-3 text-left font-medium">Brand/Model</th>
+                  <th class="px-6 py-3 text-left font-medium">Quantity</th>
+                  <th class="px-6 py-3 text-left font-medium">Cost</th>
+                  <th class="px-6 py-3 text-left font-medium">Date Acquired</th>
+                  <th class="px-6 py-3 text-left font-medium">Accountable</th>
+                  <th class="px-6 py-3 text-left font-medium">Department</th>
+                  <th class="px-6 py-3 text-left font-medium">Status</th>
+                  <th class="px-6 py-3 text-left font-medium">Risk</th>
+                  <th class="px-6 py-3 text-left font-medium">Health</th>
+                  <th class="px-6 py-3 text-left font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="consumableTableBody" class="divide-y divide-gray-200">
+                {% for item in consumables %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4">
+                    <input type="checkbox" class="consumable-checkbox" value="{{ item.accession_id }}">
+                  </td>
+                  <td class="px-6 py-4 font-medium">{{ item.accession_id }}</td>
+                  <td class="px-6 py-4">{{ item.item_name }}</td>
+                  <td class="px-6 py-4">{{ item.brand_model or '' }}</td>
+                  <td class="px-6 py-4 font-semibold">{{ item.quantity }}</td>
+                  <td class="px-6 py-4">₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</td>
+                  <td class="px-6 py-4">{{ item.date_acquired or '—' }}</td>
+                  <td class="px-6 py-4">{{ item.accountable or '—' }}</td>
+                  <td class="px-6 py-4">{{ item.department_name or '—' }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                          {% if item.status == 'Available' %}bg-green-100 text-green-800
+                          {% elif item.status == 'In Used' %}bg-blue-100 text-blue-800
+                          {% elif item.status == 'Inactive' %}bg-gray-100 text-gray-800
+                          {% else %}bg-red-100 text-red-800{% endif %}">
+                          {{ item.status }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                          {% if item.risk_level == 'Low' %}bg-green-100 text-green-800
+                          {% elif item.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800
+                          {% elif item.risk_level == 'High' %}bg-red-100 text-red-800
+                          {% else %}bg-gray-100 text-gray-800{% endif %}">
+                          {{ item.risk_level or '—' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    {% if item.health_score is not none %}
+                      <div class="flex items-center gap-2">
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                          <div class="h-2 rounded-full
+                                {% if item.health_score >= 80 %}bg-green-500
+                                {% elif item.health_score >= 50 %}bg-yellow-500
+                                {% else %}bg-red-500{% endif %}"
+                                style="width: {{ item.health_score }}%"></div>
+                        </div>
+                        <span class="text-xs font-semibold">{{ item.health_score }}%</span>
+                      </div>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 space-x-2">
+                    {% if permissions.get('inventory', {}).get('edit', False) %}
+                    <button onclick="openConsumableModal({{ item.accession_id }})" 
+                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded text-xs font-medium transition">
+                      Edit
+                    </button>
+                    <button type="button" onclick="openDeleteModal('{{ url_for('manage_consumable_bp.delete_consumable', id=item.accession_id) }}')" 
+                            class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-xs font-medium transition">
+                      Delete
+                    </button>
+                    <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" 
+                            class="bg-green-100 hover:bg-green-200 text-green-800 px-3 py-1 rounded text-xs font-medium transition">
+                      Mark Checked
+                    </button>
+                    <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" 
+                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-medium transition">
+                      History
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- MOBILE CARD VIEW -->
+          <div class="lg:hidden space-y-4" id="mobileConsumableList">
+            {% for item in consumables %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" class="consumable-checkbox" value="{{ item.accession_id }}">
+                  <div>
+                    <h4 class="font-semibold text-gray-900">{{ item.item_name }}</h4>
+                    <p class="text-sm text-gray-600">ID: {{ item.accession_id }}</p>
+                  </div>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                      {% if item.status == 'Available' %}bg-green-100 text-green-600
+                      {% elif item.status == 'In Used' %}bg-blue-100 text-blue-600
+                      {% elif item.status == 'Inactive' %}bg-gray-100 text-gray-500
+                      {% else %}bg-red-100 text-red-600{% endif %}">
+                      {{ item.status }}
+                </span>
+              </div>
+              
+              <div class="space-y-1 text-sm text-gray-600 mb-3">
+                {% if item.brand_model %}<p><span class="font-medium">Brand/Model:</span> {{ item.brand_model }}</p>{% endif %}
+                <p><span class="font-medium">Quantity:</span> <span class="font-semibold">{{ item.quantity }}</span></p>
+                <p><span class="font-medium">Department:</span> {{ item.department_name or '—' }}</p>
+                <p><span class="font-medium">Accountable:</span> {{ item.accountable or '—' }}</p>
+                <p><span class="font-medium">Cost:</span> ₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</p>
+                <p><span class="font-medium">Risk:</span> 
+                  <span class="font-semibold
+                    {% if item.risk_level == 'Low' %}text-green-600
+                    {% elif item.risk_level == 'Medium' %}text-yellow-600
+                    {% elif item.risk_level == 'High' %}text-red-600
+                    {% else %}text-gray-500{% endif %}">
+                    {{ item.risk_level or '—' }}
+                  </span>
+                </p>
+                {% if item.health_score is not none %}
+                <p><span class="font-medium">Health:</span> 
+                  <div class="flex items-center gap-2 mt-1">
+                    <div class="w-20 bg-gray-200 rounded-full h-2">
+                      <div class="h-2 rounded-full
+                        {% if item.health_score >= 80 %}bg-green-500
+                        {% elif item.health_score >= 50 %}bg-yellow-500
+                        {% else %}bg-red-500{% endif %}"
+                        style="width: {{ item.health_score }}%"></div>
+                    </div>
+                    <span class="text-xs font-semibold">{{ item.health_score }}%</span>
+                  </div>
+                </p>
+                {% endif %}
+              </div>
+              
+              {% if permissions.get('inventory', {}).get('edit', False) %}
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="openConsumableModal({{ item.accession_id }})" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">
+                  Edit
+                </button>
+                <button type="button" onclick="openDeleteModal('{{ url_for('manage_consumable_bp.delete_consumable', id=item.accession_id) }}')" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">
+                  Delete
+                </button>
+                <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">
+                  Mark Checked
+                </button>
+                <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" 
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">
+                  History
+                </button>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </section>
 
 
     </div>
@@ -495,10 +848,360 @@
     </div>
   </div>
 
+  <!-- BULK MARK CHECKED CONFIRMATION MODAL -->
+  <div id="bulkMarkCheckedModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="check-square" class="w-10 h-10 text-green-600"></i>
+      </div>
+      <h2 id="bulkMarkCheckedTitle" class="text-xl font-semibold text-gray-800 mb-3">Confirm Mark Checked</h2>
+      <p id="bulkMarkCheckedMessage" class="text-gray-600 mb-6">Mark selected PC(s) as checked? This action will update their status.</p>
+      <div class="flex justify-center space-x-3">
+        <button id="bulkMarkCheckedCancel" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium">
+          Cancel
+        </button>
+        <button id="bulkMarkCheckedConfirm" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+          Mark Checked
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRMATION MODAL -->
+  <div id="confirmationModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
+      </div>
+      <h2 id="confirmationTitle" class="text-xl font-semibold text-gray-800 mb-3">Confirm Activation</h2>
+      <p id="confirmationMessage" class="text-gray-600 mb-6">Do you want to reactivate this user?</p>
+      <div class="flex justify-center space-x-3">
+        <button id="confirmationCancel" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium">
+          Cancel
+        </button>
+        <button id="confirmationConfirm" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
  
- 
- 
+    // Highlight active navigation
+    function setActiveNav(btn) {
+      document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
+        b.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+      });
+      btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+    }
+
+    // Bulk Mark Checked Modal functions
+    let bulkMarkCheckedCallback = null;
+
+    function showBulkMarkCheckedModal(message, callback) {
+      const modal = document.getElementById('bulkMarkCheckedModal');
+      const messageElement = document.getElementById('bulkMarkCheckedMessage');
+      const confirmButton = document.getElementById('bulkMarkCheckedConfirm');
+      
+      messageElement.textContent = message;
+      bulkMarkCheckedCallback = callback;
+      modal.classList.remove('hidden');
+    }
+
+    function closeBulkMarkCheckedModal() {
+      const modal = document.getElementById('bulkMarkCheckedModal');
+      modal.classList.add('hidden');
+      bulkMarkCheckedCallback = null;
+    }
+
+    // Confirmation modal functions
+    let confirmationCallback = null;
+
+    function showConfirmationModal(title, message, confirmText, callback) {
+      console.log('showConfirmationModal called with:', title, message, confirmText);
+      
+      const modal = document.getElementById('confirmationModal');
+      const titleElement = document.getElementById('confirmationTitle');
+      const messageElement = document.getElementById('confirmationMessage');
+      const confirmButton = document.getElementById('confirmationConfirm');
+      
+      console.log('Modal elements found:', !!modal, !!titleElement, !!messageElement, !!confirmButton);
+      
+      titleElement.textContent = title;
+      messageElement.textContent = message;
+      confirmButton.textContent = confirmText;
+      
+      confirmationCallback = callback;
+      modal.classList.remove('hidden');
+      
+      console.log('Modal should be visible now');
+    }
+
+    function closeConfirmationModal() {
+      const modal = document.getElementById('confirmationModal');
+      modal.classList.add('hidden');
+      confirmationCallback = null;
+    }
+
+    // Confirmation function for risk update
+    function confirmRiskUpdate() {
+      showConfirmationModal(
+        'Confirm Risk Update',
+        'Do you want to update all risk levels? This may take a few moments.',
+        'Update',
+        function() {
+          if (typeof runRiskUpdate === 'function') {
+            runRiskUpdate();
+          } else {
+            alert('Risk update function not available.');
+          }
+        }
+      );
+    }
+
+    // Modal event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Bulk Mark Checked Modal
+      const bulkCancelBtn = document.getElementById('bulkMarkCheckedCancel');
+      const bulkConfirmBtn = document.getElementById('bulkMarkCheckedConfirm');
+      
+      if (bulkCancelBtn) {
+        bulkCancelBtn.addEventListener('click', closeBulkMarkCheckedModal);
+      }
+      
+      if (bulkConfirmBtn) {
+        bulkConfirmBtn.addEventListener('click', function() {
+          if (bulkMarkCheckedCallback) {
+            bulkMarkCheckedCallback();
+          }
+          closeBulkMarkCheckedModal();
+        });
+      }
+      
+      // Close bulk modal when clicking outside
+      const bulkModal = document.getElementById('bulkMarkCheckedModal');
+      bulkModal.addEventListener('click', function(e) {
+        if (e.target === bulkModal) {
+          closeBulkMarkCheckedModal();
+        }
+      });
+
+      // Confirmation Modal
+      const cancelBtn = document.getElementById('confirmationCancel');
+      const confirmBtn = document.getElementById('confirmationConfirm');
+      
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeConfirmationModal);
+      }
+      
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+          if (confirmationCallback) {
+            confirmationCallback();
+          }
+          closeConfirmationModal();
+        });
+      }
+      
+      // Close confirmation modal when clicking outside
+      const modal = document.getElementById('confirmationModal');
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeConfirmationModal();
+        }
+      });
+    });
+
+    // Consumable Section Functionality
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(sec =>
+        sec.classList.add("hidden")
+      );
+      document.getElementById(id).classList.remove("hidden");
+
+      const addBtn = document.getElementById("addButton");
+
+      if (id === "inventorySection") {
+        currentSection = "pc";
+        addBtn.textContent = "Add PC";
+        addBtn.onclick = handleAddButtonClick;
+      } else if (id === "itemsSection") {
+        currentSection = "item";
+        addBtn.textContent = "Add Item";
+        addBtn.onclick = handleAddButtonClick;
+      } else if (id === "consumablesSection") {
+        currentSection = "consumable";
+        addBtn.textContent = "Add Consumable";
+        addBtn.onclick = openConsumableModal;
+      }
+    }
+
+    function setActiveNav(element) {
+      // Remove active classes from all nav buttons
+      document.querySelectorAll('nav button').forEach(btn => {
+        btn.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300', 'bg-green-50', 'text-green-700', 'border-green-300');
+        btn.classList.add('bg-white', 'border-gray-200');
+      });
+      
+      // Add active classes to clicked button
+      if (element.id === 'consumablesBtn') {
+        element.classList.remove('bg-white', 'border-gray-200');
+        element.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
+      } else {
+        element.classList.remove('bg-white', 'border-gray-200');
+        element.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+      }
+    }
+
+    // Consumable Filter and Search Functionality
+    const applyConsumableFilters = document.getElementById('applyConsumableFilters');
+    const clearConsumableFilters = document.getElementById('clearConsumableFilters');
+    const filterConsumableDepartment = document.getElementById('filterConsumableDepartment');
+    const filterConsumableStatus = document.getElementById('filterConsumableStatus');
+    const searchConsumableInput = document.getElementById('searchConsumableInput');
+
+    if (applyConsumableFilters) {
+      applyConsumableFilters.addEventListener('click', applyConsumableFilter);
+    }
+
+    if (clearConsumableFilters) {
+      clearConsumableFilters.addEventListener('click', clearConsumableFilter);
+    }
+
+    if (searchConsumableInput) {
+      searchConsumableInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#consumableTableBody tr');
+        
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+
+        // Also filter mobile cards
+        const mobileCards = document.querySelectorAll('#mobileConsumableList .bg-white.border');
+        mobileCards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          card.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+      });
+    }
+
+    function applyConsumableFilter() {
+      const department = filterConsumableDepartment.value;
+      const status = filterConsumableStatus.value;
+      
+      const params = new URLSearchParams();
+      if (department) params.append('department', department);
+      if (status) params.append('status', status);
+      
+      // For now, just filter client-side
+      filterConsumableTable(department, status);
+    }
+
+    function clearConsumableFilter() {
+      filterConsumableDepartment.value = '';
+      filterConsumableStatus.value = '';
+      filterConsumableTable('', '');
+    }
+
+    function filterConsumableTable(department, status) {
+      const rows = document.querySelectorAll('#consumableTableBody tr');
+      rows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        const departmentCell = cells[8] ? cells[8].textContent.toLowerCase() : '';
+        const statusCell = cells[9] ? cells[9].textContent.toLowerCase() : '';
+        
+        const matchesDepartment = !department || departmentCell.includes(department.toLowerCase());
+        const matchesStatus = !status || statusCell.includes(status.toLowerCase());
+        
+        row.style.display = matchesDepartment && matchesStatus ? '' : 'none';
+      });
+
+      // Also filter mobile cards
+      const mobileCards = document.querySelectorAll('#mobileConsumableList .bg-white.border');
+      mobileCards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const matchesDepartment = !department || text.includes(department.toLowerCase());
+        const matchesStatus = !status || text.includes(status.toLowerCase());
+        
+        card.style.display = matchesDepartment && matchesStatus ? '' : 'none';
+      });
+    }
+
+    // Consumable Bulk Operations
+    const selectAllConsumables = document.getElementById('selectAllConsumables');
+    const bulkUpdateConsumables = document.getElementById('bulkUpdateConsumables');
+    const bulkMarkConsumablesChecked = document.getElementById('bulkMarkConsumablesChecked');
+    const bulkConsumableStatus = document.getElementById('bulkConsumableStatus');
+
+    if (selectAllConsumables) {
+      selectAllConsumables.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.consumable-checkbox');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    }
+
+    if (bulkUpdateConsumables) {
+      bulkUpdateConsumables.addEventListener('click', function() {
+        const selected = [...document.querySelectorAll('.consumable-checkbox:checked')]
+          .map(cb => cb.value);
+        const status = bulkConsumableStatus.value;
+
+        if (!selected.length) {
+          alert('Please select at least one consumable to update.');
+          return;
+        }
+
+        if (!status) {
+          alert('Please select a status to update.');
+          return;
+        }
+
+        if (confirm(`Update ${selected.length} selected consumable(s) to status "${status}"?`)) {
+          fetch('/consumable/bulk-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              consumable_ids: selected,
+              new_status: status
+            })
+          })
+          .then(res => res.json())
+          .then(d => d.success ? location.reload() : alert('Bulk update failed'))
+          .catch(() => alert('Bulk update failed'));
+        }
+      });
+    }
+
+    if (bulkMarkConsumablesChecked) {
+      bulkMarkConsumablesChecked.addEventListener('click', function() {
+        const selected = [...document.querySelectorAll('.consumable-checkbox:checked')]
+          .map(cb => cb.value);
+
+        if (!selected.length) {
+          alert('Please select at least one consumable to mark as checked.');
+          return;
+        }
+
+        if (confirm(`Mark ${selected.length} selected consumable(s) as checked?`)) {
+          fetch('/consumable/bulk-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ consumable_ids: selected })
+          })
+          .then(res => res.json())
+          .then(d => d.success ? location.reload() : alert('Bulk check failed'))
+          .catch(() => alert('Bulk check failed'));
+        }
+      });
+    }
+
 lucide.createIcons();
 
   </script>

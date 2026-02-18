@@ -119,6 +119,29 @@ def dashboard_load():
 
             total_cost_in = float(device_cost) + float(pc_cost)
 
+            # 🔹 Maintenance Notifications
+            cur.execute("""
+                SELECT 
+                    accession_id,
+                    item_name,
+                    brand_model,
+                    department_name,
+                    DATEDIFF(CURDATE(), COALESCE(last_checked, DATE_SUB(CURDATE(), INTERVAL maintenance_interval_days DAY))) as days_since_check,
+                    maintenance_interval_days,
+                    CASE 
+                        WHEN last_checked IS NULL THEN 'Never Checked'
+                        WHEN DATEDIFF(CURDATE(), last_checked) >= maintenance_interval_days THEN 'Overdue'
+                        WHEN DATEDIFF(CURDATE(), last_checked) >= (maintenance_interval_days * 0.8) THEN 'Due Soon'
+                        ELSE 'OK'
+                    END as maintenance_status
+                FROM devices_full df
+                LEFT JOIN departments dep ON df.department_id = dep.department_id
+                WHERE df.status != 'Damaged'
+                ORDER BY days_since_check DESC
+                LIMIT 10
+            """)
+            maintenance_notifications = cur.fetchall()
+
             cur.execute("""
                 SELECT item_name AS item_name, brand_model AS action, created_at 
                 FROM devices_full 
@@ -127,7 +150,6 @@ def dashboard_load():
             """)
             recent_transactions = cur.fetchall()
 
-            
             
 
     except Exception as e:
@@ -141,7 +163,8 @@ def dashboard_load():
             damaged_items=0,
             total_cost_in=0,
             avg_cost=avg_cost,
-            recent_transactions=recent_transactions
+            recent_transactions=recent_transactions,
+            maintenance_notifications=[]
         )
     finally:
         conn.close()
@@ -155,7 +178,6 @@ def dashboard_load():
         in_use_items=in_use_items,        # Borrowed = In Use
         damaged_items=damaged_items,      # Damaged from devices_units
         total_cost_in=total_cost_in,      # Placeholder ₱0.00
-        recent_transactions=recent_transactions
+        recent_transactions=recent_transactions,
+        maintenance_notifications=maintenance_notifications
     )
-
-

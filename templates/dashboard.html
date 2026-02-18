@@ -25,7 +25,7 @@
   </aside>
 
   <!-- MAIN CONTENT -->
-  <main class="flex-1 ml-0 md:ml-64 p-8 transition-all duration-300 space-y-8">
+  <main class="flex-1 ml-0 md:ml-32 p-1 lg:p-2 transition-all duration-300 space-y-2">
     <div class="flex items-center justify-between bg-blue-600 rounded-xl shadow-lg p-4 mb-6">
       <div class="flex items-center gap-3">
         <i data-lucide="layout-dashboard" class="w-8 h-8 text-white"></i>
@@ -34,62 +34,92 @@
     </div>
 
     <!-- SUMMARY CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-7 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-1">
       <!-- Manage Items (devices_full) -->
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">Devices Inventory</h3>
-          <p class="text-2xl font-bold text-blue-600">{{ total_items }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-blue-500 hover:scale-105 cursor-pointer group">
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Devices Inventory</h3>
+          <p class="text-3xl font-bold text-blue-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ total_items }}</p>
+          <div class="mt-2 h-1 bg-blue-100 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 60%"></div>
+          </div>
         </div>
-        <i data-lucide="box" class="w-8 h-8 text-blue-500"></i>
+        <div class="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
+          <i data-lucide="box" class="w-8 h-8 text-blue-500"></i>
+        </div>
       </div>
 
       <!-- PC Inventory (pcs) -->
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-green-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">PC Inventory</h3>
-          <p class="text-2xl font-bold text-green-600">{{ total_pcs }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-green-500 hover:scale-105 cursor-pointer group">
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">PC Inventory</h3>
+          <p class="text-3xl font-bold text-green-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ total_pcs }}</p>
+          <div class="mt-2 h-1 bg-green-100 rounded-full overflow-hidden">
+            <div class="h-full bg-green-500 rounded-full animate-pulse" style="width: 45%"></div>
+          </div>
         </div>
-        <i data-lucide="monitor" class="w-8 h-8 text-green-500"></i>
+        <div class="bg-green-50 p-3 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
+          <i data-lucide="monitor" class="w-8 h-8 text-green-500"></i>
+        </div>
       </div>
 
       <!-- Available -->
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-emerald-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">Available</h3>
-          <p class="text-2xl font-bold text-emerald-600">{{ available_items }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-emerald-500 hover:scale-105 cursor-pointer group">
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Available</h3>
+          <p class="text-3xl font-bold text-emerald-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ available_items }}</p>
+          <div class="mt-2 h-1 bg-emerald-100 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full animate-pulse" style="width: 75%"></div>
+          </div>
         </div>
-        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600"></i>
+        <div class="bg-emerald-50 p-3 rounded-xl group-hover:bg-emerald-100 transition-colors duration-300">
+          <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600"></i>
+        </div>
       </div>
 
       <!-- In Use -->
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-yellow-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">In Use</h3>
-          <p class="text-2xl font-bold text-yellow-600">{{ in_use_items }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-yellow-500 hover:scale-105 cursor-pointer group">
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">In Use</h3>
+          <p class="text-3xl font-bold text-yellow-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ in_use_items }}</p>
+          <div class="mt-2 h-1 bg-yellow-100 rounded-full overflow-hidden">
+            <div class="h-full bg-yellow-500 rounded-full animate-pulse" style="width: 30%"></div>
+          </div>
         </div>
-        <i data-lucide="play-circle" class="w-8 h-8 text-yellow-500"></i>
+        <div class="bg-yellow-50 p-3 rounded-xl group-hover:bg-yellow-100 transition-colors duration-300">
+          <i data-lucide="play-circle" class="w-8 h-8 text-yellow-500"></i>
+        </div>
       </div>
 
       <!-- Damaged -->
-      <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-red-500">
-        <div>
-          <h3 class="text-sm font-semibold text-gray-500">Damaged</h3>
-          <p class="text-2xl font-bold text-red-600">{{ damaged_items }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-red-500 hover:scale-105 cursor-pointer group">
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Damaged</h3>
+          <p class="text-3xl font-bold text-red-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ damaged_items }}</p>
+          <div class="mt-2 h-1 bg-red-100 rounded-full overflow-hidden">
+            <div class="h-full bg-red-500 rounded-full animate-pulse" style="width: 15%"></div>
+          </div>
         </div>
-        <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+        <div class="bg-red-50 p-3 rounded-xl group-hover:bg-red-100 transition-colors duration-300">
+          <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+        </div>
       </div>
 
       <!-- Cost In -->
-      <div class="bg-white rounded-2xl shadow p-5 flex flex-col justify-between border-l-4 border-blue-500">
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between border-l-4 border-blue-500 hover:scale-105 cursor-pointer group lg:col-span-2 xl:col-span-1">
         <div class="flex justify-between items-center">
-          <h3 class="text-sm font-semibold text-gray-500">Cost In</h3>
-          <i data-lucide="trending-up" class="w-8 h-8 text-blue-600"></i>
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Cost In</h3>
+          <div class="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
+            <i data-lucide="trending-up" class="w-8 h-8 text-blue-600"></i>
+          </div>
         </div>
-        <p class="text-2xl font-bold text-blue-600 mt-2">₱{{ "{:,.2f}".format(total_cost_in) }}</p>
+        <p class="text-3xl font-bold text-blue-600 mt-3 group-hover:scale-110 transition-transform duration-300">₱{{ "{:,.2f}".format(total_cost_in) }}</p>
         {% if avg_cost %}
-        <p class="text-xs text-gray-500 mt-1">Avg/Device: ₱{{ "{:,.2f}".format(avg_cost) }}</p>
+        <p class="text-xs text-gray-500 mt-2 bg-blue-50 px-2 py-1 rounded-lg inline-block">Avg/Device: ₱{{ "{:,.2f}".format(avg_cost) }}</p>
         {% endif %}
+        <div class="mt-2 h-1 bg-blue-100 rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 85%"></div>
+        </div>
       </div>
 
       
@@ -99,48 +129,136 @@
 
 
 </div>
+    <!-- RECENT TRANSACTIONS AND MAINTENANCE NOTIFICATIONS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-1">
       <!-- RECENT TRANSACTIONS -->
-<div class="bg-white rounded-2xl shadow p-6 border">
-  <h3 class="text-xl font-bold text-blue-700 mb-4">Recent Transactions</h3>
-  <ul class="divide-y divide-gray-200 text-sm">
-    {% for tx in recent_transactions %}
-      <li class="py-3 flex justify-between items-center">
-        <div>
-          <p class="font-semibold text-gray-800">{{ tx.item_name }}</p>
-          <p class="text-gray-500">{{ tx.action }}</p>
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-blue-700 flex items-center gap-2">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+            Recent Transactions
+          </h3>
+          <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-semibold">Live</span>
         </div>
-        <span class="text-xs text-gray-400">{{ tx.created_at }}</span>
-      </li>
-    {% else %}
-      <li class="py-3 text-gray-500 text-center">No recent transactions found.</li>
-    {% endfor %}
-  </ul>
-</div>
+        <div class="space-y-1 max-h-80 overflow-y-auto">
+          <ul class="divide-y divide-gray-100">
+            {% for tx in recent_transactions %}
+              <li class="py-4 flex justify-between items-center hover:bg-gray-50 rounded-lg px-3 transition-colors duration-200 group">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-150 transition-transform duration-300"></div>
+                  <div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">{{ tx.item_name }}</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ tx.action }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{{ tx.created_at }}</span>
+                </div>
+              </li>
+            {% else %}
+              <li class="py-8 text-gray-500 text-center">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                <p>No recent transactions found.</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE NOTIFICATIONS -->
+      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-orange-700 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            Maintenance Notifications
+          </h3>
+          <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Alerts</span>
+        </div>
+        <div class="space-y-1 max-h-80 overflow-y-auto">
+          <ul class="divide-y divide-gray-100">
+            {% for notification in maintenance_notifications %}
+              <li class="py-4 flex justify-between items-center hover:bg-orange-50 rounded-lg px-3 transition-colors duration-200 group">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 rounded-full group-hover:scale-150 transition-transform duration-300
+                    {% if notification.maintenance_status == 'Overdue' %}bg-red-500
+                    {% elif notification.maintenance_status == 'Due Soon' %}bg-yellow-500
+                    {% elif notification.maintenance_status == 'Never Checked' %}bg-gray-500
+                    {% else %}bg-green-500{% endif %}"></div>
+                  <div>
+                    <p class="font-semibold text-gray-800 group-hover:text-orange-600 transition-colors duration-200">{{ notification.item_name }}</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ notification.brand_model or 'No model' }} • {{ notification.department_name or 'No department' }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs px-2 py-1 rounded-full font-medium
+                    {% if notification.maintenance_status == 'Overdue' %}bg-red-100 text-red-800
+                    {% elif notification.maintenance_status == 'Due Soon' %}bg-yellow-100 text-yellow-800
+                    {% elif notification.maintenance_status == 'Never Checked' %}bg-gray-100 text-gray-800
+                    {% else %}bg-green-100 text-green-800{% endif %}">
+                    {{ notification.maintenance_status }}
+                  </span>
+                  {% if notification.maintenance_status != 'Never Checked' %}
+                    <p class="text-xs text-gray-400 mt-1">{{ notification.days_since_check }} days</p>
+                  {% endif %}
+                </div>
+              </li>
+            {% else %}
+              <li class="py-8 text-gray-500 text-center">
+                <i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                <p>All devices are up to date!</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
 
     <!-- COST CHART -->
-    <section class="bg-white rounded-2xl shadow p-6 border relative">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-blue-700">
-          Cost In vs Cost Out 
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 relative">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-blue-700 flex items-center gap-2">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          Cost In
         </h3>
-       
+        <button id="openFilterModal" class="bg-blue-100 hover:bg-blue-200 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2">
+          <i data-lucide="filter" class="w-4 h-4"></i>
+          <span id="filterLabel">Monthly</span>
+        </button>
       </div>
-      <div class="w-full h-48">
+      <div class="w-full h-64 bg-gradient-to-br from-blue-50 to-transparent rounded-xl p-4">
         <canvas id="costChart"></canvas>
+      </div>
+      <div class="mt-4 flex justify-center gap-4 text-xs text-gray-500">                
       </div>
     </section>
   </main>
 
   <!-- FILTER MODAL -->
-  <div id="filterModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-lg p-6 w-80">
-      <h3 class="text-lg font-semibold text-blue-700 mb-4">Select Cost Chart Filter</h3>
-      <div class="space-y-3">
-        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Weekly">Weekly</button>
-        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Monthly">Monthly</button>
-        <button class="filter-btn w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200" data-filter="Yearly">Yearly</button>
+  <div id="filterModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-blue-700 flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+          Select Cost In Chart Filter
+        </h3>
+        <button id="closeFilterModal" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-      <button id="closeFilterModal" class="mt-5 w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Close</button>
+      <div class="space-y-3">
+        <button class="filter-btn w-full px-4 py-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium transition-all duration-200 hover:scale-105 flex items-center justify-between group" data-filter="Weekly">
+          <span>Weekly</span>
+          <i data-lucide="calendar" class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"></i>
+        </button>
+        <button class="filter-btn w-full px-4 py-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium transition-all duration-200 hover:scale-105 flex items-center justify-between group" data-filter="Monthly">
+          <span>Monthly</span>
+          <i data-lucide="calendar" class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"></i>
+        </button>
+        <button class="filter-btn w-full px-4 py-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium transition-all duration-200 hover:scale-105 flex items-center justify-between group" data-filter="Yearly">
+          <span>Yearly</span>
+          <i data-lucide="calendar" class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -185,12 +303,32 @@ async function loadCostData() {
 loadCostData();
 
     const modal = document.getElementById('filterModal');
+    const modalContent = document.getElementById('modalContent');
     const openModal = document.getElementById('openFilterModal');
     const closeModal = document.getElementById('closeFilterModal');
     const filterLabel = document.getElementById('filterLabel');
 
-    openModal.addEventListener('click', () => modal.classList.remove('hidden'));
-    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+    openModal.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    });
+    
+    closeModal.addEventListener('click', () => {
+      modalContent.classList.remove('scale-100', 'opacity-100');
+      modalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal.click();
+      }
+    });
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', async () => {

@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint,g
+import json
 
 from login import login_bp
 from userborrow import userborrow_bp
@@ -10,9 +11,12 @@ from report import report_bp
 from manage_pc import manage_pc_bp
 from manage_department import manage_department_bp
 from manage_inventory import manage_inventory_bp
+from manage_consumable import manage_consumable_bp
 from notification import notification_bp
 from sidebar import get_user_access
 from maintenance import maintenance_bp
+from damage_report import damage_report_bp
+from receive_item import receive_item_bp
 
 
 
@@ -27,10 +31,14 @@ app.register_blueprint(manage_user_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(manage_department_bp)
 app.register_blueprint(manage_inventory_bp)
+app.register_blueprint(manage_consumable_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(manage_item_bp, url_prefix='/manage_inventory')
 app.register_blueprint(maintenance_bp)
+app.register_blueprint(damage_report_bp)
+app.register_blueprint(receive_item_bp)
 
+# Context processor to make user access available globally in templates
 # ✅ Context processor to make user access available globally in templates
 @app.context_processor
 def inject_user_access():

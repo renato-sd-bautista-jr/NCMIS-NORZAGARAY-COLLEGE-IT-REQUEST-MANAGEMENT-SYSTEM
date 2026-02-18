@@ -1,0 +1,167 @@
+<!-- templates/damage_report.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Damage Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 flex min-h-screen">
+
+  {% include 'sidebar.html' %}
+
+  <main class="flex-1 md:ml-64 p-8 space-y-10">
+    <header class="flex items-center justify-between bg-blue-700 text-white shadow-lg p-4 rounded-xl border border-blue-800 backdrop-blur-md">
+      <div class="flex items-center gap-2 font-medium">
+        <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
+        <h1 class="text-2xl md:text-3xl font-bold">Damage Reports</h1>
+      </div>
+    </header>
+
+    <!-- Damage Reports Section -->
+    <section class="bg-white p-8 rounded-xl shadow-md">
+      <div class="flex items-center mb-6">
+        <i data-lucide="truck" class="w-7 h-7 text-green-600 mr-2"></i>
+        <h2 class="text-2xl font-semibold text-blue-700">Damaged Items</h2>
+      </div>
+
+      <!-- Filter Form -->
+      <form id="filter-form" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-8">
+        <div>
+          <label class="block text-sm font-medium mb-1">Item / PC Name</label>
+          <input id="filter-name" name="name" type="text" class="input" placeholder="Search by name">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Category</label>
+          <select id="filter-category" name="category" class="input">
+            <option value="all">All</option>
+            <option value="Device">Device</option>
+            <option value="PC">PC</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Facilities</label>
+          <select id="filter-department" name="department" class="input">
+            <option value="all">All Facilities</option>
+            <option>Dean's Office</option>
+            <option>IT Department</option>
+            <option>Admin Office</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Severity</label>
+          <select id="filter-severity" name="severity" class="input">
+            <option value="all">All</option>
+            <option value="Minor">Minor</option>
+            <option value="Major">Major</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Date From</label>
+          <input id="filter-date-from" name="date_from" type="date" class="input">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Date To</label>
+          <input id="filter-date-to" name="date_to" type="date" class="input">
+        </div>
+        <div class="flex items-end">
+          <button id="apply-filters" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
+            Apply Filter
+          </button>
+           <button id="export-excel" type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
+            Export Excel
+          </button>
+        </div>
+      </form>
+
+      <!-- Damage Report Table -->
+      <div class="overflow-x-auto rounded-lg border border-gray-300">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-gray-200 text-sm uppercase">
+            <tr>
+              <th class="p-2 border">Item / PC Name</th>
+              <th class="p-2 border">Category</th>
+              <th class="p-2 border">Facilities</th>
+              <th class="p-2 border">Location</th>
+              <th class="p-2 border">Accountable</th>
+              <th class="p-2 border">Severity</th>
+              <th class="p-2 border">Damage Description</th>
+              <th class="p-2 border">Acquisition Cost</th>
+              <th class="p-2 border">Date Acquired</th>
+            </tr>
+          </thead>
+          <tbody id="damage-report-body" class="text-sm"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    // Styling helpers
+    document.querySelectorAll('.input').forEach(el => el.classList.add('w-full', 'p-2', 'rounded', 'border', 'border-gray-300', 'bg-gray-50', 'focus:ring-2', 'focus:ring-blue-500'));
+
+    // -------------------------------
+    // 🧩 Load Damage Reports with Filters
+    // -------------------------------
+    async function loadDamageReports(filters = {}) {
+      const params = new URLSearchParams(filters);
+      const res = await fetch(`/get-damage-reports?${params.toString()}`);
+      const data = await res.json();
+
+      const tbody = document.getElementById("damage-report-body");
+      tbody.innerHTML = "";
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">No damaged items found.</td></tr>`;
+        return;
+      }
+
+      data.forEach(row => {
+        const severityClass = row.severity === 'Critical' ? 'text-red-600 font-bold' : 
+                            row.severity === 'Major' ? 'text-orange-600 font-semibold' : 
+                            'text-yellow-600';
+        
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-100">
+            <td class="p-2 border">${row.name || '-'}</td>
+            <td class="p-2 border">${row.category || '-'}</td>
+            <td class="p-2 border">${row.department || '-'}</td>
+            <td class="p-2 border">${row.location || '-'}</td>
+            <td class="p-2 border">${row.accountable || '-'}</td>
+            <td class="p-2 border ${severityClass}">${row.severity || '-'}</td>
+            <td class="p-2 border">${row.damage_description || '-'}</td>
+            <td class="p-2 border">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            <td class="p-2 border">${row.date_acquired || '-'}</td>
+          </tr>`;
+      });
+    }
+
+    // -------------------------------
+    // 🧠 Handle Filter Form Submission
+    // -------------------------------
+    document.getElementById("filter-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const filters = Object.fromEntries(new FormData(e.target).entries());
+      loadDamageReports(filters);
+    });
+
+    // -------------------------------
+    // 🚀 Load Default Data
+    // -------------------------------
+    window.addEventListener("DOMContentLoaded", () => loadDamageReports());
+
+    document.getElementById("export-excel").addEventListener("click", () => {
+      const form = document.getElementById("filter-form");
+      const filters = Object.fromEntries(new FormData(form).entries());
+      const params = new URLSearchParams(filters).toString();
+      // Trigger download
+      window.location.href = `/export-damage-reports?${params}`;
+    });
+  </script>
+</body>
+</html>
