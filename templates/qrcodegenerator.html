@@ -149,6 +149,7 @@
           <i data-lucide="qr-code" class="w-8 h-8 text-blue-600"></i>
         </div>
         <h3 class="font-bold text-xl text-gray-800 mb-2" id="qrDeviceName">Device Name</h3>
+        
         <p class="text-gray-600 text-sm">Scan this QR code to access device information</p>
       </div>
       
@@ -442,12 +443,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-      card.addEventListener('click', () => {
-        console.log('Device card clicked:', device.item_name);
-        qrDeviceName.textContent = device.item_name;
-        qrImage.src = `/device_qr/${device.accession_id}`;
-        qrModal.classList.remove('hidden');
-      });
+ card.addEventListener('click', () => {
+  qrDeviceName.textContent = device.item_name;
+  qrImage.src = `/device_qr/${device.accession_id}`;
+
+  // ✅ store full object
+  qrModal.dataset.device = JSON.stringify(device);
+
+  qrModal.classList.remove('hidden');
+});
       deviceGrid.appendChild(card);
     });
     
@@ -559,32 +563,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     link.click();
   });
   
-  // Print QR functionality
-  printQR.addEventListener('click', () => {
+printQR.addEventListener('click', async () => {
+  const itemType = 'device';  // Always treat as device
+  const deviceData = JSON.parse(qrModal.dataset.device);
+  const itemId = deviceData.accession_id;
+  const qrSrc = qrImage.src;
+
+  try {
+    const res = await fetch(`/get_item_for_print/${itemType}/${itemId}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Failed to fetch data");
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
+
+    // helper for safe fallback
+    const val = (v) => v ? v : 'N/A';
+
     printWindow.document.write(`
       <html>
         <head>
-          <title>QR Code - ${qrDeviceName.textContent}</title>
+          <title>Device Label</title>
           <style>
-            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; text-align: center; }
-            h1 { color: #1e40af; margin-bottom: 20px; }
-            img { max-width: 300px; margin: 20px 0; }
-            p { color: #6b7280; }
+            body {
+              margin: 0;
+              padding: 10px;
+              font-family: Arial, sans-serif;
+            }
+
+            .label {
+              width: 300px;
+              border: 2px solid black;
+              padding: 10px;
+            }
+
+            .header {
+              text-align: center;
+              font-size: 11px;
+              font-weight: bold;
+            }
+
+            .section {
+              font-size: 11px;
+              margin-top: 8px;
+              line-height: 1.4;
+            }
+
+            .qr {
+              margin-top: 10px;
+            }
+
+            .qr img {
+              width: 90px;
+            }
+
+            .footer {
+              text-align: right;
+              font-size: 10px;
+              margin-top: 10px;
+            }
           </style>
         </head>
-        <body>
-          <h1>${qrDeviceName.textContent}</h1>
-          <p>Device QR Code</p>
-          <img src="${qrImage.src}" alt="QR Code">
-          <p>Scan this QR code to access device information</p>
+
+        <body onload="window.print()">
+
+          <div class="label">
+
+            <div class="header">
+              MUNICIPALITY OF NORZAGARAY<br>
+              PROVINCE OF BULACAN<br>
+              GENERAL SERVICES OFFICE
+            </div>
+
+            <div class="section">
+              <b>Item:</b> ${val(data.item_name)}<br>
+              <b>Brand/Model:</b> ${val(data.brand_model)}<br>
+              <b>Type:</b> ${val(data.device_type)}<br>
+              <b>Quantity:</b> ${val(data.quantity || 1)}<br>
+              <b>Status:</b> ${val(data.status)}<br>
+              <b>Accountable:</b> ${val(data.accountable)}<br>
+              <b>Serial No:</b> ${val(data.serial_no)}<br>
+              <b>Municipal No:</b> ${val(data.municipal_serial_no)}<br>
+              <b>Date Acquired:</b> ${val(data.date_acquired)}<br>
+              <b>Risk Level:</b> ${val(data.risk_level)}
+            </div>
+
+            <div class="qr">
+              <img src="${qrSrc}">
+            </div>
+
+            <div class="footer">
+              Authorized Signature<br>
+              <small>
+                Accession ID: ${data.accession_id}
+              </small>
+            </div>
+
+          </div>
+
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.print();
-  });
 
+    printWindow.document.close();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error fetching item data");
+  }
+});
   // Scan QR modal
   scanQRBtn.addEventListener('click', () => {
     scanModal.classList.remove('hidden');

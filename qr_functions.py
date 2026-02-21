@@ -31,7 +31,79 @@ def generate_qr_image(data: str, size: int = 200):
     img.save(buf, format='PNG')
     buf.seek(0)
     return buf
+@qrcode_bp.route('/get_item_for_print/<string:item_type>/<int:item_id>')
+def get_item_for_print(item_type, item_id):
+    """
+    Fetch item details for printing.
+    item_type: 'device' or 'pc'
+    item_id: accession_id (device) OR pcid (pc)
+    """
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
 
+            if item_type == 'device':
+                cursor.execute("""
+                    SELECT 
+                        accession_id,
+                        item_name,
+                        brand_model,
+                        quantity,
+                        acquisition_cost,
+                        date_acquired,
+                        accountable,
+                        serial_no,
+                        municipal_serial_no,
+                        device_type,
+                        department_id,
+                        status,
+                        last_checked,
+                        maintenance_interval_days,
+                        health_score,
+                        risk_level
+                    FROM devices_full
+                    WHERE accession_id = %s
+                """, (item_id,))
+            
+            elif item_type == 'pc':
+                cursor.execute("""
+                    SELECT 
+                        pcid,
+                        pcname,
+                        location,
+                        quantity,
+                        acquisition_cost,
+                        date_acquired,
+                        accountable,
+                        serial_no,
+                        municipal_serial_no,
+                        status,
+                        monitor,
+                        motherboard,
+                        ram,
+                        storage,
+                        gpu,
+                        psu,
+                        casing,
+                        last_checked,
+                        maintenance_interval_days,
+                        health
+                    FROM pcinfofull
+                    WHERE pcid = %s
+                """, (item_id,))
+            
+            else:
+                return jsonify({"error": "Invalid item type"}), 400
+
+            item = cursor.fetchone()
+
+    finally:
+        conn.close()
+
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+
+    return jsonify(item)
 def send_qr(data: str, size: int = 200, filename: str = "qr.png"):
     """
     Return a Flask response sending the QR code image.
@@ -61,6 +133,8 @@ def device_qr(accession_id):
     # Only encode minimal info for QR
     qr_data = f"DEVICE|{device['accession_id']}|{device['serial_no']}|{device['item_name']}"
     return send_qr(qr_data, size=200, filename=f"{device['item_name']}_QR.png")
+
+
 
 @qrcode_bp.route('/get_all_device_qrs')
 def get_all_device_qrs():
