@@ -30,6 +30,8 @@ def inventory_load():
     
     # PCs
     pc_list, pc_total, pc_pages = get_pc_list_paginated(page, per_page)
+    # Surrendered PCs (separate list)
+    surrendered_pc_list, surrendered_total, surrendered_pages = get_surrendered_pc_list_paginated(page, per_page)
     
     # Check if we have filter parameters for devices
     if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]):
@@ -52,6 +54,7 @@ def inventory_load():
     return render_template(
         'manage_inventory.html',
         pc_list=pc_list,
+        surrendered_pc_list=surrendered_pc_list,
         item_list=item_list,
         consumables=consumables,
         departments=departments,
@@ -62,6 +65,8 @@ def inventory_load():
 
         pc_total_items=pc_total,
         pc_total_pages=pc_pages,
+        surrendered_total_items=surrendered_total,
+        surrendered_total_pages=surrendered_pages,
 
         total_items=item_total,
         total_pages=item_pages
@@ -357,13 +362,95 @@ def bulk_update_devices():
 
         conn.commit()
         return jsonify(success=True)
-
     except Exception as e:
         conn.rollback()
         return jsonify(success=False, error=str(e)), 500
-
     finally:
         conn.close()
+
+
+@manage_inventory_bp.route('/inventory/pc/bulk-surrender', methods=['POST'])
+def bulk_surrender_pcs():
+    """Mark selected PCs as surrendered."""
+    data = request.get_json()
+    pcids = data.get('pcids', [])
+
+    if not pcids:
+        return jsonify(success=False, error="No PCs selected"), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Update status to 'Surrendered' for selected pcs
+            # Use parameter placeholders for safety
+            placeholders = ','.join(['%s'] * len(pcids))
+            update_sql = f"UPDATE pcinfofull SET status = 'Surrendered' WHERE pcid IN ({placeholders})"
+            cur.execute(update_sql, tuple(pcids))
+
+            # Insert maintenance_logs and history entries for each pc
+            for pcid in pcids:
+                # fetch previous status for logs
+                cur.execute("SELECT status, risk_level FROM pcinfofull WHERE pcid = %s", (pcid,))
+                old = cur.fetchone()
+                prev_status = old['status'] if old else None
+                prev_risk = old['risk_level'] if old else None
+
+                cur.execute("""
+                    INSERT INTO maintenance_logs (
+                        asset_type, asset_id,
+                        previous_status, new_status,
+                        previous_risk_level, new_risk_level,
+                        action
+                    ) VALUES (
+                        'PC', %s,
+                        %s, 'Surrendered',
+                        %s, %s,
+                        'Bulk surrender'
+                    )
+                """, (
+                    pcid,
+                    prev_status,
+                    prev_risk,
+                    prev_risk
+                ))
+
+                cur.execute("""
+                    INSERT INTO maintenance_history (
+                        pcid,
+                        asset_type,
+                        asset_id,
+                        action,
+                        old_status,
+                        new_status,
+                        risk_level,
+                        health_score,
+                        performed_by,
+                        remarks
+                    ) VALUES (
+                        %s, 'PC', %s,
+                        'Bulk surrender',
+                        %s, 'Surrendered',
+                        %s, NULL,
+                        %s, %s
+                    )
+                """, (
+                    pcid,
+                    pcid,
+                    prev_status,
+                    prev_risk,
+                    'System',
+                    'Bulk surrendered'
+                ))
+
+        conn.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error bulk surrendering PCs: {e}")
+        return jsonify(success=False, error=str(e)), 500
+    finally:
+        conn.close()
+ 
 
 def get_consumables_list():
     """Get all consumables with department information."""
@@ -769,7 +856,7 @@ def pc_filter_modal():
     return render_template('pcFilterModal.html')
 def get_pc_list_paginated(page=1, per_page=10):
     """
-    Fetch paginated PCs from pcinfofull.
+    Fetch paginated PCs from pcinfofull excluding surrendered.
     Returns:
         pcs, total_items, total_pages
     """
@@ -778,11 +865,15 @@ def get_pc_list_paginated(page=1, per_page=10):
 
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            # Total count
-            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull")
+            # ✅ Total count (exclude surrendered)
+            cur.execute("""
+                SELECT COUNT(*) AS total 
+                FROM pcinfofull
+                WHERE status != 'Surrendered'
+            """)
             total_items = cur.fetchone()["total"]
 
-            # Paginated PC data
+            # ✅ Paginated PC data (exclude surrendered)
             cur.execute("""
                 SELECT
                     pc.pcid,
@@ -803,6 +894,7 @@ def get_pc_list_paginated(page=1, per_page=10):
                 FROM pcinfofull pc
                 LEFT JOIN departments dep
                     ON pc.department_id = dep.department_id
+                WHERE pc.status != 'Surrendered'
                 ORDER BY pc.pcid DESC
                 LIMIT %s OFFSET %s
             """, (per_page, offset))
@@ -814,6 +906,60 @@ def get_pc_list_paginated(page=1, per_page=10):
 
     except Exception as e:
         print(f"❌ Error fetching paginated PCs: {e}")
+        return [], 0, 0
+
+    finally:
+        conn.close()
+
+
+def get_surrendered_pc_list_paginated(page=1, per_page=10):
+    """
+    Fetch paginated PCs from pcinfofull where status = 'Surrendered'.
+    Returns:
+        pcs, total_items, total_pages
+    """
+    offset = (page - 1) * per_page
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Total count for surrendered PCs
+            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Surrendered'")
+            total_items = cur.fetchone()["total"]
+
+            # Paginated surrendered PC data
+            cur.execute("""
+                SELECT
+                    pc.pcid,
+                    pc.pcname,
+                    pc.department_id,
+                    dep.department_name,
+                    pc.location,
+                    pc.acquisition_cost,
+                    pc.date_acquired,
+                    pc.accountable,
+                    pc.serial_no,
+                    pc.municipal_serial_no,
+                    pc.note,
+                    pc.status,
+                    pc.last_checked,
+                    pc.health_score,
+                    pc.risk_level
+                FROM pcinfofull pc
+                LEFT JOIN departments dep
+                    ON pc.department_id = dep.department_id
+                WHERE pc.status = 'Surrendered'
+                ORDER BY pc.pcid DESC
+                LIMIT %s OFFSET %s
+            """, (per_page, offset))
+
+            pcs = cur.fetchall()
+
+        total_pages = (total_items + per_page - 1) // per_page
+        return pcs, total_items, total_pages
+
+    except Exception as e:
+        print(f"❌ Error fetching surrendered paginated PCs: {e}")
         return [], 0, 0
 
     finally:

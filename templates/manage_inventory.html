@@ -45,6 +45,13 @@
         Manage PC
       </button>
 
+      <button onclick="showSection('surrenderedSection'); setActiveNav(this)"
+        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-gray-200 shadow-sm transition-all duration-200"
+        id="surrenderedBtn">
+        <i data-lucide="archive" class="w-5 h-5 mr-2 text-red-600"></i>
+        Surrendered PCs
+      </button>
+
       <button onclick="showSection('itemsSection'); setActiveNav(this)"
         class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
         id="itemsBtn">
@@ -71,6 +78,12 @@
         onclick="handleAddButtonClick()" 
         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
         Add PC
+      </button>
+      <button
+        id="bulkSurrenderBtn"
+        onclick="bulkSurrenderSelectedPCs()"
+        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow transition ml-2">
+        Surrender Selected
       </button>
       {% endif %}
     </div>
@@ -102,6 +115,12 @@
               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <i data-lucide="check-square"></i>
               Mark Selected Checked
+            </button>
+            <button
+              onclick="bulkSurrenderPc()"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+              <i data-lucide="check-square"></i>
+              Surrender Selected
             </button>
             {% endif %}
           </div>
@@ -308,6 +327,76 @@
       </section>
 
       <!-- MANAGE DEVICES SECTION -->
+      <!-- SURRENDERED PCS SECTION -->
+      <section id="surrenderedSection" class="hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
+            <i data-lucide="archive" class="w-6 h-6"></i> Surrendered PCs
+          </h3>
+
+          {% if surrendered_pc_list|length == 0 %}
+          <div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No surrendered PCs found.</div>
+          {% else %}
+          <div class="hidden lg:block overflow-x-auto rounded-xl">
+            <table class="min-w-full border border-gray-200 text-sm text-gray-800">
+              <thead class="bg-gray-200 text-gray-700">
+                <tr>
+                  <th class="px-4 py-2 border-b text-left">PC ID</th>
+                  <th class="px-4 py-2 border-b text-left">PC Name</th>
+                  <th class="px-4 py-2 border-b text-left">Department</th>
+                  <th class="px-4 py-2 border-b text-left">Location</th>
+                  <th class="px-4 py-2 border-b text-left">Accountable</th>
+                  <th class="px-4 py-2 border-b text-left">Serial No.</th>
+                  <th class="px-4 py-2 border-b text-left">Date Acquired</th>
+                  <th class="px-4 py-2 border-b text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pc in surrendered_pc_list %}
+                <tr class="hover:bg-gray-100 transition">
+                  <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.location }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.serial_no }}</td>
+                  <td class="px-4 py-2 border-b">{{ pc.date_acquired }}</td>
+                  <td class="px-4 py-2 border-b text-red-600 font-medium">{{ pc.status }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Card View -->
+          <div class="lg:hidden space-y-4">
+            {% for pc in surrendered_pc_list %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <h4 class="font-semibold text-gray-900">{{ pc.pcname }}</h4>
+                  <p class="text-sm text-gray-600">ID: {{ pc.pcid }}</p>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">{{ pc.status }}</span>
+              </div>
+              <div class="space-y-1 text-sm text-gray-600">
+                <p><span class="font-medium">Department:</span> {{ pc.department_name or '—' }}</p>
+                <p><span class="font-medium">Location:</span> {{ pc.location or '—' }}</p>
+                <p><span class="font-medium">Accountable:</span> {{ pc.accountable or '—' }}</p>
+                <p><span class="font-medium">Serial:</span> {{ pc.serial_no or '—' }}</p>
+                <p><span class="font-medium">Date Acquired:</span> {{ pc.date_acquired or '—' }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination summary -->
+          <div class="flex items-center justify-between mt-4 text-sm">
+            <div class="text-gray-600">Showing page {{ page }} of {{ surrendered_total_pages }} ({{ surrendered_total_items }} total surrendered)</div>
+          </div>
+          {% endif %}
+        </div>
+      </section>
 <section id="itemsSection" class="hidden">
   <div class="bg-white rounded-xl shadow-lg p-6">
     <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
@@ -900,6 +989,32 @@
 
     // Bulk Mark Checked Modal functions
     let bulkMarkCheckedCallback = null;
+      // Bulk surrender selected PCs
+      function bulkSurrenderSelectedPCs() {
+        const checked = Array.from(document.querySelectorAll('.pc-checkbox')).filter(cb => cb.checked).map(cb => cb.value);
+        if (checked.length === 0) {
+          alert('No PCs selected');
+          return;
+        }
+
+        if (!confirm(`Surrender ${checked.length} selected PC(s)? This will mark them as Surrendered.`)) return;
+
+        fetch('/inventory/pc/bulk-surrender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pcids: checked })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.success) location.reload();
+          else alert('Surrender failed: ' + (d.error || 'unknown'));
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Surrender failed');
+        });
+      }
+
 
     function showBulkMarkCheckedModal(message, callback) {
       const modal = document.getElementById('bulkMarkCheckedModal');
@@ -1036,6 +1151,13 @@
         currentSection = "consumable";
         addBtn.textContent = "Add Consumable";
         addBtn.onclick = openConsumableModal;
+      } else if (id === "surrenderedSection") {
+        currentSection = "surrendered";
+        // hide add button on surrendered view
+        if (addBtn) addBtn.style.display = 'none';
+      }
+      else {
+        if (addBtn) addBtn.style.display = '';
       }
     }
 
