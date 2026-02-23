@@ -1545,3 +1545,58 @@ def get_departments_list():
         return []
     finally:
         conn.close()
+@manage_inventory_bp.route('/inventory/pc/bulk-damaged', methods=['POST'])
+def bulk_damaged_pcs():
+    data = request.get_json()
+
+    pcids = data.get('pcids', [])
+    damage_type = data.get('damage_type', 'General Damage')
+    description = data.get('description', '')
+
+    if not pcids:
+        return jsonify(success=False, error="No PCs selected"), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            placeholders = ','.join(['%s'] * len(pcids))
+
+            # ✅ 1. Update status
+            cur.execute(
+                f"UPDATE pcinfofull SET status = 'Damaged' WHERE pcid IN ({placeholders})",
+                tuple(pcids)
+            )
+
+            # ✅ 2. Insert reports (MATCHES YOUR TABLE)
+            cur.execute(f"""
+                INSERT INTO damage_reports (
+                    pcid,
+                    reported_by,
+                    damage_type,
+                    description
+                )
+                SELECT 
+                    pcid,
+                    'System',
+                    %s,
+                    %s
+                FROM pcinfofull
+                WHERE pcid IN ({placeholders})
+            """, (
+                damage_type,
+                description,
+                *pcids
+            ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()

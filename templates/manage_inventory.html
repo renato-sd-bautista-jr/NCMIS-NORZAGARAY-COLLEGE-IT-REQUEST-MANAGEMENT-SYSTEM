@@ -79,12 +79,7 @@
         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
         Add PC
       </button>
-      <button
-        id="bulkSurrenderBtn"
-        onclick="bulkSurrenderSelectedPCs()"
-        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow transition ml-2">
-        Surrender Selected
-      </button>
+      
       {% endif %}
     </div>
 
@@ -117,11 +112,18 @@
               Mark Selected Checked
             </button>
             <button
-              onclick="bulkSurrenderPc()"
-              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-              <i data-lucide="check-square"></i>
-              Surrender Selected
-            </button>
+            id="bulkSurrenderBtn"
+            onclick="bulkSurrenderSelectedPCs()"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow transition ml-2">
+            <i data-lucide="archive" class="w-5 h-5 mr-2"></i>
+            Surrender Selected
+          </button>
+          <button id="bulkDamagedBtn"
+           onclick="bulkMarkDamagedSelectedPCs()"
+  class="bg-red-600 text-white px-3 py-1 rounded"
+ >
+  Mark as Damaged
+</button>
             {% endif %}
           </div>
 
@@ -1034,7 +1036,40 @@
 
     // Confirmation modal functions
     let confirmationCallback = null;
+function bulkMarkDamagedSelectedPCs() {
+  const checked = Array.from(document.querySelectorAll('.pc-checkbox'))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
 
+  if (checked.length === 0) {
+    alert('No PCs selected');
+    return;
+  }
+
+  if (!confirm(`Mark ${checked.length} PC(s) as DAMAGED?`)) return;
+
+  fetch('/inventory/pc/bulk-damaged', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      pcids: checked,
+      damage_type_id: 1, // temporary (you can make dynamic later)
+      severity: 'High',
+      description: 'Bulk marked as damaged'
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d && d.success) location.reload();
+    else alert('Failed: ' + (d.error || 'unknown'));
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Operation failed');
+  });
+}
     function showConfirmationModal(title, message, confirmText, callback) {
       console.log('showConfirmationModal called with:', title, message, confirmText);
       

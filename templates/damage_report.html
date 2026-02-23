@@ -122,9 +122,9 @@
       }
 
       data.forEach(row => {
-        const severityClass = row.severity === 'Critical' ? 'text-red-600 font-bold' : 
-                            row.severity === 'Major' ? 'text-orange-600 font-semibold' : 
-                            'text-yellow-600';
+        const severityClass = row.damage_type === 'Critical' ? 'text-red-600 font-bold' : 
+                      row.damage_type === 'Major' ? 'text-orange-600 font-semibold' : 
+                      'text-yellow-600';
         
         tbody.innerHTML += `
           <tr class="hover:bg-gray-100">
@@ -133,7 +133,7 @@
             <td class="p-2 border">${row.department || '-'}</td>
             <td class="p-2 border">${row.location || '-'}</td>
             <td class="p-2 border">${row.accountable || '-'}</td>
-            <td class="p-2 border ${severityClass}">${row.severity || '-'}</td>
+            <td class="p-2 border ${severityClass}">${row.damage_type || '-'}</td>
             <td class="p-2 border">${row.damage_description || '-'}</td>
             <td class="p-2 border">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
             <td class="p-2 border">${row.date_acquired || '-'}</td>

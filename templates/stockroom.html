@@ -1,0 +1,1365 @@
+
+stockroom.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Inventory Stock Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .dark .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sortable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .sort-asc::after {
+            content: ' ▲';
+        }
+        .sort-desc::after {
+            content: ' ▼';
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast-enter {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-exit {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- Main Container -->
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo & Title -->
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl">
+                            <i class="fas fa-microchip text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">PC Stock Room</h1>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Inventory Management</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Export/Import -->
+                        <div class="relative group">
+                            <button id="exportImportBtn" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Export/Import">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 hidden group-hover:block z-50">
+                                <button onclick="exportToJSON()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fas fa-file-code mr-2"></i>Export as JSON
+                                </button>
+                                <button onclick="exportToCSV()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fas fa-file-csv mr-2"></i>Export as CSV
+                                </button>
+                                <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                <label class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                                    <i class="fas fa-file-import mr-2"></i>Import JSON
+                                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importFromJSON(this)">
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Theme Toggle -->
+                        <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" aria-label="Toggle theme">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:inline"></i>
+                        </button>
+                        
+                        <!-- Add Button -->
+                        <button onclick="openModal()" class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition shadow-lg" accesskey="n">
+                            <i class="fas fa-plus"></i>
+                            <span class="hidden sm:inline">Add Item</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total Items -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Total Items</p>
+                            <p id="totalItems" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
+                        </div>
+                        <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-box text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-green-500 flex items-center">
+                            <i class="fas fa-arrow-up mr-1"></i> In Stock
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Categories</p>
+                            <p id="totalCategories" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
+                        </div>
+                        <div class="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-tags text-purple-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-500 dark:text-gray-400">Active types</span>
+                    </div>
+                </div>
+
+                <!-- Low Stock -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.2s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Low Stock</p>
+                            <p id="lowStockCount" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
+                        </div>
+                        <div class="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-red-500 flex items-center">
+                            <i class="fas fa-arrow-down mr-1"></i> Need restock
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Total Value -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.3s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Total Value</p>
+                            <p id="totalValue" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
+                        </div>
+<div class="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-line text-green-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-green-500 flex items-center">
+                            <i class="fas fa-arrow-up mr-1"></i> Inventory worth
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search & Filter Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 animate-fade-in">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Search -->
+                    <div class="flex-1 relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search by name, category, or SKU..." 
+                            class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        >
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div class="relative">
+                        <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select 
+                            id="categoryFilter" 
+                            class="w-full md:w-48 pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer"
+                        >
+                            <option value="">All Categories</option>
+                            <option value="GPU">GPU / Graphics Card</option>
+                            <option value="CPU">CPU / Processor</option>
+                            <option value="RAM">RAM / Memory</option>
+                            <option value="Motherboard">Motherboard</option>
+                            <option value="Storage">Storage / SSD</option>
+                            <option value="PSU">Power Supply</option>
+                            <option value="Case">PC Case</option>
+                            <option value="Cooling">Cooling</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="Peripheral">Peripheral</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="relative">
+                        <select 
+                            id="statusFilter" 
+                            class="w-full md:w-40 pl-4 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer"
+                        >
+                            <option value="">All Status</option>
+                            <option value="In Stock">In Stock</option>
+                            <option value="Low Stock">Low Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Inventory Table -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="inventoryTableElement">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('name')" data-sort="name">
+
+                                    <i class="fas fa-box mr-2"></i>Item Details
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('category')" data-sort="category">
+                                    <i class="fas fa-tag mr-2"></i>Category
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('quantity')" data-sort="quantity">
+                                    <i class="fas fa-cubes mr-2"></i>Quantity
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('price')" data-sort="price">
+                                    <i class="fas fa-tag mr-2"></i>Price
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('status')" data-sort="status">
+                                    <i class="fas fa-check-circle mr-2"></i>Status
+                                </th>
+                                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-cogs mr-2"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="inventoryTable" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Items will be dynamically inserted here -->
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden py-16 text-center">
+                    <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-box-open text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">No items found</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first PC component</p>
+                    <button onclick="openModal()" class="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-plus"></i>
+                        <span>Add First Item</span>
+                    </button>
+                </div>
+
+                <!-- Table Footer -->
+                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                        Showing <span id="showingCount" class="font-semibold text-gray-700 dark:text-gray-300">0</span> items
+                    </span>
+                    <div class="flex items-center space-x-2">
+                        <button id="prevPage" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Page <span id="currentPage" class="font-semibold">1</span> of <span id="totalPages">1</span></span>
+                        <button id="nextPage" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Inventory by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Stock Status Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts Section -->
+            <div id="lowStockSection" class="hidden mt-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-red-800 dark:text-red-200">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Low Stock Alerts
+                    </h3>
+                    <button onclick="dismissLowStockAlerts()" class="text-red-600 dark:text-red-400 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="lowStockList" class="space-y-2">
+                    <!-- Low stock items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- History Log Section -->
+            <div class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                        <i class="fas fa-history mr-2"></i>Recent Activity
+                    </h3>
+                    <button onclick="clearHistory()" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        Clear History
+                    </button>
+                </div>
+                <div id="historyLog" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- History entries will be inserted here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Add/Edit Modal -->
+    <div id="itemModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal()"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg animate-slide-up">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 id="modalTitle" class="text-xl font-semibold text-gray-800 dark:text-white">Add New Item</h3>
+                    <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-times text-gray-500"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body -->
+                <form id="itemForm" class="p-6 space-y-4">
+                    <input type="hidden" id="itemId">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Item Name -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name </label>
+                            <input 
+                                type="text" 
+                                id="itemName" 
+                                required 
+                                maxlength="100"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., NVIDIA RTX 4080"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Max 100 characters</p>
+                        </div>
+
+
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category </label>
+                            <select 
+                                id="itemCategory" 
+                                required 
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                            >
+                                <option value="">Select Category</option>
+                                <option value="GPU">GPU / Graphics Card</option>
+                                <option value="CPU">CPU / Processor</option>
+                                <option value="RAM">RAM / Memory</option>
+                                <option value="Motherboard">Motherboard</option>
+                                <option value="Storage">Storage / SSD</option>
+                                <option value="PSU">Power Supply</option>
+                                <option value="Case">PC Case</option>
+                                <option value="Cooling">Cooling</option>
+                                <option value="Monitor">Monitor</option>
+                                <option value="Peripheral">Peripheral</option>
+                            </select>
+                        </div>
+
+
+                        <!-- SKU -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SKU</label>
+                            <input 
+                                type="text" 
+                                id="itemSku" 
+                                maxlength="50"
+                                pattern="[A-Za-z0-9\-_]+"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., GPU-RTX-4080"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Alphanumeric, hyphens, and underscores only</p>
+                        </div>
+
+
+                        <!-- Quantity -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity </label>
+                            <input 
+                                type="number" 
+                                id="itemQuantity" 
+                                required 
+                                min="0"
+                                max="999999"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0"
+                            >
+                        </div>
+
+
+                        <!-- Price -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-tag mr-1"></i>Unit Price </label>
+                            <input 
+                                type="number" 
+                                id="itemPrice" 
+                                required 
+                                min="0"
+                                max="999999.99"
+                                step="0.01"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0.00"
+                            >
+                        </div>
+
+
+                        <!-- Min Stock -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min Stock Level</label>
+                            <input 
+                                type="number" 
+                                id="itemMinStock" 
+                                min="0"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="5"
+                            >
+                        </div>
+
+                        <!-- Functional -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-clock mr-1"></i>Functional</label>
+                            <input 
+                                type="text" 
+                                id="itemLifespan" 
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., 3 years, 50000 hours"
+                            >
+                        </div>
+
+                        <!-- Item Image -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Image</label>
+                            <div class="flex items-center space-x-4">
+                                <div id="imagePreview" class="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
+                                    <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <input 
+                                        type="file" 
+                                        id="itemImage" 
+                                        accept="image/*"
+                                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        onchange="previewImage(this)"
+                                    >
+                                    <p class="text-xs text-gray-500 mt-1">Max 2MB (JPEG, PNG, GIF)</p>
+                                </div>
+                                <button type="button" onclick="clearImage()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                            <textarea 
+                                id="itemDescription" 
+                                rows="3"
+                                maxlength="500"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Add any notes about this item..."
+                            ></textarea>
+                            <p class="text-xs text-gray-500 mt-1 text-right"><span id="descCharCount">0</span>/500</p>
+                        </div>
+                    </div>
+                </form>
+
+
+                <!-- Modal Footer -->
+                <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                    <button 
+                        type="button" 
+                        onclick="closeModal()" 
+                        class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        form="itemForm" 
+                        class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition shadow-lg"
+                    >
+                        <i class="fas fa-save mr-2"></i>Save Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeDeleteModal()"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md animate-slide-up">
+                <div class="p-8 text-center">
+                    <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-trash-alt text-3xl text-red-500"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Delete Item?</h3>
+                    <p id="deleteMessage" class="text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
+                    <div class="flex items-center justify-center space-x-3">
+                        <button 
+                            onclick="closeDeleteModal()" 
+                            class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            id="confirmDeleteBtn" 
+                            class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-lg"
+                        >
+                            <i class="fas fa-trash mr-2"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 flex items-center space-x-3">
+            <div id="toastIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+                <i class="text-xl"></i>
+            </div>
+            <div>
+                <p id="toastTitle" class="font-semibold text-gray-800 dark:text-white"></p>
+                <p id="toastMessage" class="text-sm text-gray-500 dark:text-gray-400"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 flex items-center space-x-3">
+            <div class="loading-spinner"></div>
+            <span class="text-gray-700 dark:text-gray-300">Processing...</span>
+        </div>
+    </div>
+
+    <!-- Undo Notification -->
+    <div id="undoNotification" class="fixed bottom-4 left-4 bg-gray-800 text-white px-6 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-3">
+        <span id="undoMessage">Item deleted</span>
+        <button onclick="undoDelete()" class="text-blue-400 hover:text-blue-300 font-semibold">Undo</button>
+    </div>
+
+    <script>
+
+        // Sample Data
+        let inventory = JSON.parse(localStorage.getItem('pcInventory')) || [
+            { id: 1, name: 'NVIDIA RTX 4090', category: 'GPU', sku: 'GPU-RTX-4090', quantity: 8, price: 1599.99, minStock: 5, description: 'High-end gaming graphics card' },
+            { id: 2, name: 'AMD Ryzen 9 7950X', category: 'CPU', sku: 'CPU-R9-7950X', quantity: 12, price: 549.99, minStock: 10, description: '16-core processor' },
+            { id: 3, name: 'Corsair Vengeance 32GB', category: 'RAM', sku: 'RAM-COR-32G', quantity: 25, price: 129.99, minStock: 15, description: 'DDR5 6000MHz' },
+            { id: 4, name: 'Samsung 990 PRO 2TB', category: 'Storage', sku: 'SSD-SAM-2TB', quantity: 30, price: 179.99, minStock: 20, description: 'NVMe M.2 SSD' },
+            { id: 5, name: 'ASUS ROG Strix X670E', category: 'Motherboard', sku: 'MB-ASUS-X670', quantity: 6, price: 499.99, minStock: 5, description: 'AM5 ATX motherboard' },
+            { id: 6, name: 'Corsair RM1000x', category: 'PSU', sku: 'PSU-COR-1000', quantity: 15, price: 189.99, minStock: 10, description: '1000W 80+ Gold' },
+            { id: 7, name: 'Lian Li O11 Dynamic', category: 'Case', sku: 'CASE-LIAN-O11', quantity: 4, price: 159.99, minStock: 5, description: 'Mid tower case' },
+            { id: 8, name: 'Noctua NH-D15', category: 'Cooling', sku: 'COOL-NOC-D15', quantity: 10, price: 109.99, minStock: 8, description: 'CPU air cooler' },
+        ];
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredInventory = [...inventory];
+        let deleteItemId = null;
+        let sortColumn = null;
+
+        let sortDirection = 'asc';
+        let deletedItem = null;
+        let deletedItemIndex = null;
+        let categoryChart = null;
+        let statusChart = null;
+
+
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved theme
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            updateStats();
+            renderTable();
+            setupEventListeners();
+            updateCharts();
+            checkLowStock();
+            loadHistory();
+            
+            // Description character counter
+            document.getElementById('itemDescription').addEventListener('input', function() {
+                document.getElementById('descCharCount').textContent = this.value.length;
+            });
+        });
+
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Search with debounce
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(() => {
+                    filterInventory();
+                }, 300);
+            });
+
+            // Filters
+            document.getElementById('categoryFilter').addEventListener('change', filterInventory);
+            document.getElementById('statusFilter').addEventListener('change', filterInventory);
+
+            // Form Submit
+            document.getElementById('itemForm').addEventListener('submit', handleFormSubmit);
+
+            // Pagination
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        }
+
+        // Sort Table
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            // Update sort indicators
+            document.querySelectorAll('.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === column) {
+                    th.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+
+            // Sort filtered inventory
+            filteredInventory.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                if (column === 'status') {
+                    aVal = getStockStatus(a);
+                    bVal = getStockStatus(b);
+                }
+
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+
+
+        // Export to JSON
+        function exportToJSON() {
+            const dataStr = JSON.stringify(inventory, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `inventory_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'Export Complete', 'Inventory exported as JSON');
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const headers = ['ID', 'Name', 'Category', 'SKU', 'Quantity', 'Price', 'Min Stock', 'Description'];
+            const rows = inventory.map(item => [
+                item.id,
+                `"${item.name}"`,
+                item.category,
+                item.sku || '',
+                item.quantity,
+                item.price,
+                item.minStock || 5,
+                `"${item.description || ''}"`
+            ]);
+            
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'Export Complete', 'Inventory exported as CSV');
+        }
+
+        // Import from JSON
+        function importFromJSON(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        inventory = imported;
+                        saveToLocalStorage();
+                        updateStats();
+                        filterInventory();
+                        updateCharts();
+                        showToast('success', 'Import Complete', `${imported.length} items imported`);
+                    } else {
+                        throw new Error('Invalid format');
+                    }
+                } catch (err) {
+                    showToast('error', 'Import Failed', 'Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // Preview image
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Clear image
+        function clearImage() {
+            document.getElementById('itemImage').value = '';
+            document.getElementById('imagePreview').innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
+        }
+
+        // Check low stock
+        function checkLowStock() {
+            const lowStockItems = inventory.filter(item => {
+                const status = getStockStatus(item);
+                return status === 'Low Stock' || status === 'Out of Stock';
+            });
+            
+            const section = document.getElementById('lowStockSection');
+            const list = document.getElementById('lowStockList');
+            
+            if (lowStockItems.length > 0) {
+                section.classList.remove('hidden');
+                list.innerHTML = lowStockItems.map(item => `
+                    <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                            <span class="text-sm font-medium text-gray-800 dark:text-white">${item.name}</span>
+                            <span class="text-xs text-gray-500">(${item.quantity} remaining)</span>
+                        </div>
+                        <button onclick="editItem(${item.id})" class="text-sm text-blue-500 hover:text-blue-600">Restock</button>
+                    </div>
+                `).join('');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        // Dismiss low stock alerts
+        function dismissLowStockAlerts() {
+            document.getElementById('lowStockSection').classList.add('hidden');
+        }
+
+        // Add history entry
+        function addHistory(action, itemName) {
+            const history = JSON.parse(localStorage.getItem('inventoryHistory') || '[]');
+            history.unshift({
+                action,
+                itemName,
+                timestamp: new Date().toISOString()
+            });
+            // Keep only last 50 entries
+            if (history.length > 50) history.pop();
+            localStorage.setItem('inventoryHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        // Load history
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('inventoryHistory') || '[]');
+            const container = document.getElementById('historyLog');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>';
+                return;
+            }
+            
+            container.innerHTML = history.map(entry => {
+                const date = new Date(entry.timestamp);
+                const timeStr = date.toLocaleString();
+                let icon = 'fa-info-circle';
+                let color = 'text-blue-500';
+                
+                if (entry.action.includes('Added')) {
+                    icon = 'fa-plus';
+                    color = 'text-green-500';
+                } else if (entry.action.includes('Updated')) {
+                    icon = 'fa-edit';
+                    color = 'text-blue-500';
+                } else if (entry.action.includes('Deleted')) {
+                    icon = 'fa-trash';
+                    color = 'text-red-500';
+                }
+                
+                return `
+                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
+                        <i class="fas ${icon} ${color}"></i>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-800 dark:text-white">${entry.action}: ${entry.itemName}</p>
+                            <p class="text-xs text-gray-500">${timeStr}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Clear history
+        function clearHistory() {
+            localStorage.removeItem('inventoryHistory');
+            loadHistory();
+            showToast('success', 'History Cleared', 'Activity log has been cleared');
+        }
+
+        // Undo delete
+        function undoDelete() {
+            if (deletedItem && deletedItemIndex !== null) {
+                inventory.splice(deletedItemIndex, 0, deletedItem);
+                saveToLocalStorage();
+                updateStats();
+                filterInventory();
+                hideUndoNotification();
+                showToast('success', 'Restored', `${deletedItem.name} has been restored`);
+                deletedItem = null;
+                deletedItemIndex = null;
+            }
+        }
+
+        // Show undo notification
+        function showUndoNotification(message) {
+            const notification = document.getElementById('undoNotification');
+            document.getElementById('undoMessage').textContent = message;
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                hideUndoNotification();
+            }, 5000);
+        }
+
+        // Hide undo notification
+        function hideUndoNotification() {
+            const notification = document.getElementById('undoNotification');
+            notification.classList.add('translate-y-20', 'opacity-0');
+        }
+
+        // Update charts
+        function updateCharts() {
+            updateCategoryChart();
+            updateStatusChart();
+        }
+
+        // Update category chart
+        function updateCategoryChart() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
+            
+            const categories = {};
+            inventory.forEach(item => {
+                categories[item.category] = (categories[item.category] || 0) + item.quantity;
+            });
+            
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
+                            '#6366f1', '#14b8a6', '#f97316', '#84cc16', '#06b6d4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update status chart
+        function updateStatusChart() {
+            const ctx = document.getElementById('statusChart');
+            if (!ctx) return;
+            
+            const statuses = { 'In Stock': 0, 'Low Stock': 0, 'Out of Stock': 0 };
+            inventory.forEach(item => {
+                const status = getStockStatus(item);
+                statuses[status] = (statuses[status] || 0) + 1;
+            });
+            
+            if (statusChart) {
+                statusChart.destroy();
+            }
+            
+            statusChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(statuses),
+                    datasets: [{
+                        label: 'Items',
+                        data: Object.values(statuses),
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // Filter Inventory
+        function filterInventory() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredInventory = inventory.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm) ||
+                    (item.sku && item.sku.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = !categoryFilter || item.category === categoryFilter;
+                
+                const status = getStockStatus(item);
+                const matchesStatus = !statusFilter || status === statusFilter;
+
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Get Stock Status
+        function getStockStatus(item) {
+            if (item.quantity === 0) return 'Out of Stock';
+            if (item.quantity <= (item.minStock || 5)) return 'Low Stock';
+            return 'In Stock';
+        }
+
+        // Update Stats
+        function updateStats() {
+            const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const categories = [...new Set(inventory.map(item => item.category))].length;
+            const lowStockItems = inventory.filter(item => item.quantity > 0 && item.quantity <= (item.minStock || 5)).length;
+            const totalValue = inventory.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalCategories').textContent = categories;
+            document.getElementById('lowStockCount').textContent = lowStockItems;
+document.getElementById('totalValue').textContent = totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Render Table
+        function renderTable() {
+            const tableBody = document.getElementById('inventoryTable');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredInventory.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                document.getElementById('showingCount').textContent = 0;
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredInventory.length);
+            const pageItems = filteredInventory.slice(startIndex, endIndex);
+
+            document.getElementById('showingCount').textContent = filteredInventory.length;
+
+            tableBody.innerHTML = pageItems.map(item => {
+                const status = getStockStatus(item);
+                const statusClass = status === 'In Stock' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                    status === 'Low Stock' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+                
+                const categoryIcon = getCategoryIcon(item.category);
+
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <td class="px-6 py-4">
+
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                                    ${categoryIcon}
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-semibold text-gray-800 dark:text-white">${item.name}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">${item.sku || 'No SKU'}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                ${item.category}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <span class="text-sm font-semibold text-gray-800 dark:text-white">${item.quantity}</span>
+                                <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">units</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <span class="text-sm font-semibold text-gray-800 dark:text-white">${parseFloat(item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}">
+                                ${status === 'In Stock' ? '<i class="fas fa-check-circle mr-1"></i>' : ''}
+                                ${status === 'Low Stock' ? '<i class="fas fa-exclamation-circle mr-1"></i>' : ''}
+                                ${status === 'Out of Stock' ? '<i class="fas fa-times-circle mr-1"></i>' : ''}
+                                ${status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="editItem(${item.id})" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="confirmDelete(${item.id})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Update pagination
+            const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages || 1;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages || totalPages === 0;
+        }
+
+
+        // Get Category Icon
+        function getCategoryIcon(category) {
+            const icons = {
+                'GPU': '<i class="fas fa-gamepad"></i>',
+                'CPU': '<i class="fas fa-microchip"></i>',
+                'RAM': '<i class="fas fa-memory"></i>',
+                'Motherboard': '<i class="fas fa-server"></i>',
+                'Storage': '<i class="fas fa-hdd"></i>',
+                'PSU': '<i class="fas fa-plug"></i>',
+                'Case': '<i class="fas fa-desktop"></i>',
+                'Cooling': '<i class="fas fa-fan"></i>',
+                'Monitor': '<i class="fas fa-desktop"></i>',
+                'Peripheral': '<i class="fas fa-keyboard"></i>'
+            };
+            return icons[category] || '<i class="fas fa-box"></i>';
+        }
+
+        // Modal Functions
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Item';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Edit Item
+        function editItem(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modalTitle').textContent = 'Edit Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemSku').value = item.sku || '';
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemMinStock').value = item.minStock || '';
+            document.getElementById('itemLifespan').value = item.lifespan || '';
+            document.getElementById('itemDescription').value = item.description || '';
+
+            document.getElementById('itemModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Handle Form Submit
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('itemId').value;
+            const itemData = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                sku: document.getElementById('itemSku').value,
+                quantity: parseInt(document.getElementById('itemQuantity').value),
+                price: parseFloat(document.getElementById('itemPrice').value),
+                minStock: parseInt(document.getElementById('itemMinStock').value) || 5,
+                lifespan: document.getElementById('itemLifespan').value,
+                description: document.getElementById('itemDescription').value
+            };
+
+            if (id) {
+                const index = inventory.findIndex(i => i.id === parseInt(id));
+                inventory[index] = itemData;
+                showToast('success', 'Item Updated', `${itemData.name} has been updated successfully.`);
+            } else {
+                inventory.push(itemData);
+                showToast('success', 'Item Added', `${itemData.name} has been added to inventory.`);
+            }
+
+            saveToLocalStorage();
+            updateStats();
+            filterInventory();
+            closeModal();
+        }
+
+        // Delete Functions
+        function confirmDelete(id) {
+            deleteItemId = id;
+            const item = inventory.find(i => i.id === id);
+            document.getElementById('deleteMessage').textContent = `Are you sure you want to delete "${item.name}"? This action cannot be undone.`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            document.getElementById('confirmDeleteBtn').onclick = () => deleteItem();
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            deleteItemId = null;
+        }
+
+        function deleteItem() {
+            if (!deleteItemId) return;
+
+            const item = inventory.find(i => i.id === deleteItemId);
+            inventory = inventory.filter(i => i.id !== deleteItemId);
+            
+            saveToLocalStorage();
+            updateStats();
+            filterInventory();
+            closeDeleteModal();
+            
+            showToast('success', 'Item Deleted', `${item.name} has been removed from inventory.`);
+        }
+
+        // Save to LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('pcInventory', JSON.stringify(inventory));
+        }
+
+        // Toast Notification
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+
+            const iconClass = type === 'success' ? 'fa-check bg-green-100 text-green-500' : 
+                type === 'error' ? 'fa-times bg-red-100 text-red-500' : 
+                'fa-info-circle bg-blue-100 text-blue-500';
+
+            toastIcon.className = `w-10 h-10 rounded-full flex items-center justify-center ${iconClass.split(' ')[1]} ${iconClass.split(' ')[2]}`;
+            toastIcon.innerHTML = `<i class="fas ${iconClass.split(' ')[0]}"></i>`;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

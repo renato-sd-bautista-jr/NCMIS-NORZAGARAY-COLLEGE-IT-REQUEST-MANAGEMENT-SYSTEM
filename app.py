@@ -20,6 +20,7 @@ from receive_item import receive_item_bp
 
 
 
+
 app = Flask(__name__)
 app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
 app.register_blueprint(login_bp)
@@ -37,6 +38,7 @@ app.register_blueprint(manage_item_bp, url_prefix='/manage_inventory')
 app.register_blueprint(maintenance_bp)
 app.register_blueprint(damage_report_bp)
 app.register_blueprint(receive_item_bp)
+
 
 # Context processor to make user access available globally in templates
 # ✅ Context processor to make user access available globally in templates

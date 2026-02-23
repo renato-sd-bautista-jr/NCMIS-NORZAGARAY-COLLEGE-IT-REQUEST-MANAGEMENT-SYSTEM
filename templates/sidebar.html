@@ -42,17 +42,13 @@
 </a>
 {% endif %}
 
-{% if permissions.get('damage_report', {}).get('view', False) %}
+ 
+ 
 <a href="{{ url_for('damage_report_bp.damage_report_page') }}"
-   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200
-          {% if request.endpoint == 'damage_report_bp.damage_report_page' %}
-            bg-blue-600 text-white shadow-md
-          {% else %}
-            hover:bg-blue-600/30 hover:text-white
-          {% endif %}">
+   class="flex items-center px-4 py-3 rounded-lg font-medium text-gray-200 transition-all duration-200 hover:bg-blue-600/30 hover:text-white">
   <i data-lucide="alert-triangle" class="w-5 h-5 mr-3"></i> Damage Report
 </a>
-{% endif %}
+
 
 {% if permissions.get('receive_item', {}).get('view', False) %}
 <a href="{{ url_for('receive_item.receive_item') }}"
@@ -89,6 +85,7 @@
 {% endif %}
     </nav>
   </div>
+  
 
   <!-- Logout Button -->
   <div class="p-4">
