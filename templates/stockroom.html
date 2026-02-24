@@ -109,6 +109,8 @@ stockroom.html
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Main Container -->
     <div class="min-h-screen">
+
+        {% include 'sidebar.html' %}
         <!-- Header -->
         <header class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -294,29 +296,16 @@ stockroom.html
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in">
                 <div class="overflow-x-auto">
                     <table class="w-full" id="inventoryTableElement">
-                        <thead class="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('name')" data-sort="name">
-
-                                    <i class="fas fa-box mr-2"></i>Item Details
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('category')" data-sort="category">
-                                    <i class="fas fa-tag mr-2"></i>Category
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('quantity')" data-sort="quantity">
-                                    <i class="fas fa-cubes mr-2"></i>Quantity
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('price')" data-sort="price">
-                                    <i class="fas fa-tag mr-2"></i>Price
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider sortable" onclick="sortTable('status')" data-sort="status">
-                                    <i class="fas fa-check-circle mr-2"></i>Status
-                                </th>
-                                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    <i class="fas fa-cogs mr-2"></i>Actions
-                                </th>
-                            </tr>
-                        </thead>
+                        <thead>
+  <tr>
+    <th class="p-2 border">Category</th>
+    <th class="p-2 border">Item Name</th>
+    <th class="p-2 border">Model</th>
+    <th class="p-2 border">Total Quantity</th>
+    <th class="p-2 border">Source</th>
+  </tr>
+</thead>
+<tbody id="stock-body"></tbody>
 
                         <tbody id="inventoryTable" class="divide-y divide-gray-200 dark:divide-gray-700">
                             <!-- Items will be dynamically inserted here -->
@@ -647,719 +636,167 @@ stockroom.html
     </div>
 
     <script>
-
-        // Sample Data
-        let inventory = JSON.parse(localStorage.getItem('pcInventory')) || [
-            { id: 1, name: 'NVIDIA RTX 4090', category: 'GPU', sku: 'GPU-RTX-4090', quantity: 8, price: 1599.99, minStock: 5, description: 'High-end gaming graphics card' },
-            { id: 2, name: 'AMD Ryzen 9 7950X', category: 'CPU', sku: 'CPU-R9-7950X', quantity: 12, price: 549.99, minStock: 10, description: '16-core processor' },
-            { id: 3, name: 'Corsair Vengeance 32GB', category: 'RAM', sku: 'RAM-COR-32G', quantity: 25, price: 129.99, minStock: 15, description: 'DDR5 6000MHz' },
-            { id: 4, name: 'Samsung 990 PRO 2TB', category: 'Storage', sku: 'SSD-SAM-2TB', quantity: 30, price: 179.99, minStock: 20, description: 'NVMe M.2 SSD' },
-            { id: 5, name: 'ASUS ROG Strix X670E', category: 'Motherboard', sku: 'MB-ASUS-X670', quantity: 6, price: 499.99, minStock: 5, description: 'AM5 ATX motherboard' },
-            { id: 6, name: 'Corsair RM1000x', category: 'PSU', sku: 'PSU-COR-1000', quantity: 15, price: 189.99, minStock: 10, description: '1000W 80+ Gold' },
-            { id: 7, name: 'Lian Li O11 Dynamic', category: 'Case', sku: 'CASE-LIAN-O11', quantity: 4, price: 159.99, minStock: 5, description: 'Mid tower case' },
-            { id: 8, name: 'Noctua NH-D15', category: 'Cooling', sku: 'COOL-NOC-D15', quantity: 10, price: 109.99, minStock: 8, description: 'CPU air cooler' },
-        ];
-
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let filteredInventory = [...inventory];
-        let deleteItemId = null;
-        let sortColumn = null;
-
-        let sortDirection = 'asc';
-        let deletedItem = null;
-        let deletedItemIndex = null;
-        let categoryChart = null;
-        let statusChart = null;
-
-
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for saved theme
-            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-            
-            updateStats();
-            renderTable();
-            setupEventListeners();
-            updateCharts();
-            checkLowStock();
-            loadHistory();
-            
-            // Description character counter
-            document.getElementById('itemDescription').addEventListener('input', function() {
-                document.getElementById('descCharCount').textContent = this.value.length;
-            });
-        });
-
-
-        // Theme Toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        });
-
-        // Event Listeners
-        function setupEventListeners() {
-            // Search with debounce
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                clearTimeout(window.searchTimeout);
-                window.searchTimeout = setTimeout(() => {
-                    filterInventory();
-                }, 300);
-            });
-
-            // Filters
-            document.getElementById('categoryFilter').addEventListener('change', filterInventory);
-            document.getElementById('statusFilter').addEventListener('change', filterInventory);
-
-            // Form Submit
-            document.getElementById('itemForm').addEventListener('submit', handleFormSubmit);
-
-            // Pagination
-            document.getElementById('prevPage').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTable();
-                }
-            });
-
-            document.getElementById('nextPage').addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderTable();
-                }
-            });
-        }
-
-        // Sort Table
-        function sortTable(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = column;
-                sortDirection = 'asc';
-            }
-
-            // Update sort indicators
-            document.querySelectorAll('.sortable').forEach(th => {
-                th.classList.remove('sort-asc', 'sort-desc');
-                if (th.dataset.sort === column) {
-                    th.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-                }
-            });
-
-            // Sort filtered inventory
-            filteredInventory.sort((a, b) => {
-                let aVal = a[column];
-                let bVal = b[column];
-
-                if (column === 'status') {
-                    aVal = getStockStatus(a);
-                    bVal = getStockStatus(b);
-                }
-
-                if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal.toLowerCase();
-                }
-
-                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            renderTable();
-        }
-
-
-
-        // Export to JSON
-        function exportToJSON() {
-            const dataStr = JSON.stringify(inventory, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `inventory_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('success', 'Export Complete', 'Inventory exported as JSON');
-        }
-
-        // Export to CSV
-        function exportToCSV() {
-            const headers = ['ID', 'Name', 'Category', 'SKU', 'Quantity', 'Price', 'Min Stock', 'Description'];
-            const rows = inventory.map(item => [
-                item.id,
-                `"${item.name}"`,
-                item.category,
-                item.sku || '',
-                item.quantity,
-                item.price,
-                item.minStock || 5,
-                `"${item.description || ''}"`
-            ]);
-            
-            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('success', 'Export Complete', 'Inventory exported as CSV');
-        }
-
-        // Import from JSON
-        function importFromJSON(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        inventory = imported;
-                        saveToLocalStorage();
-                        updateStats();
-                        filterInventory();
-                        updateCharts();
-                        showToast('success', 'Import Complete', `${imported.length} items imported`);
-                    } else {
-                        throw new Error('Invalid format');
-                    }
-                } catch (err) {
-                    showToast('error', 'Import Failed', 'Invalid JSON file');
-                }
-            };
-            reader.readAsText(file);
-            input.value = '';
-        }
-
-        // Preview image
-        function previewImage(input) {
-            const preview = document.getElementById('imagePreview');
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // Clear image
-        function clearImage() {
-            document.getElementById('itemImage').value = '';
-            document.getElementById('imagePreview').innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-        }
-
-        // Check low stock
-        function checkLowStock() {
-            const lowStockItems = inventory.filter(item => {
-                const status = getStockStatus(item);
-                return status === 'Low Stock' || status === 'Out of Stock';
-            });
-            
-            const section = document.getElementById('lowStockSection');
-            const list = document.getElementById('lowStockList');
-            
-            if (lowStockItems.length > 0) {
-                section.classList.remove('hidden');
-                list.innerHTML = lowStockItems.map(item => `
-                    <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-exclamation-triangle text-red-500"></i>
-                            <span class="text-sm font-medium text-gray-800 dark:text-white">${item.name}</span>
-                            <span class="text-xs text-gray-500">(${item.quantity} remaining)</span>
-                        </div>
-                        <button onclick="editItem(${item.id})" class="text-sm text-blue-500 hover:text-blue-600">Restock</button>
-                    </div>
-                `).join('');
-            } else {
-                section.classList.add('hidden');
-            }
-        }
-
-        // Dismiss low stock alerts
-        function dismissLowStockAlerts() {
-            document.getElementById('lowStockSection').classList.add('hidden');
-        }
-
-        // Add history entry
-        function addHistory(action, itemName) {
-            const history = JSON.parse(localStorage.getItem('inventoryHistory') || '[]');
-            history.unshift({
-                action,
-                itemName,
-                timestamp: new Date().toISOString()
-            });
-            // Keep only last 50 entries
-            if (history.length > 50) history.pop();
-            localStorage.setItem('inventoryHistory', JSON.stringify(history));
-            loadHistory();
-        }
-
-        // Load history
-        function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('inventoryHistory') || '[]');
-            const container = document.getElementById('historyLog');
-            
-            if (history.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>';
-                return;
-            }
-            
-            container.innerHTML = history.map(entry => {
-                const date = new Date(entry.timestamp);
-                const timeStr = date.toLocaleString();
-                let icon = 'fa-info-circle';
-                let color = 'text-blue-500';
-                
-                if (entry.action.includes('Added')) {
-                    icon = 'fa-plus';
-                    color = 'text-green-500';
-                } else if (entry.action.includes('Updated')) {
-                    icon = 'fa-edit';
-                    color = 'text-blue-500';
-                } else if (entry.action.includes('Deleted')) {
-                    icon = 'fa-trash';
-                    color = 'text-red-500';
-                }
-                
-                return `
-                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas ${icon} ${color}"></i>
-                        <div class="flex-1">
-                            <p class="text-sm text-gray-800 dark:text-white">${entry.action}: ${entry.itemName}</p>
-                            <p class="text-xs text-gray-500">${timeStr}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Clear history
-        function clearHistory() {
-            localStorage.removeItem('inventoryHistory');
-            loadHistory();
-            showToast('success', 'History Cleared', 'Activity log has been cleared');
-        }
-
-        // Undo delete
-        function undoDelete() {
-            if (deletedItem && deletedItemIndex !== null) {
-                inventory.splice(deletedItemIndex, 0, deletedItem);
-                saveToLocalStorage();
-                updateStats();
-                filterInventory();
-                hideUndoNotification();
-                showToast('success', 'Restored', `${deletedItem.name} has been restored`);
-                deletedItem = null;
-                deletedItemIndex = null;
-            }
-        }
-
-        // Show undo notification
-        function showUndoNotification(message) {
-            const notification = document.getElementById('undoNotification');
-            document.getElementById('undoMessage').textContent = message;
-            notification.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                hideUndoNotification();
-            }, 5000);
-        }
-
-        // Hide undo notification
-        function hideUndoNotification() {
-            const notification = document.getElementById('undoNotification');
-            notification.classList.add('translate-y-20', 'opacity-0');
-        }
-
-        // Update charts
-        function updateCharts() {
-            updateCategoryChart();
-            updateStatusChart();
-        }
-
-        // Update category chart
-        function updateCategoryChart() {
-            const ctx = document.getElementById('categoryChart');
-            if (!ctx) return;
-            
-            const categories = {};
-            inventory.forEach(item => {
-                categories[item.category] = (categories[item.category] || 0) + item.quantity;
-            });
-            
-            if (categoryChart) {
-                categoryChart.destroy();
-            }
-            
-            categoryChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(categories),
-                    datasets: [{
-                        data: Object.values(categories),
-                        backgroundColor: [
-                            '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
-                            '#6366f1', '#14b8a6', '#f97316', '#84cc16', '#06b6d4'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update status chart
-        function updateStatusChart() {
-            const ctx = document.getElementById('statusChart');
-            if (!ctx) return;
-            
-            const statuses = { 'In Stock': 0, 'Low Stock': 0, 'Out of Stock': 0 };
-            inventory.forEach(item => {
-                const status = getStockStatus(item);
-                statuses[status] = (statuses[status] || 0) + 1;
-            });
-            
-            if (statusChart) {
-                statusChart.destroy();
-            }
-            
-            statusChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(statuses),
-                    datasets: [{
-                        label: 'Items',
-                        data: Object.values(statuses),
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
-                            },
-                            grid: {
-                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-
-        // Filter Inventory
-        function filterInventory() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const categoryFilter = document.getElementById('categoryFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-
-            filteredInventory = inventory.filter(item => {
-                const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
-                    item.category.toLowerCase().includes(searchTerm) ||
-                    (item.sku && item.sku.toLowerCase().includes(searchTerm));
-                
-                const matchesCategory = !categoryFilter || item.category === categoryFilter;
-                
-                const status = getStockStatus(item);
-                const matchesStatus = !statusFilter || status === statusFilter;
-
-                return matchesSearch && matchesCategory && matchesStatus;
-            });
-
-            currentPage = 1;
-            renderTable();
-        }
-
-        // Get Stock Status
-        function getStockStatus(item) {
-            if (item.quantity === 0) return 'Out of Stock';
-            if (item.quantity <= (item.minStock || 5)) return 'Low Stock';
-            return 'In Stock';
-        }
-
-        // Update Stats
-        function updateStats() {
-            const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
-            const categories = [...new Set(inventory.map(item => item.category))].length;
-            const lowStockItems = inventory.filter(item => item.quantity > 0 && item.quantity <= (item.minStock || 5)).length;
-            const totalValue = inventory.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            document.getElementById('totalItems').textContent = totalItems;
-            document.getElementById('totalCategories').textContent = categories;
-            document.getElementById('lowStockCount').textContent = lowStockItems;
-document.getElementById('totalValue').textContent = totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // Render Table
-        function renderTable() {
-            const tableBody = document.getElementById('inventoryTable');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (filteredInventory.length === 0) {
-                tableBody.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                document.getElementById('showingCount').textContent = 0;
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredInventory.length);
-            const pageItems = filteredInventory.slice(startIndex, endIndex);
-
-            document.getElementById('showingCount').textContent = filteredInventory.length;
-
-            tableBody.innerHTML = pageItems.map(item => {
-                const status = getStockStatus(item);
-                const statusClass = status === 'In Stock' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                    status === 'Low Stock' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-                
-                const categoryIcon = getCategoryIcon(item.category);
-
-                return `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                        <td class="px-6 py-4">
-
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
-                                    ${categoryIcon}
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-semibold text-gray-800 dark:text-white">${item.name}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">${item.sku || 'No SKU'}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                ${item.category}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <span class="text-sm font-semibold text-gray-800 dark:text-white">${item.quantity}</span>
-                                <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">units</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <span class="text-sm font-semibold text-gray-800 dark:text-white">${parseFloat(item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                        </td>
-
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}">
-                                ${status === 'In Stock' ? '<i class="fas fa-check-circle mr-1"></i>' : ''}
-                                ${status === 'Low Stock' ? '<i class="fas fa-exclamation-circle mr-1"></i>' : ''}
-                                ${status === 'Out of Stock' ? '<i class="fas fa-times-circle mr-1"></i>' : ''}
-                                ${status}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end space-x-2">
-                                <button onclick="editItem(${item.id})" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="confirmDelete(${item.id})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Update pagination
-            const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-            document.getElementById('currentPage').textContent = currentPage;
-            document.getElementById('totalPages').textContent = totalPages || 1;
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage >= totalPages || totalPages === 0;
-        }
-
-
-        // Get Category Icon
-        function getCategoryIcon(category) {
-            const icons = {
-                'GPU': '<i class="fas fa-gamepad"></i>',
-                'CPU': '<i class="fas fa-microchip"></i>',
-                'RAM': '<i class="fas fa-memory"></i>',
-                'Motherboard': '<i class="fas fa-server"></i>',
-                'Storage': '<i class="fas fa-hdd"></i>',
-                'PSU': '<i class="fas fa-plug"></i>',
-                'Case': '<i class="fas fa-desktop"></i>',
-                'Cooling': '<i class="fas fa-fan"></i>',
-                'Monitor': '<i class="fas fa-desktop"></i>',
-                'Peripheral': '<i class="fas fa-keyboard"></i>'
-            };
-            return icons[category] || '<i class="fas fa-box"></i>';
-        }
-
-        // Modal Functions
-        function openModal() {
-            document.getElementById('modalTitle').textContent = 'Add New Item';
-            document.getElementById('itemForm').reset();
-            document.getElementById('itemId').value = '';
-            document.getElementById('itemModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('itemModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Edit Item
-        function editItem(id) {
-            const item = inventory.find(i => i.id === id);
-            if (!item) return;
-
-            document.getElementById('modalTitle').textContent = 'Edit Item';
-            document.getElementById('itemId').value = item.id;
-            document.getElementById('itemName').value = item.name;
-            document.getElementById('itemCategory').value = item.category;
-            document.getElementById('itemSku').value = item.sku || '';
-            document.getElementById('itemQuantity').value = item.quantity;
-            document.getElementById('itemPrice').value = item.price;
-            document.getElementById('itemMinStock').value = item.minStock || '';
-            document.getElementById('itemLifespan').value = item.lifespan || '';
-            document.getElementById('itemDescription').value = item.description || '';
-
-            document.getElementById('itemModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        // Handle Form Submit
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const id = document.getElementById('itemId').value;
-            const itemData = {
-                id: id ? parseInt(id) : Date.now(),
-                name: document.getElementById('itemName').value,
-                category: document.getElementById('itemCategory').value,
-                sku: document.getElementById('itemSku').value,
-                quantity: parseInt(document.getElementById('itemQuantity').value),
-                price: parseFloat(document.getElementById('itemPrice').value),
-                minStock: parseInt(document.getElementById('itemMinStock').value) || 5,
-                lifespan: document.getElementById('itemLifespan').value,
-                description: document.getElementById('itemDescription').value
-            };
-
-            if (id) {
-                const index = inventory.findIndex(i => i.id === parseInt(id));
-                inventory[index] = itemData;
-                showToast('success', 'Item Updated', `${itemData.name} has been updated successfully.`);
-            } else {
-                inventory.push(itemData);
-                showToast('success', 'Item Added', `${itemData.name} has been added to inventory.`);
-            }
-
-            saveToLocalStorage();
-            updateStats();
-            filterInventory();
-            closeModal();
-        }
-
-        // Delete Functions
-        function confirmDelete(id) {
-            deleteItemId = id;
-            const item = inventory.find(i => i.id === id);
-            document.getElementById('deleteMessage').textContent = `Are you sure you want to delete "${item.name}"? This action cannot be undone.`;
-            document.getElementById('deleteModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-
-            document.getElementById('confirmDeleteBtn').onclick = () => deleteItem();
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            deleteItemId = null;
-        }
-
-        function deleteItem() {
-            if (!deleteItemId) return;
-
-            const item = inventory.find(i => i.id === deleteItemId);
-            inventory = inventory.filter(i => i.id !== deleteItemId);
-            
-            saveToLocalStorage();
-            updateStats();
-            filterInventory();
-            closeDeleteModal();
-            
-            showToast('success', 'Item Deleted', `${item.name} has been removed from inventory.`);
-        }
-
-        // Save to LocalStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('pcInventory', JSON.stringify(inventory));
-        }
-
-        // Toast Notification
-        function showToast(type, title, message) {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toastIcon');
-            const toastTitle = document.getElementById('toastTitle');
-            const toastMessage = document.getElementById('toastMessage');
-
-            const iconClass = type === 'success' ? 'fa-check bg-green-100 text-green-500' : 
-                type === 'error' ? 'fa-times bg-red-100 text-red-500' : 
-                'fa-info-circle bg-blue-100 text-blue-500';
-
-            toastIcon.className = `w-10 h-10 rounded-full flex items-center justify-center ${iconClass.split(' ')[1]} ${iconClass.split(' ')[2]}`;
-            toastIcon.innerHTML = `<i class="fas ${iconClass.split(' ')[0]}"></i>`;
-            toastTitle.textContent = title;
-            toastMessage.textContent = message;
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
+let stockData = [];
+let filteredData = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
+// 🚀 INIT
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadStockRoom();
+    setupEventListeners();
+    updateStats();
+});
+
+// 📦 FETCH FROM BACKEND
+
+
+async function loadStockRoom() {
+    try {
+        const res = await fetch('/stock_room/get-stock-room');
+        stockData = await res.json();
+
+        renderStockTable(stockData);
+    } catch (err) {
+        console.error("Error loading stock:", err);
+    }
+}
+function renderStockTable(data) {
+    const tbody = document.getElementById('stock-body');
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4 text-gray-500">
+                    No stock found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    data.forEach(item => {
+        tbody.innerHTML += `
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td class="p-2 border font-semibold">${item.category}</td>
+                <td class="p-2 border">${item.item_name}</td>
+                <td class="p-2 border">${item.brand_model || '-'}</td>
+                <td class="p-2 border text-center font-bold">${item.total_quantity}</td>
+                <td class="p-2 border text-xs text-gray-500">${item.source}</td>
+            </tr>
+        `;
+    });
+}
+
+function filterStock() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    const filtered = stockData.filter(item =>
+        item.category.toLowerCase().includes(search) ||
+        item.item_name.toLowerCase().includes(search) ||
+        (item.brand_model && item.brand_model.toLowerCase().includes(search))
+    );
+
+    renderStockTable(filtered);
+}
+// 🎯 FILTERS
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', filterData);
+    document.getElementById('categoryFilter').addEventListener('change', filterData);
+}
+
+// 🔍 FILTER FUNCTION
+function filterData() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+
+    filteredData = stockData.filter(item => {
+        const matchSearch =
+            item.item_name.toLowerCase().includes(search) ||
+            item.category.toLowerCase().includes(search);
+
+        const matchCategory = !category || item.category === category;
+
+        return matchSearch && matchCategory;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+// 📊 STATUS LOGIC
+function getStockStatus(item) {
+    if (item.total_quantity === 0) return 'Out of Stock';
+    if (item.total_quantity <= 5) return 'Low Stock';
+    return 'In Stock';
+}
+
+// 📈 STATS
+function updateStats() {
+    const totalItems = stockData.reduce((sum, i) => sum + i.total_quantity, 0);
+    const categories = [...new Set(stockData.map(i => i.category))].length;
+    const lowStock = stockData.filter(i => i.total_quantity <= 5).length;
+
+    document.getElementById('totalItems').textContent = totalItems;
+    document.getElementById('totalCategories').textContent = categories;
+    document.getElementById('lowStockCount').textContent = lowStock;
+}
+
+// ⚠️ LOW STOCK ALERT
+function checkLowStock() {
+    const lowItems = stockData.filter(i => i.total_quantity <= 5);
+
+    const list = document.getElementById('lowStockList');
+    const section = document.getElementById('lowStockSection');
+
+    if (lowItems.length === 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+
+    list.innerHTML = lowItems.map(item => `
+        <div class="flex justify-between p-2 bg-white rounded">
+            <span>${item.item_name}</span>
+            <span class="text-red-500 font-bold">${item.total_quantity}</span>
+        </div>
+    `).join('');
+}
+
+// 📋 TABLE RENDER
+function renderTable() {
+    const tbody = document.getElementById('stock-body');
+
+    if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4">No stock found</td></tr>`;
+        return;
+    }
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const pageData = filteredData.slice(start, start + itemsPerPage);
+
+    tbody.innerHTML = pageData.map(item => {
+        const status = getStockStatus(item);
+
+        const statusColor =
+            status === 'In Stock' ? 'text-green-600' :
+            status === 'Low Stock' ? 'text-yellow-600' :
+            'text-red-600';
+
+        return `
+            <tr>
+                <td class="p-2 border font-semibold">${item.category}</td>
+                <td class="p-2 border">${item.item_name}</td>
+                <td class="p-2 border">${item.brand_model || '-'}</td>
+                <td class="p-2 border text-center font-bold">${item.total_quantity}</td>
+                <td class="p-2 border ${statusColor} font-semibold">${status}</td>
+            </tr>
+        `;
+    }).join('');
+}
+</script>
 </body>
 </html>
 

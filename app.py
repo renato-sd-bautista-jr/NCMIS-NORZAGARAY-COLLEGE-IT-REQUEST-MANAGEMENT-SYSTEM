@@ -17,6 +17,7 @@ from sidebar import get_user_access
 from maintenance import maintenance_bp
 from damage_report import damage_report_bp
 from receive_item import receive_item_bp
+from stock_room import stock
 
 
 
@@ -38,7 +39,7 @@ app.register_blueprint(manage_item_bp, url_prefix='/manage_inventory')
 app.register_blueprint(maintenance_bp)
 app.register_blueprint(damage_report_bp)
 app.register_blueprint(receive_item_bp)
-
+app.register_blueprint(stock, url_prefix='/stock_room')
 
 # Context processor to make user access available globally in templates
 # ✅ Context processor to make user access available globally in templates
