@@ -1,0 +1,787 @@
+
+transactions.html
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receive & Return PC Parts - PC Stock Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark .glass {
+            background: rgba(17, 24, 39, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-bounce-in {
+            animation: bounceIn 0.8s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            transition: color 0.3s ease;
+        }
+
+        .form-group:focus-within .input-icon {
+            color: #3b82f6;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .history-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .history-card:hover {
+            transform: translateX(12px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .tab-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .tab-button.active::before {
+            transform: scaleX(1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .floating-animation {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+
+        .form-container {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(15px);
+        }
+
+        .stat-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
+      {% include 'sidebar.html' %}
+  {% include 'delete_modal.html' %}
+  {% include 'partials/filter_device_modal.html' %}<!-- Header -->
+    <header class="glass shadow-lg sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-18 py-4">
+                <div class="flex items-center space-x-4">
+                    <a href="stockroom.html" class="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105">
+                        <i class="fas fa-microchip text-white text-xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">PC Stock Room</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Receive & Return Management</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="stockroom.html" class="flex items-center space-x-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="font-medium">Back</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Received -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-green-100 dark:border-green-900/30 animate-fade-in">
+                <div class="flex items-center justify-between">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-arrow-down text-white text-xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-green-500" id="totalReceived">0</span>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Received</p>
+                    <p class="text-gray-800 dark:text-white font-bold text-lg">All Time</p>
+                </div>
+            </div>
+            
+            <!-- Total Returned -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-orange-100 dark:border-orange-900/30 animate-fade-in" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between">
+                    <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-arrow-up text-white text-xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-orange-500" id="totalReturned">0</span>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Returned</p>
+                    <p class="text-gray-800 dark:text-white font-bold text-lg">All Time</p>
+                </div>
+            </div>
+            
+            <!-- Net Change -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-blue-100 dark:border-blue-900/30 animate-fade-in" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-blue-500" id="netChange">0</span>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Net Change</p>
+                    <p class="text-gray-800 dark:text-white font-bold text-lg">Inventory Flow</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-6 animate-fade-in">
+            <div class="flex">
+                <button id="tabReceive" onclick="switchTab('receive')" class="flex-1 py-5 px-6 text-center font-bold text-lg transition-all relative overflow-hidden group">
+                    <span class="relative z-10 flex items-center justify-center space-x-2">
+                        <i class="fas fa-arrow-down text-green-500"></i>
+                        <span class="text-green-600 dark:text-green-400">Receive Stock</span>
+                    </span>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                </button>
+                <button id="tabReturn" onclick="switchTab('return')" class="flex-1 py-5 px-6 text-center font-bold text-lg transition-all relative overflow-hidden group">
+                    <span class="relative z-10 flex items-center justify-center space-x-2">
+                        <i class="fas fa-arrow-up text-orange-500"></i>
+                        <span class="text-orange-600 dark:text-orange-400">Return Stock</span>
+                    </span>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Forms Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Receive Form -->
+            <div id="receiveSection" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-fade-in">
+                <div class="flex items-center space-x-4 mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-xl">
+                        <i class="fas fa-arrow-down text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Receive Stock</h2>
+                        <p class="text-gray-500 dark:text-gray-400">Add new inventory to your stock</p>
+                    </div>
+                </div>
+
+                <form id="receiveForm" class="space-y-5">
+                    <!-- Item Selection -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Item <span class="text-red-500">*</span></label>
+                        <i class="fas fa-box input-icon"></i>
+                        <select id="receiveItem" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                            <option value="">Choose an item from inventory...</option>
+                        </select>
+                    </div>
+
+                    <!-- Current Stock -->
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-green-700 dark:text-green-400 font-medium">Current Stock</span>
+                            <span id="currentStockReceive" class="text-2xl font-bold text-green-600 dark:text-green-400">0</span>
+                            <span class="text-green-600 dark:text-green-400 font-medium">units</span>
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quantity to Receive <span class="text-red-500">*</span></label>
+                        <i class="fas fa-plus input-icon"></i>
+                        <input type="number" id="receiveQuantity" required min="1" max="999999" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="Enter quantity">
+                    </div>
+
+                    <!-- Supplier Reference -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Supplier / PO Reference</label>
+                        <i class="fas fa-file-alt input-icon"></i>
+                        <input type="text" id="receiveRef" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="e.g., PO-12345">
+                    </div>
+
+                    <!-- Date -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date Received</label>
+                        <i class="fas fa-calendar input-icon"></i>
+                        <input type="date" id="receiveDate" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+                        <i class="fas fa-sticky-note input-icon" style="top: 24px;"></i>
+                        <textarea id="receiveNotes" rows="2" class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="Additional notes..."></textarea>
+                    </div>
+
+                    <!-- New Stock Preview -->
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-semibold">New Stock Level</span>
+                            <span id="newStockReceive" class="text-3xl font-extrabold text-white">0</span>
+                            <span class="text-white/80 font-medium">units</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl font-bold text-lg flex items-center justify-center space-x-2 transform hover:scale-[1.02]">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirm Receipt</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Return Form -->
+            <div id="returnSection" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 hidden animate-fade-in">
+                <div class="flex items-center space-x-4 mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center shadow-xl">
+                        <i class="fas fa-arrow-up text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Return Stock</h2>
+                        <p class="text-gray-500 dark:text-gray-400">Remove inventory from your stock</p>
+                    </div>
+                </div>
+
+                <form id="returnForm" class="space-y-5">
+                    <!-- Item Selection -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Item <span class="text-red-500">*</span></label>
+                        <i class="fas fa-box input-icon"></i>
+                        <select id="returnItem" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                            <option value="">Choose an item from inventory...</option>
+                        </select>
+                    </div>
+
+                    <!-- Current Stock -->
+                    <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-orange-700 dark:text-orange-400 font-medium">Current Stock</span>
+                            <span id="currentStockReturn" class="text-2xl font-bold text-orange-600 dark:text-orange-400">0</span>
+                            <span class="text-orange-600 dark:text-orange-400 font-medium">units</span>
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quantity to Return <span class="text-red-500">*</span></label>
+                        <i class="fas fa-minus input-icon"></i>
+                        <input type="number" id="returnQuantity" required min="1" max="999999" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Enter quantity">
+                    </div>
+
+                    <!-- Return Reference -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Reference</label>
+                        <i class="fas fa-file-alt input-icon"></i>
+                        <input type="text" id="returnRef" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="e.g., RTN-001">
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Reason</label>
+                        <i class="fas fa-question-circle input-icon"></i>
+                        <select id="returnReason" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none">
+                            <option value="">Select reason...</option>
+                            <option value="Customer Return">Customer Return</option>
+                            <option value="Defective">Defective</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Overstock">Overstock</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Date</label>
+                        <i class="fas fa-calendar input-icon"></i>
+                        <input type="date" id="returnDate" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+                        <i class="fas fa-sticky-note input-icon" style="top: 24px;"></i>
+                        <textarea id="returnNotes" rows="2" class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Additional notes..."></textarea>
+                    </div>
+
+                    <!-- New Stock Preview -->
+                    <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-semibold">New Stock Level</span>
+                            <span id="newStockReturn" class="text-3xl font-extrabold text-white">0</span>
+                            <span class="text-white/80 font-medium">units</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-bold text-lg flex items-center justify-center space-x-2 transform hover:scale-[1.02]">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirm Return</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-history text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Transaction History</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">View all receive and return transactions</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+="filterTransaction" onchange="loadTransactionHistory()" class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white font-medium">
+                        <option value="all">All Transactions</option>
+                        <option value="receive">Receive Only</option>
+                        <option value="return">Return Only</option>
+                    </select>
+                    <button onclick="clearTransactionHistory()" class="px-4 py-2.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition font-medium border border-red-200 dark:border-red-800">
+                        <i class="fas fa-trash-alt mr-1"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <div id="transactionHistory" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                <p class="text-gray-500 dark:text-gray-400 text-center py-8">No transactions yet</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 flex items-center space-x-4 border border-gray-200 dark:border-gray-700">
+            <div id="toastIcon" class="w-12 h-12 rounded-xl flex items-center justify-center">
+                <i class="text-xl"></i>
+            </div>
+            <div>
+                <p id="toastTitle" class="font-bold text-gray-800 dark:text-white"></p>
+                <p id="toastMessage" class="text-sm text-gray-500 dark:text-gray-400"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load inventory
+        let inventory = JSON.parse(localStorage.getItem('pcInventory')) || [];
+
+        // Set today's date as default
+        document.getElementById('receiveDate').valueAsDate = new Date();
+        document.getElementById('returnDate').valueAsDate = new Date();
+
+        // Populate item dropdowns
+        function populateDropdowns() {
+            const receiveSelect = document.getElementById('receiveItem');
+            receiveSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
+            inventory.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.quantity} in stock)`;
+                receiveSelect.appendChild(option);
+            });
+
+            const returnSelect = document.getElementById('returnItem');
+            returnSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
+            const itemsWithStock = inventory.filter(item => item.quantity > 0).sort((a, b) => a.name.localeCompare(b.name));
+            itemsWithStock.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.quantity} in stock)`;
+                returnSelect.appendChild(option);
+            });
+        }
+
+        populateDropdowns();
+        updateStats();
+
+        // Tab switching
+        function switchTab(tab) {
+            const receiveSection = document.getElementById('receiveSection');
+            const returnSection = document.getElementById('returnSection');
+            const tabReceive = document.getElementById('tabReceive');
+            const tabReturn = document.getElementById('tabReturn');
+
+            if (tab === 'receive') {
+                receiveSection.classList.remove('hidden');
+                returnSection.classList.add('hidden');
+                tabReceive.classList.add('bg-green-50', 'dark:bg-green-900/20');
+                tabReceive.classList.remove('text-gray-500');
+                tabReceive.classList.add('text-green-600', 'dark:text-green-400');
+                tabReturn.classList.remove('bg-orange-50', 'dark:bg-orange-900/20');
+                tabReturn.classList.remove('text-orange-600', 'dark:text-orange-400');
+                tabReturn.classList.add('text-gray-500');
+            } else {
+                receiveSection.classList.add('hidden');
+                returnSection.classList.remove('hidden');
+                tabReturn.classList.add('bg-orange-50', 'dark:bg-orange-900/20');
+                tabReturn.classList.remove('text-gray-500');
+                tabReturn.classList.add('text-orange-600', 'dark:text-orange-400');
+                tabReceive.classList.remove('bg-green-50', 'dark:bg-green-900/20');
+                tabReceive.classList.remove('text-green-600', 'dark:text-green-400');
+                tabReceive.classList.add('text-gray-500');
+            }
+        }
+
+        // Update Receive preview
+        document.getElementById('receiveItem').addEventListener('change', function() {
+            const itemId = parseInt(this.value);
+            const quantity = parseInt(document.getElementById('receiveQuantity').value) || 0;
+            
+            if (itemId) {
+                const item = inventory.find(i => i.id === itemId);
+                const newStock = (item ? item.quantity : 0) + quantity;
+                document.getElementById('currentStockReceive').textContent = item ? item.quantity : 0;
+                document.getElementById('newStockReceive').textContent = newStock;
+            } else {
+                document.getElementById('currentStockReceive').textContent = '0';
+                document.getElementById('newStockReceive').textContent = '0';
+            }
+        });
+
+        document.getElementById('receiveQuantity').addEventListener('input', function() {
+            const itemId = parseInt(document.getElementById('receiveItem').value);
+            const quantity = parseInt(this.value) || 0;
+            
+            if (itemId) {
+                const item = inventory.find(i => i.id === itemId);
+                const newStock = (item ? item.quantity : 0) + quantity;
+                document.getElementById('newStockReceive').textContent = newStock;
+            }
+        });
+
+        // Update Return preview
+        document.getElementById('returnItem').addEventListener('change', function() {
+            const itemId = parseInt(this.value);
+            const quantity = parseInt(document.getElementById('returnQuantity').value) || 0;
+            
+            if (itemId) {
+                const item = inventory.find(i => i.id === itemId);
+                const currentQty = item ? item.quantity : 0;
+                const newStock = Math.max(0, currentQty - quantity);
+                document.getElementById('currentStockReturn').textContent = currentQty;
+                document.getElementById('newStockReturn').textContent = newStock;
+            } else {
+                document.getElementById('currentStockReturn').textContent = '0';
+                document.getElementById('newStockReturn').textContent = '0';
+            }
+        });
+
+        document.getElementById('returnQuantity').addEventListener('input', function() {
+            const itemId = parseInt(document.getElementById('returnItem').value);
+            const quantity = parseInt(this.value) || 0;
+            
+            if (itemId) {
+                const item = inventory.find(i => i.id === itemId);
+                const currentQty = item ? item.quantity : 0;
+                const newStock = Math.max(0, currentQty - quantity);
+                document.getElementById('newStockReturn').textContent = newStock;
+            }
+        });
+
+        // Handle Receive form submission
+        document.getElementById('receiveForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const itemId = parseInt(document.getElementById('receiveItem').value);
+            const quantity = parseInt(document.getElementById('receiveQuantity').value);
+            const ref = document.getElementById('receiveRef').value;
+            const date = document.getElementById('receiveDate').value;
+            const notes = document.getElementById('receiveNotes').value;
+
+            if (!itemId || !quantity) {
+                showToast('Error', 'Please select an item and enter quantity', 'error');
+                return;
+            }
+
+            const item = inventory.find(i => i.id === itemId);
+            const index = inventory.findIndex(i => i.id === itemId);
+            const previousStock = item.quantity;
+            const newStock = previousStock + quantity;
+            
+            inventory[index].quantity = newStock;
+            localStorage.setItem('pcInventory', JSON.stringify(inventory));
+
+            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+            transactions.unshift({
+                type: 'receive',
+                itemId,
+                itemName: item.name,
+                quantity,
+                previousStock,
+                newStock,
+                ref,
+                reason: '',
+                date,
+                notes,
+                timestamp: new Date().toISOString()
+            });
+            if (transactions.length > 100) transactions.pop();
+            localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+
+            showToast('Success', `${quantity} units of ${item.name} received`, 'success');
+            
+            document.getElementById('receiveForm').reset();
+            document.getElementById('receiveDate').valueAsDate = new Date();
+            document.getElementById('currentStockReceive').textContent = '0';
+            document.getElementById('newStockReceive').textContent = '0';
+            
+            populateDropdowns();
+            loadTransactionHistory();
+            updateStats();
+        });
+
+        // Handle Return form submission
+        document.getElementById('returnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const itemId = parseInt(document.getElementById('returnItem').value);
+            const quantity = parseInt(document.getElementById('returnQuantity').value);
+            const ref = document.getElementById('returnRef').value;
+            const reason = document.getElementById('returnReason').value;
+            const date = document.getElementById('returnDate').value;
+            const notes = document.getElementById('returnNotes').value;
+
+            if (!itemId || !quantity) {
+                showToast('Error', 'Please select an item and enter quantity', 'error');
+                return;
+            }
+
+            const item = inventory.find(i => i.id === itemId);
+            if (quantity > item.quantity) {
+                showToast('Error', 'Cannot return more than available stock', 'error');
+                return;
+            }
+
+            const index = inventory.findIndex(i => i.id === itemId);
+            const previousStock = item.quantity;
+            const newStock = previousStock - quantity;
+            
+            inventory[index].quantity = newStock;
+            localStorage.setItem('pcInventory', JSON.stringify(inventory));
+
+            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+            transactions.unshift({
+                type: 'return',
+                itemId,
+                itemName: item.name,
+                quantity,
+                previousStock,
+                newStock,
+                ref,
+                reason,
+                date,
+                notes,
+                timestamp: new Date().toISOString()
+            });
+            if (transactions.length > 100) transactions.pop();
+            localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+
+            showToast('Success', `${quantity} units of ${item.name} returned`, 'success');
+            
+            document.getElementById('returnForm').reset();
+            document.getElementById('returnDate').valueAsDate = new Date();
+            document.getElementById('currentStockReturn').textContent = '0';
+            document.getElementById('newStockReturn').textContent = '0';
+            
+            populateDropdowns();
+            loadTransactionHistory();
+            updateStats();
+        });
+
+        // Update stats
+        function updateStats() {
+            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+            const totalReceived = transactions.filter(t => t.type === 'receive').reduce((sum, t) => sum + t.quantity, 0);
+            const totalReturned = transactions.filter(t => t.type === 'return').reduce((sum, t) => sum + t.quantity, 0);
+            
+            document.getElementById('totalReceived').textContent = totalReceived;
+            document.getElementById('totalReturned').textContent = totalReturned;
+            document.getElementById('netChange').textContent = totalReceived - totalReturned;
+        }
+
+        // Show toast notification
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            if (type === 'success') {
+                toastIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center bg-green-100 text-green-500';
+                toastIcon.innerHTML = '<i class="fas fa-check text-xl"></i>';
+            } else {
+                toastIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center bg-red-100 text-red-500';
+                toastIcon.innerHTML = '<i class="fas fa-times text-xl"></i>';
+            }
+            
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // Load transaction history
+        function loadTransactionHistory() {
+            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+            const filter = document.getElementById('filterTransaction').value;
+            const container = document.getElementById('transactionHistory');
+            
+            let filtered = transactions;
+            if (filter !== 'all') {
+                filtered = transactions.filter(t => t.type === filter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8"><i class="fas fa-inbox text-4xl mb-3"></i><br>No transactions yet</p>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(t => {
+                const isReceive = t.type === 'receive';
+                const colorClass = isReceive ? 'green' : 'orange';
+                const bgClass = isReceive ? 'green' : 'orange';
+                const icon = isReceive ? 'fa-arrow-down' : 'fa-arrow-up';
+                const sign = isReceive ? '+' : '-';
+                
+                return `
+                    <div class="history-card flex items-center justify-between p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-${bgClass}-100 dark:bg-${bgClass}-900/30">
+                                <i class="fas ${icon} text-${colorClass}-500 text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800 dark:text-white">${t.itemName}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="text-${colorClass}-500 font-semibold">${isReceive ? 'Received' : 'Returned'} ${t.quantity} units</span>
+                                    ${t.ref ? ' • ' + t.ref : ''}
+                                    ${t.reason ? ' • ' + t.reason : ''}
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1"><i class="far fa-calendar-alt mr-1"></i>${t.date || new Date(t.timestamp).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-${colorClass}-500 font-bold text-xl">${sign}${t.quantity}</span>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${t.previousStock} → ${t.newStock}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Clear transaction history
+        function clearTransactionHistory() {
+            if (confirm('Are you sure you want to clear all transaction history?')) {
+                localStorage.removeItem('stockTransactions');
+                loadTransactionHistory();
+                updateStats();
+                showToast('Cleared', 'Transaction history has been cleared', 'success');
+            }
+        }
+
+        // Initialize
+        loadTransactionHistory();
+        updateStats();
+    </script>
+</body>
+</html>
+

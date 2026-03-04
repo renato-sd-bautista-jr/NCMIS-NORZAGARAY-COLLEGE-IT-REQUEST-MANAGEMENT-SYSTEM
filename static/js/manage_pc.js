@@ -7,19 +7,39 @@ let currentSection = "pc";
 
 // ---------- SECTION SWITCHING ----------
 function showSection(id) {
+  // hide all sections then show the requested one
   document.querySelectorAll("section").forEach(sec =>
     sec.classList.add("hidden")
   );
-  document.getElementById(id).classList.remove("hidden");
+  const target = document.getElementById(id);
+  if (target) target.classList.remove("hidden");
 
   const addBtn = document.getElementById("addButton");
+  if (!addBtn) return;
 
+  // update button text and handler based on section
   if (id === "inventorySection") {
-    currentSection = "pc";
-    addBtn.textContent = "Add PC";
-  } else {
-    currentSection = "item";
+  currentSection = "pc";
+  addBtn.textContent = "Add PC";
+  addBtn.onclick = handleAddButtonClick;
+} else if (id === "itemsSection" || id === "consumablesSection") {
+  currentSection = id === "itemsSection" ? "item" : "consumable";
+  if (currentSection === 'item') {
     addBtn.textContent = "Add Item";
+    addBtn.onclick = () => openItemModal();
+  } else {
+    addBtn.textContent = "Add Consumable";
+    addBtn.onclick = () => openConsumableModal();
+  }
+
+  } else if (id === "surrenderedSection") {
+    currentSection = "surrendered";
+    addBtn.style.display = 'none';
+  } else {
+    currentSection = "";
+    addBtn.textContent = "Add";
+    addBtn.onclick = null;
+    addBtn.style.display = '';
   }
 }
 

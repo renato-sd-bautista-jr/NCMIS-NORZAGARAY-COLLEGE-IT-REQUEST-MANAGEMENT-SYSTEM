@@ -95,9 +95,12 @@ def filter_consumables():
     finally:
         conn.close()
 
-# ✅ Get Consumables with Departments
 @manage_consumable_bp.route('/get-consumables')
 def get_consumables():
+    """Return the list of consumables for AJAX requests.
+    This mirrors the query used on the main pages (devices_full with device_type
+    = 'Consumable') so that items added/edited via the modal show up immediately.
+    """
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
@@ -105,7 +108,7 @@ def get_consumables():
                 SELECT 
                     df.accession_id,
                     df.item_name,
-                    df.brand_model,
+                    df.brand_model AS brand_model,
                     df.quantity,
                     df.acquisition_cost,
                     df.date_acquired,
@@ -115,27 +118,25 @@ def get_consumables():
                     df.health_score,
                     df.last_checked,
                     df.maintenance_interval_days,
-                    dep.department_id,
                     dep.department_name
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
                 WHERE df.device_type = 'Consumable'
                 ORDER BY df.accession_id DESC
             """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
+            consumables = cur.fetchall()
+        # debugging: print count to server log
+        print(f"[DEBUG] returning {len(consumables)} consumables from /get-consumables")
+        return consumables
     finally:
         conn.close()
-
 @manage_consumable_bp.route('/manage_consumable')
 def manage_consumable_page():
     """Load Manage Consumables page."""
     conn = get_db_connection()
     try:
         # Get filter parameters
-        department = request.args.get('department')
+        department_id = request.args.get('department_id')
         status = request.args.get('status')
         
         # Build query with filters
@@ -161,9 +162,9 @@ def manage_consumable_page():
         """
         params = []
         
-        if department:
-            query += " AND dep.department_name = %s"
-            params.append(department)
+        if department_id:
+            query += " AND df.department_id = %s"
+            params.append(department_id)
         
         if status:
             query += " AND df.status = %s"
@@ -221,8 +222,12 @@ def add_consumable():
             ))
 
         conn.commit()
-        flash("Consumable added successfully!", "success")
-        return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
+        # response handling
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({"success": True, "message": "Consumable added successfully!"})
+        else:
+            flash("Consumable added successfully!", "success")
+            return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
     except Exception as e:
         conn.rollback()
         print(f"❌ Error adding consumable: {e}")
@@ -267,8 +272,11 @@ def update_consumable():
                 accession_id
             ))
             conn.commit()
-        flash("Consumable updated successfully!", "success")
-        return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({"success": True, "message": "Consumable updated successfully!"})
+        else:
+            flash("Consumable updated successfully!", "success")
+            return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
     except Exception as e:
         conn.rollback()
         print(f"❌ Error updating consumable: {e}")
@@ -294,6 +302,10 @@ def delete_consumable(id):
 
 @manage_consumable_bp.route('/get-consumable-by-id/<int:item_id>')
 def get_consumable_by_id(item_id):
+    """Fetch a single consumable record from devices_full for editing.
+    Older code queried the `consumables` table, which was empty since adds go
+    into devices_full; changing this keeps the modal population in sync.
+    """
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
@@ -301,18 +313,20 @@ def get_consumable_by_id(item_id):
                 SELECT 
                     df.accession_id,
                     df.item_name,
-                    df.brand_model,
+                    df.brand_model AS brand_model,
                     df.quantity,
                     df.acquisition_cost,
                     df.date_acquired,
                     df.accountable,
+                    df.department_id,
                     df.status,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
+                    df.risk_level,
+                    df.health_score,
+                    df.last_checked,
+                    df.maintenance_interval_days
                 FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.accession_id = %s AND df.device_type='Consumable'
+                WHERE df.accession_id = %s
+                  AND df.device_type = 'Consumable'
             """, (item_id,))
             item = cur.fetchone()
 
@@ -384,3 +398,5 @@ def bulk_mark_checked():
         return jsonify({'success': False, 'error': 'Bulk check failed'})
     finally:
         conn.close()
+
+

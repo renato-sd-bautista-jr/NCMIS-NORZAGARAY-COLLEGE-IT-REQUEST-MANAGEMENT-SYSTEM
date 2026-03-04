@@ -24,6 +24,15 @@ async function openDeviceFilterModalFromFile() {
     content.classList.add("scale-100");
   }, 50);
 
+  // prefill device type filter based on current section
+  if (window.currentSection === 'consumable') {
+    const dtInput = modal.querySelector('input[name="device_type"]');
+    if (dtInput) dtInput.value = 'Consumable';
+  } else if (window.currentSection === 'item') {
+    const dtInput = modal.querySelector('input[name="device_type"]');
+    if (dtInput) dtInput.value = '';
+  }
+
   lucide.createIcons();
 }
 
@@ -43,8 +52,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const params = new URLSearchParams(new FormData(e.target));
     
-    // Add section parameter to ensure we stay on the items section
-    params.set('section', 'items');
+    // determine section based on global state (managed in manage_pc.js)
+    let sectionParam = 'pc';
+    if (window.currentSection === 'item') {
+      sectionParam = 'items';
+    } else if (window.currentSection === 'consumable') {
+      sectionParam = 'consumable';
+      // ensure device_type filter is set so backend restricts to consumables
+      params.set('device_type', 'Consumable');
+    }
+    params.set('section', sectionParam);
     
     // Redirect to the same page with filter parameters
     window.location.href = `/manage_inventory?${params.toString()}`;

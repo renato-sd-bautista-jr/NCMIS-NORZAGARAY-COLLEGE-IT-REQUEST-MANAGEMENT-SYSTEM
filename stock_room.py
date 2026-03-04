@@ -142,3 +142,4 @@ GROUP BY
     finally:
         cursor.close()
         conn.close()
+

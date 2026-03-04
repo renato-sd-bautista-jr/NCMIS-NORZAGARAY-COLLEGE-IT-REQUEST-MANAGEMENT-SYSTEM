@@ -30,6 +30,7 @@
           {% include 'filtermodal.html' %}
           {% include 'pceditmodal.html' %}
           {% include 'add/edithmodal.html' %}
+          {% include 'consumable_modal.html' %}
           
         </div>
 
@@ -221,7 +222,43 @@
       </div>
     </div>
   </div>
+<!-- CONSUMABLES TABLE -->
+<div class="mt-8">
+  <div class="flex justify-between items-center mb-4">
+    <h4 class="text-lg font-semibold text-green-600 flex items-center gap-2">
+      <i data-lucide="box"></i> Consumables
+    </h4>
+<button onclick="batchMarkConsumableDamaged()" 
+  class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm shadow">
+  Mark as Damaged
+</button>
+    <button onclick='openConsumableModal(${JSON.stringify(item)})'></button>
+      class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm shadow flex items-center gap-2">
+      <i data-lucide="plus"></i>
+      Add Consumable
+    </button>
+  </div>
 
+  <div class="overflow-x-auto rounded-xl">
+    <table class="min-w-full border border-gray-200 text-sm text-gray-800">
+      <thead class="bg-gray-200 text-gray-700">
+        <tr>
+          <th class="px-4 py-2 border-b">Select</th>
+          <th class="px-4 py-2 border-b">ID</th>
+          <th class="px-4 py-2 border-b">Item Name</th>
+          <th class="px-4 py-2 border-b">Brand</th>
+          <th class="px-4 py-2 border-b">Qty</th>
+          <th class="px-4 py-2 border-b">Department</th>
+          <th class="px-4 py-2 border-b">Status</th>
+          <th class="px-4 py-2 border-b">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="consumableTableBody">
+        <!-- JS will populate -->
+      </tbody>
+    </table>
+  </div>
+</div>
   <!-- CONFIRMATION MODAL -->
   <div id="confirmationModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 text-center">
@@ -465,7 +502,24 @@
         }
       );
     }
+async function batchMarkConsumableDamaged() {
+  const checked = document.querySelectorAll('.consumable-checkbox:checked');
 
+  if (checked.length === 0) {
+    alert("Select at least one item");
+    return;
+  }
+
+  const ids = Array.from(checked).map(cb => cb.value);
+
+  await fetch('/consumables/batch-damaged', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+
+  loadConsumables();
+}
     // Confirmation modal event listeners
     document.addEventListener('DOMContentLoaded', function() {
       const cancelBtn = document.getElementById('confirmationCancel');
@@ -492,6 +546,22 @@
         }
       });
     });
+
+    async function loadConsumables() {
+  try {
+    const res = await fetch('/get-consumables');
+    const data = await res.json();
+
+    renderConsumableTable(data);
+  } catch (err) {
+    console.error("Error loading consumables:", err);
+  }
+}
+
+// AUTO LOAD when opening Manage Items
+document.addEventListener('DOMContentLoaded', () => {
+  loadConsumables();
+});
   </script>
 </body>
 </html>

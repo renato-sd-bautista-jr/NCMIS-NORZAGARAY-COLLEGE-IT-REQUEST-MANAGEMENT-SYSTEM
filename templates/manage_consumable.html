@@ -26,6 +26,12 @@
         <i data-lucide="package-open" class="w-7 h-7"></i> Manage Consumables
       </h2>
 
+      <!-- debug info -->
+      <p class="text-sm text-gray-500 mt-2">DEBUG: received {{ consumables|length }} consumable(s)</p>
+      {% if consumables|length > 0 %}
+        <pre class="text-xs bg-gray-100 p-2 rounded mb-2">{{ consumables[:1] | tojson(indent=2) }}</pre>
+      {% endif %}
+
       <div class="w-6"></div>
     </div>
 
@@ -37,19 +43,23 @@
             <label class="block text-sm text-gray-600 mb-2 font-medium">Department</label>
             <select id="filterDepartment" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500">
               <option value="">All Departments</option>
+              {% set sel_dept = request.args.get('department_id') %}
               {% for dept in departments %}
-                <option value="{{ dept.department_name }}">{{ dept.department_name }}</option>
+                <option value="{{ dept.department_id }}" {% if sel_dept and sel_dept|int == dept.department_id %}selected{% endif %}>
+                  {{ dept.department_name }}
+                </option>
               {% endfor %}
             </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-2 font-medium">Status</label>
             <select id="filterStatus" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option value="">All Status</option>
-              <option value="Available">Available</option>
-              <option value="In Used">In Used</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Damaged">Damaged</option>
+              {% set sel_status = request.args.get('status') %}
+              <option value="" {% if not sel_status %}selected{% endif %}>All Status</option>
+              <option value="Available" {% if sel_status == 'Available' %}selected{% endif %}>Available</option>
+              <option value="In Used" {% if sel_status == 'In Used' %}selected{% endif %}>In Used</option>
+              <option value="Inactive" {% if sel_status == 'Inactive' %}selected{% endif %}>Inactive</option>
+              <option value="Damaged" {% if sel_status == 'Damaged' %}selected{% endif %}>Damaged</option>
             </select>
           </div>
         </div>
@@ -337,11 +347,11 @@
     }
 
     function applyFilters() {
-      const department = filterDepartment.value;
+      const departmentId = filterDepartment.value;
       const status = filterStatus.value;
       
       const params = new URLSearchParams();
-      if (department) params.append('department', department);
+      if (departmentId) params.append('department_id', departmentId);
       if (status) params.append('status', status);
       
       const url = params.toString() ? `/manage_consumable?${params.toString()}` : '/manage_consumable';

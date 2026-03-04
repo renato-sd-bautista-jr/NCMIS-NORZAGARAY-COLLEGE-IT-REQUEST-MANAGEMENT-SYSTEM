@@ -42,8 +42,18 @@ def inventory_load():
     else:
         item_list, item_total, item_pages = get_item_list_paginated(page, per_page)
      
-    # Load consumables
-    consumables = get_consumables_list()
+    # Load consumables (apply same filters as devices when section is consumable)
+    consumables = get_consumables_list(
+        department_id=department_id,
+        status=status,
+        accountable=accountable,
+        item_name=item_name,
+        brand_model=brand_model,
+        quantity=None,  # quantity filter not used on main page
+        acquisition_cost=None,
+        date_from=date_from,
+        date_to=date_to
+    )
     
     # Load departments for filters
     departments = get_departments_list()
@@ -218,25 +228,20 @@ def get_consumables_list():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
+                    SELECT 
+                        df.accession_id,
+                        df.item_name,
+                        df.brand AS brand_model,
+                        df.quantity,
+                        NULL AS acquisition_cost,
+                        df.date_added AS date_acquired,
+                        df.added_by AS accountable,
+                        df.status,
+                        dep.department_id,
+                        dep.department_name
+                    FROM consumables df
+                    LEFT JOIN departments dep ON df.department_id = dep.department_id
+                    WHERE 1=1
             """)
             return cur.fetchall()
     except Exception as e:
@@ -245,18 +250,7 @@ def get_consumables_list():
     finally:
         conn.close()
 
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
+ 
 
 @manage_inventory_bp.route('/inventory/device/bulk-update', methods=['POST'])
 def bulk_update_devices():
@@ -452,39 +446,7 @@ def bulk_surrender_pcs():
         conn.close()
  
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
+ 
 def get_departments_list():
     """Get all departments for filter dropdowns."""
     conn = get_db_connection()
@@ -492,6 +454,8 @@ def get_departments_list():
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
             return cur.fetchall()
+        
+        
     except Exception as e:
         print(f"Error fetching departments: {e}")
         return []
@@ -540,53 +504,8 @@ def get_pc_list():
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
-
-
+ 
+ 
 
 def get_item_list():
     """Fetch all devices from devices_full (for Manage Items section)."""
@@ -626,52 +545,7 @@ def get_item_list():
         return []
     finally:
         conn.close()
-
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
+ 
 
 @manage_inventory_bp.route('/manage_inventory/get-item-by-id/<int:item_id>')
 def get_item_by_id(item_id):
@@ -712,52 +586,8 @@ def get_item_by_id(item_id):
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
-
+ 
+ 
 
 @manage_inventory_bp.route('/manage_inventory/get-pc-by-id/<int:pcid>')
 def get_pc_by_id(pcid):
@@ -804,51 +634,7 @@ def get_pc_by_id(pcid):
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
+ 
 
 
 @manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
@@ -964,52 +750,8 @@ def get_surrendered_pc_list_paginated(page=1, per_page=10):
 
     finally:
         conn.close()
-
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
+ 
+ 
 def get_item_list_paginated(page=1, per_page=10):
     """
     Fetch paginated devices from devices_full.
@@ -1063,51 +805,7 @@ def get_item_list_paginated(page=1, per_page=10):
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
+ 
 
 def get_filtered_item_list_paginated(page=1, per_page=10, department_id=None, status=None, 
                                    accountable=None, serial_no=None, item_name=None, 
@@ -1200,53 +898,7 @@ def get_filtered_item_list_paginated(page=1, per_page=10, department_id=None, st
 
     finally:
         conn.close()
-
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
-
+ 
 @manage_inventory_bp.route('/manage_inventory/run-risk-update', methods=['POST'])
 def run_risk_update():
     
@@ -1330,52 +982,7 @@ def mark_pc_checked(pcid):
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
-
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
-    finally:
-        conn.close()
-
+ 
 @manage_inventory_bp.route('/maintenance-history')
 def maintenance_history():
     asset_id = request.args.get('id', type=int)
@@ -1500,51 +1107,62 @@ def mark_asset_checked(asset_type, asset_id):
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    df.accession_id,
-                    df.item_name,
-                    df.brand_model,
-                    df.quantity,
-                    df.acquisition_cost,
-                    df.date_acquired,
-                    df.accountable,
-                    df.status,
-                    df.risk_level,
-                    df.health_score,
-                    df.last_checked,
-                    df.maintenance_interval_days,
-                    dep.department_id,
-                    dep.department_name
-                FROM devices_full df
-                LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE df.device_type = 'Consumable'
-                ORDER BY df.accession_id DESC
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
+def get_consumables_list(department_id=None, status=None, accountable=None,
+                        item_name=None, brand_model=None,
+                        quantity=None, acquisition_cost=None,
+                        date_from=None, date_to=None):
 
-def get_departments_list():
-    """Get all departments for filter dropdowns."""
     conn = get_db_connection()
     try:
+        query = """
+            SELECT 
+                c.accession_id,
+                c.item_name,
+                c.brand AS brand_model,
+                c.quantity,
+                c.date_added,
+                c.added_by AS accountable,
+                c.status,
+                d.department_name
+            FROM consumables c
+            LEFT JOIN departments d ON c.department_id = d.department_id
+            WHERE 1=1
+        """
+        params = []
+
+        if department_id:
+            query += " AND c.department_id = %s"
+            params.append(department_id)
+
+        if status:
+            query += " AND c.status = %s"
+            params.append(status)
+
+        if accountable:
+            query += " AND c.added_by LIKE %s"
+            params.append(f"%{accountable}%")
+
+        if item_name:
+            query += " AND c.item_name LIKE %s"
+            params.append(f"%{item_name}%")
+
+        if brand_model:
+            query += " AND c.brand LIKE %s"
+            params.append(f"%{brand_model}%")
+
+        if date_from and date_to:
+            query += " AND c.date_added BETWEEN %s AND %s"
+            params.extend([date_from, date_to])
+
+        query += " ORDER BY c.accession_id DESC"
+
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
+            cur.execute(query, params)
             return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching departments: {e}")
-        return []
+
     finally:
         conn.close()
+ 
 @manage_inventory_bp.route('/inventory/pc/bulk-damaged', methods=['POST'])
 def bulk_damaged_pcs():
     data = request.get_json()

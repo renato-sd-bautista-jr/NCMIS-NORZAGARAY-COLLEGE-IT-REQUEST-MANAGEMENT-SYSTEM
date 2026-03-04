@@ -101,24 +101,40 @@
 <script>
 async function openConsumableModal(itemData = null) {
   const modal = document.getElementById('consumableModal');
-  const title = document.getElementById('modalTitle');
-  const form = document.getElementById('consumableForm');
-  const submitBtn = document.getElementById('consumableSubmitBtn');
-  const deptSelect = document.getElementById('department_id');
-  const errorDiv = document.getElementById('consumableModalError');
+  const title = modal.querySelector('#modalTitle');
+  const form = modal.querySelector('#consumableForm');
+  const submitBtn = modal.querySelector('#consumableSubmitBtn');
+  // scope department select to modal to avoid colliding with other elements
+  const deptSelect = modal.querySelector('select[name="department_id"]');
+  const errorDiv = modal.querySelector('#consumableModalError');
+
+  // if an ID was passed instead of object, load the record first
+  if (itemData && typeof itemData !== 'object') {
+    try {
+      const res = await fetch(`/get-consumable-by-id/${itemData}`);
+      if (res.ok) {
+        itemData = await res.json();
+      } else {
+        console.warn('Failed to fetch consumable for edit', res.status);
+        itemData = null;
+      }
+    } catch (e) {
+      console.error('Error fetching consumable for edit', e);
+      itemData = null;
+    }
+  }
 
   errorDiv.classList.add('hidden');
   errorDiv.textContent = '';
 
   // Reset form
   form.reset();
-  document.getElementById('accession_id').value = '';
+  const accessionInput = form.elements['accession_id'];
+  if (accessionInput) accessionInput.value = '';
 
   // Load departments
   try {
-    const res = await fetch('/get-departments');
-    const departments = await res.json();
-    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    const res = await fetch('{{ url_for('manage_consumable_bp.get_departments') }}');
     departments.forEach(dep => {
       const opt = document.createElement('option');
       opt.value = dep.department_id;
@@ -136,7 +152,8 @@ async function openConsumableModal(itemData = null) {
     submitBtn.textContent = "Update Consumable";
 
     Object.entries(itemData).forEach(([key, value]) => {
-      const input = document.getElementById(key);
+      // find input within form (not globally) using name or id
+      const input = form.elements[key] || form.querySelector(`#${key}`);
       if (!input) return;
       if (key === 'date_acquired' && value && value !== "0000-00-00") {
         const dateObj = new Date(value);
@@ -163,10 +180,14 @@ function closeConsumableModal() {
 }
 
 // SUBMIT FORM WITH DUPLICATE CHECK
-document.getElementById("consumableForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const form = e.target;
-  const errorDiv = document.getElementById('consumableModalError');
+const consumableModalElement = document.getElementById('consumableModal');
+if (consumableModalElement) {
+  const formEl = consumableModalElement.querySelector("#consumableForm");
+  if (formEl) {
+    formEl.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const errorDiv = consumableModalElement.querySelector('#consumableModalError');
   errorDiv.classList.add('hidden');
   errorDiv.textContent = '';
 
@@ -177,15 +198,22 @@ document.getElementById("consumableForm").addEventListener("submit", async funct
     // Submit form via fetch
     const actionUrl = form.action;
     const formData = new URLSearchParams(data);
-    const submitRes = await fetch(actionUrl, { method: 'POST', body: formData });
+    const submitRes = await fetch(actionUrl, { method: 'POST', body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
     
-    if (!submitRes.ok) {
-      throw new Error(`HTTP ${submitRes.status}`);
+    let bodyText = await submitRes.text();
+    let jsonResp = null;
+    try { jsonResp = JSON.parse(bodyText); } catch {};
+
+    if (!submitRes.ok || (jsonResp && jsonResp.success === false)) {
+      const errMsg = (jsonResp && (jsonResp.error || jsonResp.message)) || bodyText || `HTTP ${submitRes.status}`;
+      throw new Error(errMsg);
     }
 
     // Show success message and close modal
     const isEdit = !!accession_id;
-    const successMessage = isEdit ? 'Consumable updated successfully!' : 'Consumable added successfully!';
+    const successMessage = jsonResp && jsonResp.message ? jsonResp.message : (isEdit ? 'Consumable updated successfully!' : 'Consumable added successfully!');
     
     // Create and show success notification
     showSuccessNotification(successMessage);
@@ -193,12 +221,17 @@ document.getElementById("consumableForm").addEventListener("submit", async funct
     // Close the modal
     closeConsumableModal();
     
+    // make sure consumables section is visible (if function exists)
+    if (typeof showSection === 'function') {
+      showSection('consumablesSection');
+    }
+    
     // Refresh the table data without full page reload
     await refreshConsumableTable();
     
   } catch (err) {
-    console.error(err);
-    errorDiv.textContent = "Error submitting form. Please try again.";
+    console.error('Consumable submit error:', err);
+    errorDiv.textContent = "Error submitting form. " + (err.message || 'Please try again.');
     errorDiv.classList.remove('hidden');
   }
 });
