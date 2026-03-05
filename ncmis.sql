@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 24, 2026 at 05:32 PM
+-- Generation Time: Mar 05, 2026 at 06:23 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -142,6 +142,42 @@ INSERT INTO `concern_history` (`id`, `concern_id`, `user_id`, `description`, `st
 (11, 15, 10, 'asdadawdadadw', 'Resolved', '2025-03-24 17:26:27', '2025-03-24 18:19:37', 'adadawd', 'me', 'matthewjohnsantos143@gmail.com', '[{\"device_name\":\"PC1\",\"department_name\":\"Dean\'s Office\"},{\"device_name\":\"PC2\",\"department_name\":\"Dean\'s Office\"}]', '2025-03-24 10:19:41'),
 (12, 18, 9, 'adadawdawda', 'Resolved', '2025-03-24 18:16:21', '2025-03-24 18:19:58', 'tite', 'auro', 'matthewjohnsantos2004@gmail.com', '[{\"device_name\":\"PC1\",\"department_name\":\"Dean\'s Office\"}]', '2025-03-24 10:20:04'),
 (13, 19, 9, 'dadadwadaw', 'Resolved', '2025-03-24 20:42:28', '2025-03-24 20:42:42', 'dadwdadw', 'auro', 'matthewjohnsantos2004@gmail.com', '[{\"device_name\":\"PC1\",\"department_name\":\"Dean\'s Office\"}]', '2025-03-24 12:48:26');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `consumables`
+--
+
+CREATE TABLE `consumables` (
+  `accession_id` int(11) NOT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `brand` varchar(100) DEFAULT NULL,
+  `quantity` int(11) DEFAULT 0,
+  `unit` varchar(50) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `status` enum('Available','Low Stock','Out of Stock','Damaged') DEFAULT 'Available',
+  `description` text DEFAULT NULL,
+  `date_added` datetime DEFAULT current_timestamp(),
+  `last_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `added_by` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `consumables`
+--
+
+INSERT INTO `consumables` (`accession_id`, `item_name`, `category`, `brand`, `quantity`, `unit`, `department_id`, `location`, `status`, `description`, `date_added`, `last_updated`, `added_by`) VALUES
+(9, 'Bond Paper A4', 'Office Supplies', 'Double A', 50, 'Reams', 1, 'Stock Room', 'Available', 'For printing documents', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
+(10, 'Printer Ink Black', 'Printer Supplies', 'HP', 20, 'Cartridges', 1, 'IT Office', 'Available', 'HP 678 Black Ink', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
+(11, 'Ballpen Blue', 'Office Supplies', 'Pilot', 100, 'Pieces', 1, 'Stock Room', 'Available', 'For general writing', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff1'),
+(12, 'Stapler Wire', 'Office Supplies', 'Dong-A', 30, 'Boxes', 1, 'Admin Office', 'Available', 'Standard size stapler wire', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff2'),
+(13, 'Alcohol 70%', 'Cleaning Supplies', 'Green Cross', 25, 'Bottles', 1, 'Clinic', 'Low Stock', 'For sanitation', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'nurse1'),
+(14, 'Face Mask', 'Medical Supplies', 'Generic', 200, 'Pieces', 1, 'Clinic', 'Available', 'Disposable masks', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'nurse1'),
+(15, 'Whiteboard Marker', 'Office Supplies', 'Pilot', 40, 'Pieces', 1, 'Classroom A', 'Available', 'Black markers', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'teacher1'),
+(16, 'USB Flash Drive 16GB', 'IT Supplies', 'SanDisk', 15, 'Pieces', 1, 'IT Office', 'Available', 'For file storage', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin');
 
 -- --------------------------------------------------------
 
@@ -435,7 +471,9 @@ INSERT INTO `maintenance_history` (`id`, `pcid`, `asset_type`, `asset_id`, `acti
 (8, NULL, 'Device', 27, 'Manual inspection completed', 'Marked as checked manually', 'System', 'In Used', 'Available', 'Low', 100, '2026-01-08 12:52:49'),
 (9, NULL, 'Device', 16, 'Manual inspection completed', 'Marked as checked manually', 'System', 'Needs Checking', 'Available', 'Low', 100, '2026-01-08 12:53:11'),
 (10, 83, 'PC', 83, 'Bulk surrender', 'Bulk surrendered', 'System', 'Surrendered', 'Surrendered', 'Low', NULL, '2026-02-22 15:06:05'),
-(11, 81, 'PC', 81, 'Bulk surrender', 'Bulk surrendered', 'System', 'Surrendered', 'Surrendered', 'Low', NULL, '2026-02-22 15:06:05');
+(11, 81, 'PC', 81, 'Bulk surrender', 'Bulk surrendered', 'System', 'Surrendered', 'Surrendered', 'Low', NULL, '2026-02-22 15:06:05'),
+(14, 80, 'PC', 80, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-04 04:37:18'),
+(15, 79, 'PC', 79, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-04 04:37:18');
 
 -- --------------------------------------------------------
 
@@ -480,7 +518,9 @@ INSERT INTO `maintenance_logs` (`id`, `asset_type`, `asset_id`, `previous_status
 (18, 'DEVICE', 27, 'In Used', 'Available', 'Low', 'Low', 'Manual inspection completed', NULL, NULL, '2026-01-08 12:52:49'),
 (19, 'DEVICE', 16, 'Needs Checking', 'Available', 'Medium', 'Low', 'Manual inspection completed', NULL, NULL, '2026-01-08 12:53:11'),
 (20, 'PC', 83, 'Surrendered', 'Surrendered', 'Low', 'Low', 'Bulk surrender', NULL, NULL, '2026-02-22 15:06:05'),
-(21, 'PC', 81, 'Surrendered', 'Surrendered', 'Low', 'Low', 'Bulk surrender', NULL, NULL, '2026-02-22 15:06:05');
+(21, 'PC', 81, 'Surrendered', 'Surrendered', 'Low', 'Low', 'Bulk surrender', NULL, NULL, '2026-02-22 15:06:05'),
+(24, 'PC', 80, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-04 04:37:18'),
+(25, 'PC', 79, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-04 04:37:18');
 
 -- --------------------------------------------------------
 
@@ -554,8 +594,8 @@ INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quanti
 (76, 'pc-do-06', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-922706', 'MSN-1761583172156-573704', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:53:27', '2025-12-28', 30, 100, 'Low'),
 (77, 'pc-do-07', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-891456', 'MSN-1761583172156-132853', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:55:58', '2025-12-28', 30, 100, 'Low'),
 (78, 'pc-do-08', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-769494', 'MSN-1761583172156-380486', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2025-12-27 19:56:29', '2025-12-28', 30, 100, 'Low'),
-(79, 'pc-do-09', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-139349', 'MSN-1761583172156-702518', 'Damaged', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2026-02-23 13:48:39', '2025-12-28', 30, 100, 'Low'),
-(80, '213', 1, '123', 1, 123.00, '0000-00-00', '123', '213', '123', 'Damaged', '123', NULL, '123', '123', '213', '123', '123', '214', '214', '2025-10-27 16:41:19', '2026-02-23 13:48:39', '2025-12-30', 30, 100, 'Low'),
+(79, 'pc-do-09', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-139349', 'MSN-1761583172156-702518', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2026-03-04 04:37:18', '2026-03-04', 30, 100, 'Low'),
+(80, '213', 1, '123', 1, 123.00, '0000-00-00', '123', '213', '123', 'Available', '123', NULL, '123', '123', '213', '123', '123', '214', '214', '2025-10-27 16:41:19', '2026-03-04 04:37:18', '2026-03-04', 30, 100, 'Low'),
 (81, 'pc222', 1, 'Computer Lab C', 1, 50000.00, '0000-00-00', 'John Doe', 'SN-0000053434', 'MUN-00012522213', 'Surrendered', '', NULL, '324221', '123', '12412', '123', '2133', '123', '123', '2025-12-30 22:15:43', '2026-02-22 15:06:05', '2025-12-31', 30, 100, 'Low'),
 (83, 'pc30014', 1, 'Computer Lab A', 1, 33333.00, '2025-06-08', 'John Doe', 'SN-300005', 'MUN-301252', 'Surrendered', '5', NULL, 'qwe', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '214', '2026-01-08 02:39:55', '2026-02-22 15:06:05', NULL, 30, 80, 'Low');
 
@@ -710,6 +750,13 @@ ALTER TABLE `concern_history`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `consumables`
+--
+ALTER TABLE `consumables`
+  ADD PRIMARY KEY (`accession_id`),
+  ADD KEY `department_id` (`department_id`);
+
+--
 -- Indexes for table `damage_reports`
 --
 ALTER TABLE `damage_reports`
@@ -858,6 +905,12 @@ ALTER TABLE `concern_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
+-- AUTO_INCREMENT for table `consumables`
+--
+ALTER TABLE `consumables`
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
 -- AUTO_INCREMENT for table `damage_reports`
 --
 ALTER TABLE `damage_reports`
@@ -915,13 +968,13 @@ ALTER TABLE `inventory_status_logs`
 -- AUTO_INCREMENT for table `maintenance_history`
 --
 ALTER TABLE `maintenance_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `maintenance_logs`
 --
 ALTER TABLE `maintenance_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -963,6 +1016,12 @@ ALTER TABLE `borrow_requests`
 ALTER TABLE `concern_devices`
   ADD CONSTRAINT `concern_devices_ibfk_1` FOREIGN KEY (`concern_id`) REFERENCES `concerns` (`concern_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `concern_devices_ibfk_2` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
+
+--
+-- Constraints for table `consumables`
+--
+ALTER TABLE `consumables`
+  ADD CONSTRAINT `consumables_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
 
 --
 -- Constraints for table `damage_reports`
