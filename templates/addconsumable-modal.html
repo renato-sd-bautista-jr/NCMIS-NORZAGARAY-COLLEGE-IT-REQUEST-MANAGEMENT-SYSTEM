@@ -1,0 +1,64 @@
+<div id="addConsumableModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+
+<div class="bg-white rounded-lg shadow-lg w-[600px] p-6">
+
+<h2 class="text-xl font-bold mb-4">Add / Edit Consumable</h2>
+
+<form id="consumableForm" method="POST" action="/add-consumable">
+
+<input type="hidden" name="accession_id" id="accession_id">
+
+<div class="grid grid-cols-2 gap-3">
+
+<input type="text" name="item_name" id="item_name" placeholder="Item Name" class="border p-2 rounded" required>
+
+<input type="text" name="brand_model" id="brand_model" placeholder="Brand / Model" class="border p-2 rounded">
+
+<input type="number" name="quantity" id="quantity" placeholder="Quantity" class="border p-2 rounded">
+
+<input type="number" name="acquisition_cost" id="acquisition_cost" placeholder="Cost" class="border p-2 rounded">
+
+<input type="date" name="date_acquired" id="date_acquired" class="border p-2 rounded">
+
+<input type="text" name="accountable" id="accountable" placeholder="Accountable" class="border p-2 rounded">
+
+ 
+ 
+<select name="department_id" required class="w-full border rounded-lg px-3 py-2">
+    <option value="">Select Department</option>
+
+    {% for dept in departments %}
+        <option value="{{ dept.department_id }}">
+            {{ dept.department_name }}
+        </option>
+    {% endfor %}
+
+</select>
+ 
+
+<select name="status" id="status" class="border p-2 rounded">
+<option value="Available">Available</option>
+<option value="Low Stock">Low Stock</option>
+<option value="Out of Stock">Out of Stock</option>
+</select>
+
+<input type="number" name="maintenance_interval_days" id="maintenance_interval_days" placeholder="Maintenance Days" class="border p-2 rounded">
+
+</div>
+
+<div class="flex justify-end gap-2 mt-4">
+
+<button type="button" onclick="closeConsumableModal()" class="px-4 py-2 bg-gray-400 text-white rounded">
+Cancel
+</button>
+
+<button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">
+Save
+</button>
+
+</div>
+
+</form>
+
+</div>
+</div>

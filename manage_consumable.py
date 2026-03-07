@@ -15,6 +15,29 @@ def get_departments():
     conn.close()
     return jsonify(results)
 
+
+def get_departments_list():
+    """Get all departments for filter dropdowns."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
+            return cur.fetchall()
+        
+        
+    except Exception as e:
+        print(f"Error fetching departments: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+@manage_consumable_bp.route('/addconsumable-modal')
+
+def add_consumable_modal():
+    departments = get_departments_list()
+    print("Departments loaded:", departments)
+    return render_template("addconsumable-modal.html", departments=departments)
 # ✅ Filter Consumables
 @manage_consumable_bp.route('/filter-consumable', methods=['GET'])
 def filter_consumables():
@@ -48,9 +71,8 @@ def filter_consumables():
                 df.maintenance_interval_days,
                 dep.department_id,
                 dep.department_name
-            FROM devices_full df
-            LEFT JOIN departments dep ON df.department_id = dep.department_id
-            WHERE df.device_type = 'Consumable'
+                FROM consumables c
+                LEFT JOIN departments dep ON c.department_id = dep.department_id
         """
         params = []
 
@@ -210,16 +232,21 @@ def add_consumable():
             municipal_serial_no = f"MC-{int(time.time()*1000) % 1000000}{random.randint(10,99)}"
 
             cur.execute("""
-                INSERT INTO devices_full (
-                    item_name, brand_model, serial_no, municipal_serial_no, quantity,
-                    device_type, acquisition_cost, date_acquired, accountable,
-                    department_id, status, maintenance_interval_days
-                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                item_name, brand_model, serial_no, municipal_serial_no, quantity,
-                'Consumable', acquisition_cost, date_acquired, accountable,
-                department_id, status, maintenance_interval_days
-            ))
+                INSERT INTO consumables
+                (item_name,category,brand,quantity,unit,department_id,location,status,description,date_added,last_updated,added_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),NOW(),%s)
+                """,(
+                form.get('item_name'),
+                form.get('category'),
+                form.get('brand'),
+                form.get('quantity'),
+                form.get('unit'),
+                form.get('department_id'),
+                form.get('location'),
+                form.get('status'),
+                form.get('description'),
+                form.get('added_by')
+        ))
 
         conn.commit()
         # response handling
@@ -248,27 +275,28 @@ def update_consumable():
 
         with conn.cursor() as cur:
             cur.execute("""
-                UPDATE devices_full
+                UPDATE consumables
                 SET item_name=%s,
-                    brand_model=%s,
+                    category=%s,
+                    brand=%s,
                     quantity=%s,
-                    acquisition_cost=%s,
-                    date_acquired=%s,
-                    accountable=%s,
+                    unit=%s,
                     department_id=%s,
+                    location=%s,
                     status=%s,
-                    maintenance_interval_days=%s
-                WHERE accession_id=%s AND device_type='Consumable'
+                    description=%s,
+                    last_updated = NOW()
+                WHERE accession_id=%s
             """, (
                 form.get('item_name'),
-                form.get('brand_model'),
+                form.get('category'),
+                form.get('brand'),
                 form.get('quantity'),
-                form.get('acquisition_cost'),
-                form.get('date_acquired'),
-                form.get('accountable'),
+                form.get('unit'),
                 form.get('department_id'),
+                form.get('location'),
                 form.get('status'),
-                form.get('maintenance_interval_days', 30),
+                form.get('description'),
                 accession_id
             ))
             conn.commit()
@@ -290,7 +318,7 @@ def delete_consumable(id):
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM devices_full WHERE accession_id = %s AND device_type='Consumable'", (id,))
+            cur.execute("DELETE FROM consumables WHERE accession_id = %s'", (id,))
             conn.commit()
         flash("Consumable deleted successfully!", "success")
     except Exception as e:
@@ -355,9 +383,9 @@ def bulk_update_consumables():
         with conn.cursor() as cur:
             placeholders = ','.join(['%s'] * len(consumable_ids))
             cur.execute(f"""
-                UPDATE devices_full 
+                UPDATE consumables 
                 SET status = %s 
-                WHERE accession_id IN ({placeholders}) AND device_type = 'Consumable'
+                WHERE accession_id IN (...)
             """, [new_status] + consumable_ids)
             conn.commit()
             

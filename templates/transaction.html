@@ -161,7 +161,10 @@ transactions.html
 <body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
       {% include 'sidebar.html' %}
   {% include 'delete_modal.html' %}
-  {% include 'partials/filter_device_modal.html' %}<!-- Header -->
+  {% include 'partials/filter_device_modal.html' %}
+
+  
+  <!-- Header -->
     <header class="glass shadow-lg sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-18 py-4">
@@ -465,7 +468,38 @@ transactions.html
 
     <script>
         // Load inventory
-        let inventory = JSON.parse(localStorage.getItem('pcInventory')) || [];
+       let inventory = [];
+async function loadInventory(){
+
+    const res = await fetch("/api/consumables");
+    inventory = await res.json();
+
+    const receiveSelect = document.getElementById("receiveItem");
+    const returnSelect = document.getElementById("returnItem");
+
+    receiveSelect.innerHTML = `<option value="">Select Item</option>`;
+    returnSelect.innerHTML = `<option value="">Select Item</option>`;
+
+    inventory.forEach(item=>{
+
+        receiveSelect.innerHTML += `
+            <option value="${item.accession_id}">
+                ${item.item_name} (${item.quantity} in stock)
+            </option>
+        `;
+
+        if(item.quantity > 0){
+            returnSelect.innerHTML += `
+                <option value="${item.accession_id}">
+                    ${item.item_name} (${item.quantity} in stock)
+                </option>
+            `;
+        }
+
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadInventory);
 
         // Set today's date as default
         document.getElementById('receiveDate').valueAsDate = new Date();
@@ -781,6 +815,32 @@ transactions.html
         // Initialize
         loadTransactionHistory();
         updateStats();
+        async function submitTransaction(type){
+
+    const item = document.getElementById("receiveItem").value;
+    const quantity = document.getElementById("receiveQuantity").value;
+    const remarks = document.getElementById("remarks").value;
+
+    const res = await fetch("/api/transaction",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            accession_id:item,
+            quantity:quantity,
+            transaction_type:type,
+            remarks:remarks
+        })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+        alert("Transaction successful");
+        loadInventory();
+    }
+}
     </script>
 </body>
 </html>
