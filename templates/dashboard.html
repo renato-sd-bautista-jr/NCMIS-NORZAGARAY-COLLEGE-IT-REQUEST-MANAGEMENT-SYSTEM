@@ -3,126 +3,320 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inventory Dashboard</title>
-   <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+  <title>NCMIS Analytics Dashboard</title>
+  <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
   <script src="{{ url_for('static', filename='js/lucide.js') }}"></script>
- <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .glass-morphism {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .shimmer {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    
+    .pulse-dot {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .animate-spin-slow {
+      animation: spin 3s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .hover-lift {
+      transition: all 0.3s ease;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 
-<body class="flex min-h-screen bg-gray-200 text-gray-800">
- {% include 'sidebar.html' %}
+<body class="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-gray-800">
+  {% include 'sidebar.html' %}
 
   <!-- Overlay for mobile -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
-    <!-- LOGOUT -->
-    <div class="p-4">
-      <button id="logoutBtn"
-        class="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold shadow-md">
-        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
-      </button>
-    </div>
-  </aside>
-
   <!-- MAIN CONTENT -->
-  <main class="flex-1 ml-0 md:ml-32 p-1 lg:p-2 transition-all duration-300 space-y-2">
-    <div class="flex items-center justify-between bg-blue-600 rounded-xl shadow-lg p-4 mb-6">
-      <div class="flex items-center gap-3">
-        <i data-lucide="layout-dashboard" class="w-8 h-8 text-white"></i>
-        <h2 class="text-3xl font-bold text-white">Dashboard</h2>
+  <main class="flex-1 ml-0 md:ml-64 p-4 lg:p-6 transition-all duration-300">
+    <!-- Add spacing to prevent overlap with navbar -->
+    <div class="pt-4">
+    <!-- HEADER -->
+    <header class="mb-8">
+      <div class="gradient-bg rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full -ml-24 -mb-24"></div>
+        
+        <div class="relative z-10">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
+                <i data-lucide="layout-dashboard" class="w-10 h-10 text-white animate-float"></i>
+              </div>
+              <div>
+                <h1 class="text-4xl font-bold text-white mb-2">Analytics Dashboard</h1>
+                <p class="text-white/80 text-lg">Real-time inventory insights and management</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <p class="text-white/80 text-sm">Last Updated</p>
+                <p class="text-white font-semibold" id="lastUpdated">Just now</p>
+              </div>
+              <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i data-lucide="refresh-cw" class="w-6 h-6 text-white animate-spin-slow"></i>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
 
     <!-- SUMMARY CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-1">
-      <!-- Manage Items (devices_full) -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-blue-500 hover:scale-105 cursor-pointer group">
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Devices Inventory</h3>
-          <p class="text-3xl font-bold text-blue-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ total_items }}</p>
-          <div class="mt-2 h-1 bg-blue-100 rounded-full overflow-hidden">
-            <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 60%"></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
+      <!-- Devices Inventory Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="box" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-green-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Active</span>
+            </div>
           </div>
-        </div>
-        <div class="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
-          <i data-lucide="box" class="w-8 h-8 text-blue-500"></i>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Devices</h3>
+          <p class="text-3xl font-bold text-gray-800 mb-3">{{ total_items }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Total Items</span>
+            <span class="text-xs font-semibold text-blue-600">+12%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shimmer" style="width: 75%"></div>
+          </div>
         </div>
       </div>
 
-      <!-- PC Inventory (pcs) -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-green-500 hover:scale-105 cursor-pointer group">
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">PC Inventory</h3>
-          <p class="text-3xl font-bold text-green-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ total_pcs }}</p>
-          <div class="mt-2 h-1 bg-green-100 rounded-full overflow-hidden">
-            <div class="h-full bg-green-500 rounded-full animate-pulse" style="width: 45%"></div>
+      <!-- PC Inventory Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="monitor" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-green-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Active</span>
+            </div>
           </div>
-        </div>
-        <div class="bg-green-50 p-3 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-          <i data-lucide="monitor" class="w-8 h-8 text-green-500"></i>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">PCs</h3>
+          <p class="text-3xl font-bold text-gray-800 mb-3">{{ total_pcs }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Computers</span>
+            <span class="text-xs font-semibold text-emerald-600">+8%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shimmer" style="width: 60%"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Available -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-emerald-500 hover:scale-105 cursor-pointer group">
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Available</h3>
-          <p class="text-3xl font-bold text-emerald-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ available_items }}</p>
-          <div class="mt-2 h-1 bg-emerald-100 rounded-full overflow-hidden">
-            <div class="h-full bg-emerald-500 rounded-full animate-pulse" style="width: 75%"></div>
+      <!-- Available Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-green-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Ready</span>
+            </div>
           </div>
-        </div>
-        <div class="bg-emerald-50 p-3 rounded-xl group-hover:bg-emerald-100 transition-colors duration-300">
-          <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600"></i>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Available</h3>
+          <p class="text-3xl font-bold text-gray-800 mb-3">{{ available_items }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">In Stock</span>
+            <span class="text-xs font-semibold text-green-600">+5%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full shimmer" style="width: 85%"></div>
+          </div>
         </div>
       </div>
 
-      <!-- In Use -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-yellow-500 hover:scale-105 cursor-pointer group">
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">In Use</h3>
-          <p class="text-3xl font-bold text-yellow-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ in_use_items }}</p>
-          <div class="mt-2 h-1 bg-yellow-100 rounded-full overflow-hidden">
-            <div class="h-full bg-yellow-500 rounded-full animate-pulse" style="width: 30%"></div>
+      <!-- In Use Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-amber-500 to-amber-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="play-circle" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-amber-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Busy</span>
+            </div>
           </div>
-        </div>
-        <div class="bg-yellow-50 p-3 rounded-xl group-hover:bg-yellow-100 transition-colors duration-300">
-          <i data-lucide="play-circle" class="w-8 h-8 text-yellow-500"></i>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">In Use</h3>
+          <p class="text-3xl font-bold text-gray-800 mb-3">{{ in_use_items }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Borrowed</span>
+            <span class="text-xs font-semibold text-amber-600">+15%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full shimmer" style="width: 45%"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Damaged -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex items-center justify-between border-l-4 border-red-500 hover:scale-105 cursor-pointer group">
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Damaged</h3>
-          <p class="text-3xl font-bold text-red-600 mt-2 group-hover:scale-110 transition-transform duration-300">{{ damaged_items }}</p>
-          <div class="mt-2 h-1 bg-red-100 rounded-full overflow-hidden">
-            <div class="h-full bg-red-500 rounded-full animate-pulse" style="width: 15%"></div>
+      <!-- Damaged Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-red-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="alert-triangle" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-red-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Alert</span>
+            </div>
           </div>
-        </div>
-        <div class="bg-red-50 p-3 rounded-xl group-hover:bg-red-100 transition-colors duration-300">
-          <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Damaged</h3>
+          <p class="text-3xl font-bold text-gray-800 mb-3">{{ damaged_items }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Needs Repair</span>
+            <span class="text-xs font-semibold text-red-600">-3%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full shimmer" style="width: 25%"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Cost In -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between border-l-4 border-blue-500 hover:scale-105 cursor-pointer group lg:col-span-2 xl:col-span-1">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Cost In</h3>
-          <div class="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
-            <i data-lucide="trending-up" class="w-8 h-8 text-blue-600"></i>
+      <!-- Total Value Card -->
+      <div class="glass-morphism rounded-3xl shadow-xl card-hover p-6 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-4">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-2xl shadow-lg">
+              <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="status-indicator bg-purple-500 pulse-dot"></div>
+              <span class="text-xs text-gray-500 font-medium">Value</span>
+            </div>
+          </div>
+          <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Total Value</h3>
+          <p class="text-2xl font-bold text-gray-800 mb-3">₱{{ "%.2f"|format(total_cost_in) }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Assets</span>
+            <span class="text-xs font-semibold text-purple-600">+18%</span>
+          </div>
+          <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shimmer" style="width: 90%"></div>
           </div>
         </div>
-        <p class="text-3xl font-bold text-blue-600 mt-3 group-hover:scale-110 transition-transform duration-300">₱{{ "{:,.2f}".format(total_cost_in) }}</p>
-        {% if avg_cost %}
-        <p class="text-xs text-gray-500 mt-2 bg-blue-50 px-2 py-1 rounded-lg inline-block">Avg/Device: ₱{{ "{:,.2f}".format(avg_cost) }}</p>
-        {% endif %}
-        <div class="mt-2 h-1 bg-blue-100 rounded-full overflow-hidden">
-          <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 85%"></div>
-        </div>
       </div>
-
-      
+    </div>
+          </div>
+        </div>       
+      </div>
+     
     </div>
 
 
@@ -213,6 +407,456 @@
       </div>
     </div>
 
+    <!-- INVENTORY BY CATEGORY AND STOCK STATUS DISTRIBUTION CHARTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-1">
+      <!-- INVENTORY BY CATEGORY CHART -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-purple-700 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+            Inventory by Category
+          </h3>
+          <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div class="w-full h-64 bg-gradient-to-br from-purple-50 to-transparent rounded-xl p-4">
+          <canvas id="categoryChart"></canvas>
+        </div>
+        <div class="mt-4 flex justify-center gap-4 text-xs text-gray-500">
+          <div class="flex items-center gap-1">
+            <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+            <span>Device Categories</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STOCK STATUS DISTRIBUTION CHART -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-indigo-700 flex items-center gap-2">
+            <i data-lucide="donut-chart" class="w-5 h-5"></i>
+            Stock Status Distribution
+          </h3>
+          <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div class="w-full h-64 bg-gradient-to-br from-indigo-50 to-transparent rounded-xl p-4">
+          <canvas id="statusChart"></canvas>
+        </div>
+        <div class="mt-4 flex justify-center gap-4 text-xs text-gray-500">
+          <div class="flex items-center gap-1">
+            <div class="w-3 h-3 bg-indigo-500 rounded-full"></div>
+            <span>Status Overview</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RETURN RATE ANALYSIS -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-3 rounded-2xl shadow-lg">
+            <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Return Rate Analysis</h2>
+            <p class="text-gray-600">Track asset returns and borrowing patterns</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">Live Data</span>
+          <button class="bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <i data-lucide="download" class="w-4 h-4 text-gray-600"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- RETURN RATE OVERVIEW -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Overview</h3>
+            <div class="bg-green-100 p-2 rounded-lg">
+              <i data-lucide="target" class="w-4 h-4 text-green-600"></i>
+            </div>
+          </div>
+          <div id="returnRateStats" class="space-y-4">
+            <div class="text-center py-8">
+              <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+              <p class="text-gray-500">Loading return rate data...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTHLY RETURN TRENDS -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Monthly Trends</h3>
+            <div class="bg-blue-100 p-2 rounded-lg">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-600"></i>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="monthlyTrendsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- DEVICE TYPE RETURN RATES -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">By Device Type</h3>
+            <div class="bg-purple-100 p-2 rounded-lg">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-purple-600"></i>
+            </div>
+          </div>
+          <div id="deviceTypeRates" class="space-y-3 max-h-64 overflow-y-auto scrollbar-hide">
+            <div class="text-center py-8">
+              <i data-lucide="loader-2" class="w-6 h-6 mx-auto mb-2 text-gray-300 animate-spin"></i>
+              <p class="text-sm text-gray-500">Loading device data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERDUE RETURNS -->
+    <div class="glass-morphism rounded-3xl shadow-xl p-6 mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-gradient-to-br from-orange-500 to-red-600 p-3 rounded-2xl shadow-lg">
+            <i data-lucide="alert-triangle" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-800">Overdue Returns</h3>
+            <p class="text-gray-600">Items requiring immediate attention</p>
+          </div>
+        </div>
+        <span id="overdueCount" class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium">Loading...</span>
+      </div>
+      <div id="overdueReturns" class="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
+        <div class="text-center py-8">
+          <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+          <p class="text-gray-500">Loading overdue returns...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENT ANALYTICS -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-lg">
+            <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Department Analytics</h2>
+            <p class="text-gray-600">Resource allocation and usage by department</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Live Data</span>
+          <button class="bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <i data-lucide="filter" class="w-4 h-4 text-gray-600"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- DEPARTMENT USAGE -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Resource Usage</h3>
+            <div class="bg-indigo-100 p-2 rounded-lg">
+              <i data-lucide="bar-chart" class="w-4 h-4 text-indigo-600"></i>
+            </div>
+          </div>
+          <div id="departmentUsage" class="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
+            <div class="text-center py-8">
+              <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+              <p class="text-gray-500">Loading department usage...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CROSS-DEPARTMENT EFFICIENCY -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Efficiency Metrics</h3>
+            <div class="bg-emerald-100 p-2 rounded-lg">
+              <i data-lucide="zap" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+          </div>
+          <div id="departmentEfficiency" class="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
+            <div class="text-center py-8">
+              <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+              <p class="text-gray-500">Loading efficiency data...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- COST PER DEPARTMENT -->
+        <div class="glass-morphism rounded-3xl shadow-xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Cost Analysis</h3>
+            <div class="bg-amber-100 p-2 rounded-lg">
+              <i data-lucide="dollar-sign" class="w-4 h-4 text-amber-600"></i>
+            </div>
+          </div>
+          <div id="departmentCosts" class="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
+            <div class="text-center py-8">
+              <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+              <p class="text-gray-500">Loading cost data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENT USAGE TRENDS CHART -->
+    <div class="glass-morphism rounded-3xl shadow-xl p-6 mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-2xl shadow-lg">
+            <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-800">Department Usage Trends</h3>
+            <p class="text-gray-600">Monthly borrowing patterns across departments</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full text-sm font-medium">2026</span>
+          <button class="bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <i data-lucide="maximize-2" class="w-4 h-4 text-gray-600"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="departmentTrendsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE ANALYTICS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-1">
+      <!-- MAINTENANCE FREQUENCY -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-teal-700 flex items-center gap-2">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+            Maintenance Frequency
+          </h3>
+          <span class="text-xs bg-teal-100 text-teal-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="maintenanceFrequency" class="space-y-4">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading maintenance data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MAINTENANCE COSTS -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-rose-700 flex items-center gap-2">
+            <i data-lucide="wrench" class="w-5 h-5"></i>
+            Maintenance Costs
+          </h3>
+          <span class="text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="maintenanceCosts" class="space-y-3 max-h-80 overflow-y-auto">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading cost data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEVICE TYPE MAINTENANCE -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-violet-700 flex items-center gap-2">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            Maintenance by Type
+          </h3>
+          <span class="text-xs bg-violet-100 text-violet-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="deviceTypeMaintenance" class="space-y-3 max-h-80 overflow-y-auto">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading type data...</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MAINTENANCE TRENDS CHART -->
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-sky-700 flex items-center gap-2">
+          <i data-lucide="activity" class="w-5 h-5"></i>
+          Maintenance Trends (12 Months)
+        </h3>
+        <span class="text-xs bg-sky-100 text-sky-600 px-2 py-1 rounded-full font-semibold">Historical</span>
+      </div>
+      <div class="w-full h-64 bg-gradient-to-br from-sky-50 to-transparent rounded-xl p-4">
+        <canvas id="maintenanceTrendsChart"></canvas>
+      </div>
+    </section>
+
+    <!-- UPCOMING MAINTENANCE -->
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-orange-700 flex items-center gap-2">
+          <i data-lucide="calendar-check" class="w-5 h-5"></i>
+          Upcoming Maintenance
+        </h3>
+        <span id="upcomingMaintenanceCount" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Loading...</span>
+      </div>
+      <div id="upcomingMaintenance" class="space-y-1 max-h-64 overflow-y-auto">
+        <div class="text-center py-8">
+          <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+          <p class="text-gray-500">Loading schedule...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONSUMABLE ANALYTICS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-1">
+      <!-- CONSUMABLE USAGE RATE -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-lime-700 flex items-center gap-2">
+            <i data-lucide="trending-down" class="w-5 h-5"></i>
+            Usage Rate
+          </h3>
+          <span class="text-xs bg-lime-100 text-lime-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="consumableUsageRate" class="space-y-3 max-h-80 overflow-y-auto">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading usage data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- REORDER ANALYTICS -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-orange-700 flex items-center gap-2">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            Reorder Analytics
+          </h3>
+          <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="reorderAnalytics" class="space-y-3 max-h-80 overflow-y-auto">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading reorder data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- COST ANALYSIS -->
+      <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-pink-700 flex items-center gap-2">
+            <i data-lucide="credit-card" class="w-5 h-5"></i>
+            Cost Analysis
+          </h3>
+          <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded-full font-semibold">Live</span>
+        </div>
+        <div id="consumableCostAnalysis" class="space-y-3 max-h-80 overflow-y-auto">
+          <div class="text-center py-8">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+            <p class="text-gray-500">Loading cost data...</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- CONSUMABLE COST TRENDS CHART -->
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-indigo-700 flex items-center gap-2">
+          <i data-lucide="line-chart" class="w-5 h-5"></i>
+          Consumable Cost Trends (12 Months)
+        </h3>
+        <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full font-semibold">Historical</span>
+      </div>
+      <div class="w-full h-64 bg-gradient-to-br from-indigo-50 to-transparent rounded-xl p-4">
+        <canvas id="consumableCostTrendsChart"></canvas>
+      </div>
+    </section>
+
+    <!-- TOP CONSUMABLE USERS -->
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-teal-700 flex items-center gap-2">
+          <i data-lucide="users" class="w-5 h-5"></i>
+          Top Consumable Users
+        </h3>
+        <span id="topUsersCount" class="text-xs bg-teal-100 text-teal-600 px-2 py-1 rounded-full font-semibold">Loading...</span>
+      </div>
+      <div id="topConsumableUsers" class="space-y-1 max-h-64 overflow-y-auto">
+        <div class="text-center py-8">
+          <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-3 text-gray-300 animate-spin"></i>
+          <p class="text-gray-500">Loading user data...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOW STOCK ALERTS -->
+    <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-red-700 flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          Low Stock Alerts
+        </h3>
+        <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-semibold">{{ low_stock_alerts|length }} Items</span>
+      </div>
+      <div class="space-y-1 max-h-80 overflow-y-auto">
+        <ul class="divide-y divide-gray-100">
+          {% for alert in low_stock_alerts %}
+            <li class="py-4 flex justify-between items-center hover:bg-red-50 rounded-lg px-3 transition-colors duration-200 group">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full group-hover:scale-150 transition-transform duration-300
+                  {% if alert.status == 'Damaged' %}bg-red-500
+                  {% elif alert.status == 'Needs Checking' %}bg-yellow-500
+                  {% elif alert.quantity <= 1 %}bg-orange-500
+                  {% else %}bg-blue-500{% endif %}"></div>
+                <div>
+                  <p class="font-semibold text-gray-800 group-hover:text-red-600 transition-colors duration-200">
+                    {{ alert.item_name }}
+                    {% if alert.brand_model %}• {{ alert.brand_model }}{% endif %}
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">
+                    {{ alert.device_type }} • {{ alert.department_name or 'No department' }}
+                  </p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs px-2 py-1 rounded-full font-medium
+                  {% if alert.status == 'Damaged' %}bg-red-100 text-red-800
+                  {% elif alert.status == 'Needs Checking' %}bg-yellow-100 text-yellow-800
+                  {% elif alert.quantity <= 1 %}bg-orange-100 text-orange-800
+                  {% else %}bg-blue-100 text-blue-800{% endif %}">
+                  {% if alert.status == 'Damaged' %}Damaged
+                  {% elif alert.status == 'Needs Checking' %}Needs Check
+                  {% else %}Qty: {{ alert.quantity }}{% endif %}
+                </span>
+                <p class="text-xs text-gray-400 mt-1">{{ alert.item_type|title }}</p>
+              </div>
+            </li>
+          {% else %}
+            <li class="py-8 text-gray-500 text-center">
+              <i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+              <p>All stock levels are healthy!</p>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
     <!-- COST CHART -->
     <section class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 relative">
       <div class="flex justify-between items-center mb-6">
@@ -220,10 +864,7 @@
           <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
           Cost In
         </h3>
-        <button id="openFilterModal" class="bg-blue-100 hover:bg-blue-200 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2">
-          <i data-lucide="filter" class="w-4 h-4"></i>
-          <span id="filterLabel">Monthly</span>
-        </button>
+        <span class="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-medium">Monthly</span>
       </div>
       <div class="w-full h-64 bg-gradient-to-br from-blue-50 to-transparent rounded-xl p-4">
         <canvas id="costChart"></canvas>
@@ -267,20 +908,17 @@
   <script>
     lucide.createIcons();
 
-   
-
-
-const ctx2 = document.getElementById('costChart').getContext('2d');
-const costChart = new Chart(ctx2, {
-  type: 'bar',
-  data: { labels: [], datasets: [] },
-  options: {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } },
-    scales: { y: { beginAtZero: true } },
-    maintainAspectRatio: false
-  }
-});
+    const ctx2 = document.getElementById('costChart').getContext('2d');
+    const costChart = new Chart(ctx2, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true } },
+        maintainAspectRatio: false
+      }
+    });
 
 async function loadCostData() {
   try {
@@ -302,43 +940,1189 @@ async function loadCostData() {
 
 loadCostData();
 
-    const modal = document.getElementById('filterModal');
-    const modalContent = document.getElementById('modalContent');
-    const openModal = document.getElementById('openFilterModal');
-    const closeModal = document.getElementById('closeFilterModal');
-    const filterLabel = document.getElementById('filterLabel');
-
-    openModal.addEventListener('click', () => {
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        modalContent.classList.remove('scale-95', 'opacity-0');
-        modalContent.classList.add('scale-100', 'opacity-100');
-      }, 10);
-    });
-    
-    closeModal.addEventListener('click', () => {
-      modalContent.classList.remove('scale-100', 'opacity-100');
-      modalContent.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 300);
-    });
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal.click();
+    // Initialize new charts
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+      type: 'doughnut',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        },
+        maintainAspectRatio: false
       }
     });
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const filter = btn.dataset.filter;
-        filterLabel.textContent = filter;
-        modal.classList.add('hidden');
-        await loadCostData(filter);
-      });
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+      type: 'pie',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        },
+        maintainAspectRatio: false
+      }
     });
 
+    // Load inventory category data
+    async function loadCategoryData() {
+      try {
+        const res = await fetch('/inventory_category_data');
+        const data = await res.json();
+        categoryChart.data.labels = data.categories;
+        categoryChart.data.datasets = [
+          {
+            label: 'Items by Category',
+            data: data.counts,
+            backgroundColor: [
+              '#8b5cf6', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff',
+              '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ];
+        categoryChart.update();
+      } catch (err) {
+        console.error('Error fetching category data:', err);
+      }
+    }
+
+    // Load stock status data
+    async function loadStatusData() {
+      try {
+        const res = await fetch('/stock_status_data');
+        const data = await res.json();
+        statusChart.data.labels = data.statuses;
+        statusChart.data.datasets = [
+          {
+            label: 'Items by Status',
+            data: data.counts,
+            backgroundColor: [
+              '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+              '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ];
+        statusChart.update();
+      } catch (err) {
+        console.error('Error fetching status data:', err);
+      }
+    }
+
+    // Load all chart data
+    loadCategoryData();
+    loadStatusData();
+    loadReturnRateData();
+    loadDepartmentAnalytics();
+    loadMaintenanceAnalytics();
+    loadConsumableAnalytics();
+
+    // Enhanced UI interactions
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add fade-in animation to cards
+      const cards = document.querySelectorAll('.glass-morphism');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'all 0.5s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+
+      // Update last updated time
+      updateLastUpdatedTime();
+      setInterval(updateLastUpdatedTime, 60000); // Update every minute
+
+      // Add smooth scroll behavior
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Add hover effects to interactive elements
+      const interactiveElements = document.querySelectorAll('.card-hover, button, .hover-lift');
+      interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+        });
+        element.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+        });
+      });
+
+      // Initialize tooltips
+      initializeTooltips();
+    });
+
+    // Update last updated time
+    function updateLastUpdatedTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+      const lastUpdatedElement = document.getElementById('lastUpdated');
+      if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = timeString;
+      }
+    }
+
+    // Initialize tooltips
+    function initializeTooltips() {
+      const tooltipElements = document.querySelectorAll('[data-tooltip]');
+      tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function(e) {
+          const tooltip = document.createElement('div');
+          tooltip.className = 'absolute bg-gray-800 text-white text-xs rounded px-2 py-1 z-50';
+          tooltip.textContent = this.getAttribute('data-tooltip');
+          tooltip.style.top = (e.pageY - 30) + 'px';
+          tooltip.style.left = (e.pageX + 10) + 'px';
+          document.body.appendChild(tooltip);
+          
+          this.addEventListener('mouseleave', function() {
+            tooltip.remove();
+          }, { once: true });
+        });
+      });
+    }
+
+    // Enhanced chart loading animations
+    function enhanceChartLoading(chartId) {
+      const canvas = document.getElementById(chartId);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const originalDraw = ctx.draw;
+        ctx.draw = function() {
+          originalDraw.apply(this, arguments);
+          canvas.classList.add('fade-in');
+        };
+      }
+    }
+
+    // Add refresh functionality
+    function refreshData() {
+      const refreshBtn = document.querySelector('[data-lucide="refresh-cw"]');
+      if (refreshBtn) {
+        refreshBtn.classList.add('animate-spin');
+        
+        // Reload all data
+        Promise.all([
+          loadCategoryData(),
+          loadStatusData(),
+          loadReturnRateData(),
+          loadDepartmentAnalytics(),
+          loadMaintenanceAnalytics(),
+          loadConsumableAnalytics()
+        ]).then(() => {
+          refreshBtn.classList.remove('animate-spin');
+          updateLastUpdatedTime();
+          showNotification('Data refreshed successfully', 'success');
+        }).catch(error => {
+          refreshBtn.classList.remove('animate-spin');
+          showNotification('Error refreshing data', 'error');
+        });
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 fade-in ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+      }`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    // Load consumable analytics data
+    async function loadConsumableAnalytics() {
+      try {
+        const res = await fetch('/consumable_analytics_data');
+        const data = await res.json();
+        
+        // Update consumable usage rate
+        const usageContainer = document.getElementById('consumableUsageRate');
+        if (data.consumable_usage.length > 0) {
+          usageContainer.innerHTML = data.consumable_usage.slice(0, 8).map(consumable => `
+            <div class="p-3 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-lime-800 text-sm">${consumable.consumable_name}</h4>
+                <span class="text-xs px-2 py-1 rounded-full ${
+                  consumable.stock_status === 'Critical' ? 'bg-red-100 text-red-800' :
+                  consumable.stock_status === 'Low' ? 'bg-orange-100 text-orange-800' :
+                  consumable.stock_status === 'Overstocked' ? 'bg-blue-100 text-blue-800' :
+                  'bg-green-100 text-green-800'
+                } font-medium">
+                  ${consumable.stock_status}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Current:</span>
+                  <span class="font-medium">${consumable.current_quantity}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Min Level:</span>
+                  <span class="font-medium">${consumable.minimum_level}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Total Used:</span>
+                  <span class="font-medium text-lime-600">${consumable.total_used}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Usage:</span>
+                  <span class="font-medium">${Math.round(consumable.avg_usage_per_transaction || 0)}</span>
+                </div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-lime-200 rounded-full h-2">
+                  <div class="bg-lime-500 h-2 rounded-full transition-all duration-300" style="width: ${Math.min((consumable.current_quantity / consumable.maximum_level) * 100, 100)}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Stock Level: ${Math.round((consumable.current_quantity / consumable.maximum_level) * 100)}%</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          usageContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No consumable usage data available</p>';
+        }
+        
+        // Update reorder analytics
+        const reorderContainer = document.getElementById('reorderAnalytics');
+        if (data.reorder_analytics.length > 0) {
+          reorderContainer.innerHTML = data.reorder_analytics.slice(0, 8).map(consumable => `
+            <div class="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-orange-800 text-sm">${consumable.consumable_name}</h4>
+                <span class="text-xs px-2 py-1 rounded-full ${
+                  consumable.reorder_priority === 'Immediate' ? 'bg-red-100 text-red-800' :
+                  consumable.reorder_priority === 'Soon' ? 'bg-orange-100 text-orange-800' :
+                  consumable.reorder_priority === 'Review' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                } font-medium">
+                  ${consumable.reorder_priority}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Current:</span>
+                  <span class="font-medium">${consumable.current_quantity}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Needed:</span>
+                  <span class="font-medium text-red-600">${Math.max(0, consumable.quantity_needed)}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Days Left:</span>
+                  <span class="font-medium ${
+                    consumable.estimated_days_remaining < 7 ? 'text-red-600' :
+                    consumable.estimated_days_remaining < 30 ? 'text-orange-600' : 'text-green-600'
+                  }">${consumable.estimated_days_remaining || 'N/A'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Reorder In:</span>
+                  <span class="font-medium">${consumable.days_until_reorder || 'N/A'} days</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-orange-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-gray-500">Unit Cost:</span>
+                  <span class="text-sm font-bold text-orange-600">₱${parseFloat(consumable.unit_cost || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          reorderContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No reorder data available</p>';
+        }
+        
+        // Update cost analysis
+        const costContainer = document.getElementById('consumableCostAnalysis');
+        if (data.consumable_analysis.length > 0) {
+          costContainer.innerHTML = data.consumable_analysis.slice(0, 8).map(consumable => `
+            <div class="p-3 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-pink-800 text-sm">${consumable.consumable_name}</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-pink-200 text-pink-800 font-medium">
+                  ₱${parseFloat(consumable.current_value || 0).toFixed(0)}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Current Qty:</span>
+                  <span class="font-medium">${consumable.current_quantity}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Total Used:</span>
+                  <span class="font-medium">${consumable.total_used}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Monthly:</span>
+                  <span class="font-medium">${consumable.avg_monthly_usage || 0}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Days Supply:</span>
+                  <span class="font-medium text-pink-600">${consumable.days_of_supply}</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-pink-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-gray-500">Projected Usage:</span>
+                  <span class="text-sm font-bold text-pink-600">${consumable.projected_usage || 0}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          costContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No cost analysis data available</p>';
+        }
+        
+        // Update top consumable users
+        const usersContainer = document.getElementById('topConsumableUsers');
+        const usersCount = document.getElementById('topUsersCount');
+        usersCount.textContent = data.top_users.length + ' Departments';
+        
+        if (data.top_users.length > 0) {
+          usersContainer.innerHTML = data.top_users.map(user => `
+            <div class="flex items-center justify-between p-3 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 bg-teal-500 rounded-full"></div>
+                <div>
+                  <p class="font-semibold text-gray-800">${user.department_name || 'Unknown'}</p>
+                  <p class="text-sm text-gray-500">${user.usage_count} transactions</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-bold text-teal-600">₱${parseFloat(user.total_cost || 0).toLocaleString()}</div>
+                <div class="text-xs text-gray-400">${user.total_quantity} units</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          usersContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i data-lucide="users" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i><p>No user data available</p></div>';
+        }
+        
+        // Update consumable cost trends chart
+        updateConsumableCostTrendsChart(data.cost_over_time);
+        
+      } catch (err) {
+        console.error('Error fetching consumable analytics:', err);
+        document.getElementById('consumableUsageRate').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('reorderAnalytics').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('consumableCostAnalysis').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('topConsumableUsers').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+      }
+    }
+    
+    // Update consumable cost trends chart
+    function updateConsumableCostTrendsChart(costData) {
+      const ctx = document.getElementById('consumableCostTrendsChart').getContext('2d');
+      
+      // Sort data by month
+      const sortedData = costData.sort((a, b) => a.month.localeCompare(b.month));
+      
+      const labels = sortedData.map(item => {
+        const date = new Date(item.month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      });
+      
+      const costs = sortedData.map(item => parseFloat(item.monthly_cost || 0));
+      const quantities = sortedData.map(item => parseInt(item.monthly_quantity || 0));
+      const activeConsumables = sortedData.map(item => parseInt(item.active_consumables || 0));
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Monthly Cost (₱)',
+              data: costs,
+              backgroundColor: 'rgba(236, 72, 153, 0.1)',
+              borderColor: '#ec4899',
+              borderWidth: 2,
+              tension: 0.3,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Quantity Used',
+              data: quantities,
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              borderColor: '#22c55e',
+              borderWidth: 2,
+              tension: 0.3,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 8,
+                font: { size: 11 }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    if (context.datasetIndex === 0) {
+                      label += '₱' + context.parsed.y.toLocaleString();
+                    } else {
+                      label += context.parsed.y.toLocaleString() + ' units';
+                    }
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              ticks: { font: { size: 10 } },
+              grid: { display: true, drawBorder: false },
+              title: {
+                display: true,
+                text: 'Cost (₱)',
+                font: { size: 11 }
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              ticks: { font: { size: 10 } },
+              grid: { display: false },
+              title: {
+                display: true,
+                text: 'Quantity',
+                font: { size: 11 }
+              }
+            },
+            x: {
+              ticks: { font: { size: 10 } },
+              grid: { display: false }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Load maintenance analytics data
+    async function loadMaintenanceAnalytics() {
+      try {
+        const res = await fetch('/maintenance_analytics_data');
+        const data = await res.json();
+        
+        // Update maintenance frequency
+        const frequencyContainer = document.getElementById('maintenanceFrequency');
+        if (data.maintenance_frequency.length > 0) {
+          frequencyContainer.innerHTML = data.maintenance_frequency.map(asset => `
+            <div class="p-4 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-teal-800">${asset.asset_type}s</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-teal-200 text-teal-800 font-medium">
+                  ${asset.total_assets} total
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="text-center p-2 bg-white rounded">
+                  <div class="text-lg font-bold text-teal-600">${asset.assets_with_maintenance}</div>
+                  <div class="text-xs text-gray-500">Maintained</div>
+                </div>
+                <div class="text-center p-2 bg-white rounded">
+                  <div class="text-lg font-bold text-orange-600">${asset.overdue_maintenance}</div>
+                  <div class="text-xs text-gray-500">Overdue</div>
+                </div>
+              </div>
+              <div class="mt-3 space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Interval:</span>
+                  <span class="font-medium">${Math.round(asset.avg_maintenance_interval || 0)} days</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Days Since Check:</span>
+                  <span class="font-medium">${Math.round(asset.avg_days_since_last_check || 0)} days</span>
+                </div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-teal-200 rounded-full h-2">
+                  <div class="bg-teal-500 h-2 rounded-full transition-all duration-300" style="width: ${Math.min((asset.assets_with_maintenance / asset.total_assets) * 100, 100)}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Maintenance Coverage</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          frequencyContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No maintenance frequency data available</p>';
+        }
+        
+        // Update maintenance costs
+        const costContainer = document.getElementById('maintenanceCosts');
+        if (data.maintenance_costs.length > 0) {
+          costContainer.innerHTML = data.maintenance_costs.map(cost => `
+            <div class="p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-rose-800">${cost.asset_type}s</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-rose-200 text-rose-800 font-medium">
+                  ${cost.total_maintenance_records} records
+                </span>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Days Between:</span>
+                  <span class="font-medium">${Math.round(cost.avg_days_between_maintenance || 0)} days</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Damaged Count:</span>
+                  <span class="font-medium text-red-600">${cost.damaged_count}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Damage Rate:</span>
+                  <span class="font-medium text-rose-600">${cost.damage_rate}%</span>
+                </div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-rose-200 rounded-full h-2">
+                  <div class="bg-rose-500 h-2 rounded-full transition-all duration-300" style="width: ${Math.min(cost.damage_rate || 0, 100)}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Damage Rate</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          costContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No maintenance cost data available</p>';
+        }
+        
+        // Update device type maintenance
+        const typeContainer = document.getElementById('deviceTypeMaintenance');
+        if (data.device_type_maintenance.length > 0) {
+          typeContainer.innerHTML = data.device_type_maintenance.slice(0, 8).map(type => `
+            <div class="p-3 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-violet-800">${type.device_type}</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-violet-200 text-violet-800 font-medium">
+                  ${type.total_assets} assets
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Maintained:</span>
+                  <span class="font-medium">${type.maintained_assets}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Damaged:</span>
+                  <span class="font-medium text-red-600">${type.damaged_assets}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Damage Rate:</span>
+                  <span class="font-medium text-violet-600">${type.damage_rate}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Interval:</span>
+                  <span class="font-medium">${Math.round(type.avg_interval || 0)} days</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-violet-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-gray-500">Est. Repair Cost:</span>
+                  <span class="text-sm font-bold text-violet-600">₱${parseFloat(type.estimated_repair_cost || 0).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          typeContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No device type data available</p>';
+        }
+        
+        // Update upcoming maintenance
+        const upcomingContainer = document.getElementById('upcomingMaintenance');
+        const upcomingCount = document.getElementById('upcomingMaintenanceCount');
+        upcomingCount.textContent = data.upcoming_maintenance.length + ' Items';
+        
+        if (data.upcoming_maintenance.length > 0) {
+          upcomingContainer.innerHTML = data.upcoming_maintenance.map(item => `
+            <div class="flex items-center justify-between p-3 ${item.maintenance_status === 'Overdue' ? 'bg-red-50' : item.maintenance_status === 'Due Soon' ? 'bg-orange-50' : 'bg-blue-50'} rounded-lg hover:opacity-80 transition-opacity">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full ${
+                  item.maintenance_status === 'Overdue' ? 'bg-red-500' : 
+                  item.maintenance_status === 'Due Soon' ? 'bg-orange-500' : 'bg-blue-500'
+                }"></div>
+                <div>
+                  <p class="font-semibold text-gray-800">${item.item_name}</p>
+                  <p class="text-sm text-gray-500">${item.device_type} ${item.brand_model ? '• ' + item.brand_model : ''}</p>
+                  <p class="text-xs text-gray-400">Last checked: ${item.last_checked}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs px-2 py-1 rounded-full font-medium ${
+                  item.maintenance_status === 'Overdue' ? 'bg-red-100 text-red-800' : 
+                  item.maintenance_status === 'Due Soon' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
+                }">
+                  ${item.maintenance_status}
+                </span>
+                <p class="text-xs text-gray-400 mt-1">
+                  ${item.days_until_maintenance > 0 ? item.days_until_maintenance + ' days' : Math.abs(item.days_until_maintenance) + ' days overdue'}
+                </p>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          upcomingContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i><p>No scheduled maintenance!</p></div>';
+        }
+        
+        // Update maintenance trends chart
+        updateMaintenanceTrendsChart(data.maintenance_trends);
+        
+      } catch (err) {
+        console.error('Error fetching maintenance analytics:', err);
+        document.getElementById('maintenanceFrequency').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('maintenanceCosts').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('deviceTypeMaintenance').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('upcomingMaintenance').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+      }
+    }
+    
+    // Update maintenance trends chart
+    function updateMaintenanceTrendsChart(trendData) {
+      const ctx = document.getElementById('maintenanceTrendsChart').getContext('2d');
+      
+      // Group data by month and asset type
+      const monthlyData = {};
+      const assetTypes = [...new Set(trendData.map(item => item.asset_type))];
+      
+      // Initialize monthly data structure
+      for (let i = 0; i < 12; i++) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (11 - i));
+        const monthKey = date.toISOString().slice(0, 7);
+        monthlyData[monthKey] = {};
+        assetTypes.forEach(type => {
+          monthlyData[monthKey][type] = 0;
+        });
+      }
+      
+      // Fill actual data
+      trendData.forEach(item => {
+        const monthKey = item.maintenance_date.slice(0, 7);
+        if (monthlyData[monthKey]) {
+          monthlyData[monthKey][item.asset_type] = item.maintenance_count;
+        }
+      });
+      
+      // Prepare chart data
+      const labels = Object.keys(monthlyData).map(month => {
+        const date = new Date(month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      });
+      
+      const datasets = assetTypes.map((type, index) => {
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+        const data = Object.values(monthlyData).map(month => month[type] || 0);
+        
+        return {
+          label: type,
+          data: data,
+          backgroundColor: colors[index % colors.length],
+          borderColor: colors[index % colors.length],
+          borderWidth: 2,
+          tension: 0.3
+        };
+      });
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 8,
+                font: { size: 11 }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 10 } },
+              grid: { display: true, drawBorder: false },
+              title: {
+                display: true,
+                text: 'Maintenance Count',
+                font: { size: 11 }
+              }
+            },
+            x: {
+              ticks: { font: { size: 10 } },
+              grid: { display: false }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Load department analytics data
+    async function loadDepartmentAnalytics() {
+      try {
+        const res = await fetch('/department_analytics_data');
+        const data = await res.json();
+        
+        // Update department usage
+        const usageContainer = document.getElementById('departmentUsage');
+        if (data.department_usage.length > 0) {
+          usageContainer.innerHTML = data.department_usage.slice(0, 8).map(dept => `
+            <div class="p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-indigo-800">${dept.department_name || 'Unknown'}</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-indigo-200 text-indigo-800 font-medium">
+                  ${dept.total_assets} assets
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span class="text-gray-600">Devices: ${dept.device_count}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span class="text-gray-600">PCs: ${dept.pc_count}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="text-gray-600">Available: ${dept.available_count}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span class="text-gray-600">In Use: ${dept.in_use_count}</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-indigo-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-gray-500">Total Value:</span>
+                  <span class="text-sm font-bold text-indigo-600">₱${parseFloat(dept.total_cost || 0).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          usageContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No department usage data available</p>';
+        }
+        
+        // Update department efficiency
+        const efficiencyContainer = document.getElementById('departmentEfficiency');
+        if (data.department_efficiency.length > 0) {
+          efficiencyContainer.innerHTML = data.department_efficiency.slice(0, 8).map(dept => `
+            <div class="p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-emerald-800">${dept.department_name || 'Unknown'}</h4>
+                <div class="text-right">
+                  <div class="text-sm font-bold text-emerald-600">${dept.utilization_rate}</div>
+                  <div class="text-xs text-gray-500">utilization</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Total Borrows:</span>
+                  <span class="font-medium">${dept.total_borrows}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Returned:</span>
+                  <span class="font-medium">${dept.returned_borrows}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Return Rate:</span>
+                  <span class="font-medium text-green-600">${dept.return_rate}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg Days:</span>
+                  <span class="font-medium">${Math.round(dept.avg_borrow_days || 0)}</span>
+                </div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-emerald-200 rounded-full h-2">
+                  <div class="bg-emerald-500 h-2 rounded-full transition-all duration-300" style="width: ${Math.min(dept.return_rate || 0, 100)}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Return Rate Progress</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          efficiencyContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No efficiency data available</p>';
+        }
+        
+        // Update department costs
+        const costContainer = document.getElementById('departmentCosts');
+        if (data.department_costs.length > 0) {
+          costContainer.innerHTML = data.department_costs.slice(0, 8).map(dept => `
+            <div class="p-3 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-amber-800">${dept.department_name || 'Unknown'}</h4>
+                <span class="text-xs px-2 py-1 rounded-full bg-amber-200 text-amber-800 font-medium">
+                  ${dept.asset_count} assets
+                </span>
+              </div>
+              <div class="space-y-1 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Device Costs:</span>
+                  <span class="font-medium">₱${parseFloat(dept.device_costs || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">PC Costs:</span>
+                  <span class="font-medium">₱${parseFloat(dept.pc_costs || 0).toLocaleString()}</span>
+                </div>
+                <div class="pt-1 border-t border-amber-200">
+                  <div class="flex justify-between">
+                    <span class="text-gray-700 font-medium">Total Cost:</span>
+                    <span class="font-bold text-amber-600">₱${parseFloat(dept.total_costs || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Avg per Asset:</span>
+                  <span class="font-medium text-amber-600">₱${parseFloat(dept.avg_cost_per_asset || 0).toLocaleString()}</span>
+                </div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-amber-200 rounded-full h-2">
+                  <div class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: ${Math.min((dept.total_costs / Math.max(...data.department_costs.map(d => d.total_costs))) * 100, 100)}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Cost Distribution</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          costContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No cost data available</p>';
+        }
+        
+        // Update department trends chart
+        updateDepartmentTrendsChart(data.monthly_trends);
+        
+      } catch (err) {
+        console.error('Error fetching department analytics:', err);
+        document.getElementById('departmentUsage').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('departmentEfficiency').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('departmentCosts').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+      }
+    }
+    
+    // Update department trends chart
+    function updateDepartmentTrendsChart(monthlyData) {
+      const ctx = document.getElementById('departmentTrendsChart').getContext('2d');
+      
+      // Get unique departments and months
+      const departments = [...new Set(monthlyData.map(item => item.department_name))].slice(0, 5); // Limit to top 5 departments
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      // Prepare datasets for each department
+      const datasets = departments.map((dept, index) => {
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+        const data = months.map((month, monthIndex) => {
+          const monthData = monthlyData.find(item => 
+            item.department_name === dept && item.month === monthIndex + 1
+          );
+          return monthData ? monthData.borrow_count : 0;
+        });
+        
+        return {
+          label: dept,
+          data: data,
+          backgroundColor: colors[index % colors.length],
+          borderColor: colors[index % colors.length],
+          borderWidth: 2,
+          tension: 0.3
+        };
+      });
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 8,
+                font: { size: 11 }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 10 } },
+              grid: { display: true, drawBorder: false },
+              title: {
+                display: true,
+                text: 'Borrow Count',
+                font: { size: 11 }
+              }
+            },
+            x: {
+              ticks: { font: { size: 10 } },
+              grid: { display: false }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Load return rate analysis data
+    async function loadReturnRateData() {
+      try {
+        const res = await fetch('/return_rate_data');
+        const data = await res.json();
+        
+        // Update return rate stats
+        const statsContainer = document.getElementById('returnRateStats');
+        statsContainer.innerHTML = `
+          <div class="text-center">
+            <div class="text-4xl font-bold text-green-600 mb-2">${data.stats.return_rate_percentage}%</div>
+            <p class="text-sm text-gray-500">Overall Return Rate</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-center">
+            <div class="bg-blue-50 rounded-lg p-3">
+              <div class="text-2xl font-bold text-blue-600">${data.stats.total_borrowed}</div>
+              <p class="text-xs text-gray-500">Total Borrowed</p>
+            </div>
+            <div class="bg-green-50 rounded-lg p-3">
+              <div class="text-2xl font-bold text-green-600">${data.stats.returned_count}</div>
+              <p class="text-xs text-gray-500">Returned</p>
+            </div>
+            <div class="bg-yellow-50 rounded-lg p-3">
+              <div class="text-2xl font-bold text-yellow-600">${data.stats.pending_count}</div>
+              <p class="text-xs text-gray-500">Pending</p>
+            </div>
+            <div class="bg-purple-50 rounded-lg p-3">
+              <div class="text-2xl font-bold text-purple-600">${data.stats.avg_days_borrowed}</div>
+              <p class="text-xs text-gray-500">Avg Days</p>
+            </div>
+          </div>
+        `;
+        
+        // Update monthly trends chart
+        updateMonthlyTrendsChart(data.monthly_trends);
+        
+        // Update device type rates
+        const deviceContainer = document.getElementById('deviceTypeRates');
+        if (data.device_type_stats.length > 0) {
+          deviceContainer.innerHTML = data.device_type_stats.map(device => `
+            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <span class="text-sm font-medium text-gray-700">${device.device_type || 'Unknown'}</span>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-bold text-purple-600">${device.return_rate}%</div>
+                <div class="text-xs text-gray-500">${device.returned_count}/${device.total_borrowed}</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          deviceContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">No device data available</p>';
+        }
+        
+        // Update overdue returns
+        const overdueContainer = document.getElementById('overdueReturns');
+        const overdueCount = document.getElementById('overdueCount');
+        overdueCount.textContent = data.overdue_returns.length + ' Items';
+        
+        if (data.overdue_returns.length > 0) {
+          overdueContainer.innerHTML = data.overdue_returns.map(overdue => `
+            <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <div>
+                  <p class="font-semibold text-gray-800">${overdue.first_name} ${overdue.last_name}</p>
+                  <p class="text-sm text-gray-500">${overdue.item_name} ${overdue.brand_model ? '• ' + overdue.brand_model : ''}</p>
+                  <p class="text-xs text-gray-400">ID: ${overdue.student_id}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-800">
+                  ${overdue.days_overdue} days overdue
+                </span>
+                <p class="text-xs text-gray-400 mt-1">Borrowed: ${overdue.borrow_date}</p>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          overdueContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i><p>No overdue returns!</p></div>';
+        }
+        
+        // Reinitialize lucide icons
+        lucide.createIcons();
+        
+      } catch (err) {
+        console.error('Error fetching return rate data:', err);
+        document.getElementById('returnRateStats').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('deviceTypeRates').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+        document.getElementById('overdueReturns').innerHTML = '<p class="text-center text-red-500">Error loading data</p>';
+      }
+    }
+    
+    // Update monthly trends chart
+    function updateMonthlyTrendsChart(monthlyData) {
+      const ctx = document.getElementById('monthlyTrendsChart').getContext('2d');
+      
+      // Initialize months with zero values
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const borrowedData = new Array(12).fill(0);
+      const returnedData = new Array(12).fill(0);
+      
+      // Fill actual data
+      monthlyData.forEach(item => {
+        borrowedData[item.month - 1] = item.borrowed;
+        returnedData[item.month - 1] = item.returned;
+      });
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Borrowed',
+              data: borrowedData,
+              backgroundColor: '#3b82f6',
+              borderColor: '#2563eb',
+              borderWidth: 1
+            },
+            {
+              label: 'Returned',
+              data: returnedData,
+              backgroundColor: '#10b981',
+              borderColor: '#059669',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 8,
+                font: { size: 11 }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 10 } },
+              grid: { display: true, drawBorder: false }
+            },
+            x: {
+              ticks: { font: { size: 10 } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+  </script>
+
+    </div>
+  </main>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
   </script>
 </body>
 </html>

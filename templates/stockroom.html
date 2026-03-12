@@ -7,33 +7,9 @@ stockroom.html
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PC Inventory Stock Room</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lucide.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
@@ -42,9 +18,6 @@ stockroom.html
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-        }
-        .dark .glass-effect {
-            background: rgba(17, 24, 39, 0.95);
         }
         .animate-fade-in {
             animation: fadeIn 0.3s ease-in-out;
@@ -69,17 +42,19 @@ stockroom.html
             user-select: none;
         }
         .sortable:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: rgba(59, 130, 246, 0.1);
         }
         .sort-asc::after {
             content: ' ▲';
+            color: #3b82f6;
         }
         .sort-desc::after {
             content: ' ▼';
+            color: #3b82f6;
         }
         .loading-spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
+            border-top: 3px solid #3b82f6;
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -89,320 +64,253 @@ stockroom.html
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .toast-enter {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .toast-exit {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
     </style>
-
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    <!-- Main Container -->
-    <div class="min-h-screen">
+<body class="flex min-h-screen bg-gray-200 text-gray-800">
+    {% include 'sidebar.html' %}
 
-        {% include 'sidebar.html' %}
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 ml-0 md:ml-64 p-4 lg:p-6 transition-all duration-300">
         <!-- Header -->
-        <header class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <!-- Logo & Title -->
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl">
-                            <i class="fas fa-microchip text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">PC Stock Room</h1>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Inventory Management</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Actions -->
-                    <div class="flex items-center space-x-4">
-                        <!-- Export/Import -->
-                        <div class="relative group">
-                            <button id="exportImportBtn" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Export/Import">
-                                <i class="fas fa-file-export"></i>
-                            </button>
-                            <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 hidden group-hover:block z-50">
-                                <button onclick="exportToJSON()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <i class="fas fa-file-code mr-2"></i>Export as JSON
-                                </button>
-                                <button onclick="exportToCSV()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <i class="fas fa-file-csv mr-2"></i>Export as CSV
-                                </button>
-                                <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                                <label class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                    <i class="fas fa-file-import mr-2"></i>Import JSON
-                                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importFromJSON(this)">
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Theme Toggle -->
-                        <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" aria-label="Toggle theme">
-                            <i class="fas fa-moon dark:hidden"></i>
-                            <i class="fas fa-sun hidden dark:inline"></i>
-                        </button>
-                        
-                        <!-- Add Button -->
-                        <button onclick="openModal()" class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition shadow-lg" accesskey="n">
-                            <i class="fas fa-plus"></i>
-                            <span class="hidden sm:inline">Add Item</span>
-                        </button>
-                    </div>
-
+        <div class="flex items-center justify-between bg-blue-600 rounded-xl shadow-lg p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <i data-lucide="warehouse" class="w-8 h-8 text-white"></i>
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Stock Room</h1>
+                    <p class="text-sm text-blue-100">Inventory Management</p>
                 </div>
             </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Total Items -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Total Items</p>
-                            <p id="totalItems" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
-                        </div>
-                        <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-box text-blue-500 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-green-500 flex items-center">
-                            <i class="fas fa-arrow-up mr-1"></i> In Stock
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Categories -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.1s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Categories</p>
-                            <p id="totalCategories" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
-                        </div>
-                        <div class="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-tags text-purple-500 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Active types</span>
-                    </div>
-                </div>
-
-                <!-- Low Stock -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.2s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Low Stock</p>
-                            <p id="lowStockCount" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
-                        </div>
-                        <div class="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-red-500 flex items-center">
-                            <i class="fas fa-arrow-down mr-1"></i> Need restock
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Total Value -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in" style="animation-delay: 0.3s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Total Value</p>
-                            <p id="totalValue" class="text-3xl font-bold text-gray-800 dark:text-white mt-1">0</p>
-                        </div>
-<div class="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-line text-green-500 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-green-500 flex items-center">
-                            <i class="fas fa-arrow-up mr-1"></i> Inventory worth
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search & Filter Section -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 animate-fade-in">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <!-- Search -->
-                    <div class="flex-1 relative">
-                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            placeholder="Search by name, category, or SKU..." 
-                            class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                        >
-                    </div>
-                    
-                    <!-- Category Filter -->
-                    <div class="relative">
-                        <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <select 
-                            id="categoryFilter" 
-                            class="w-full md:w-48 pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer"
-                        >
-                            <option value="">All Categories</option>
-                            <option value="GPU">GPU / Graphics Card</option>
-                            <option value="CPU">CPU / Processor</option>
-                            <option value="RAM">RAM / Memory</option>
-                            <option value="Motherboard">Motherboard</option>
-                            <option value="Storage">Storage / SSD</option>
-                            <option value="PSU">Power Supply</option>
-                            <option value="Case">PC Case</option>
-                            <option value="Cooling">Cooling</option>
-                            <option value="Monitor">Monitor</option>
-                            <option value="Peripheral">Peripheral</option>
-                        </select>
-                    </div>
-
-                    <!-- Status Filter -->
-                    <div class="relative">
-                        <select 
-                            id="statusFilter" 
-                            class="w-full md:w-40 pl-4 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer"
-                        >
-                            <option value="">All Status</option>
-                            <option value="In Stock">In Stock</option>
-                            <option value="Low Stock">Low Stock</option>
-                            <option value="Out of Stock">Out of Stock</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-
-
-            <!-- Inventory Table -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in">
-                <div class="overflow-x-auto">
-                    <table class="w-full" id="inventoryTableElement">
-                        <thead>
-  <tr>
-    <th class="p-2 border">Category</th>
-    <th class="p-2 border">Item Name</th>
-    <th class="p-2 border">Model</th>
-    <th class="p-2 border">Total Quantity</th>
-    <th class="p-2 border">Source</th>
-  </tr>
-</thead>
-<tbody id="stock-body"></tbody>
-
-                        <tbody id="inventoryTable" class="divide-y divide-gray-200 dark:divide-gray-700">
-                            <!-- Items will be dynamically inserted here -->
-                        </tbody>
-
-                    </table>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden py-16 text-center">
-                    <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-box-open text-4xl text-gray-400"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">No items found</h3>
-                    <p class="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first PC component</p>
-                    <button onclick="openModal()" class="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">
-                        <i class="fas fa-plus"></i>
-                        <span>Add First Item</span>
+            <div class="flex items-center gap-3">
+                <!-- Export/Import Dropdown -->
+                <div class="relative group">
+                    <button id="exportImportBtn" class="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition flex items-center gap-2">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        <span class="hidden sm:inline">Export</span>
                     </button>
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block z-50">
+                        <button onclick="exportToJSON()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                            <i data-lucide="file-json" class="w-4 h-4"></i>Export as JSON
+                        </button>
+                        <button onclick="exportToCSV()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Export as CSV
+                        </button>
+                        <div class="border-t border-gray-200 my-1"></div>
+                        <label class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>Import JSON
+                            <input type="file" id="importFile" accept=".json" class="hidden" onchange="importFromJSON(this)">
+                        </label>
+                    </div>
                 </div>
 
-                <!-- Table Footer -->
-                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                        Showing <span id="showingCount" class="font-semibold text-gray-700 dark:text-gray-300">0</span> items
+                <!-- Add Button -->
+                <button onclick="openModal()" class="flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition shadow-lg font-semibold">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline">Add Item</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Total Items -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 animate-fade-in">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Items</p>
+                        <p id="totalItems" class="text-2xl sm:text-3xl font-bold text-blue-600 mt-2 break-words leading-tight">0</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-xl ml-4 shrink-0">
+                        <i data-lucide="package" class="w-8 h-8 text-blue-500"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> In Stock
                     </span>
-                    <div class="flex items-center space-x-2">
-                        <button id="prevPage" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Page <span id="currentPage" class="font-semibold">1</span> of <span id="totalPages">1</span></span>
-                        <button id="nextPage" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Inventory by Category</h3>
-                    <div class="chart-container">
-                        <canvas id="categoryChart"></canvas>
+            <!-- Categories -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-purple-500 animate-fade-in" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Categories</p>
+                        <p id="totalCategories" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="tags" class="w-8 h-8 text-purple-500"></i>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Stock Status Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">Active types</span>
                 </div>
             </div>
 
-            <!-- Low Stock Alerts Section -->
-            <div id="lowStockSection" class="hidden mt-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-red-800 dark:text-red-200">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Low Stock Alerts
-                    </h3>
-                    <button onclick="dismissLowStockAlerts()" class="text-red-600 dark:text-red-400 hover:text-red-800">
-                        <i class="fas fa-times"></i>
+            <!-- Low Stock -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-red-500 animate-fade-in" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Low Stock</p>
+                        <p id="lowStockCount" class="text-3xl font-bold text-red-600 mt-2">0</p>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-red-500 flex items-center gap-1">
+                        <i data-lucide="trending-down" class="w-4 h-4"></i> Need restock
+                    </span>
+                </div>
+            </div>
+
+            <!-- Total Value -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-green-500 animate-fade-in" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Value</p>
+                        <p id="totalValue" class="text-3xl font-bold text-green-600 mt-2">₱0</p>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="trending-up" class="w-8 h-8 text-green-500"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500 flex items-center gap-1">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i> Inventory worth
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search -->
+                <div class="flex-1 relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search by name, category, or model..." 
+                        class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    >
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="relative">
+                    <i data-lucide="filter" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                    <select 
+                        id="categoryFilter" 
+                        class="w-full md:w-48 pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer"
+                    >
+                        <option value="">All Categories</option>
+                        <option value="GPU">GPU / Graphics Card</option>
+                        <option value="CPU">CPU / Processor</option>
+                        <option value="RAM">RAM / Memory</option>
+                        <option value="Motherboard">Motherboard</option>
+                        <option value="Storage">Storage / SSD</option>
+                        <option value="PSU">Power Supply</option>
+                        <option value="Case">PC Case</option>
+                        <option value="Cooling">Cooling</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Peripheral">Peripheral</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Inventory Table -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full" id="inventoryTableElement">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 border-b">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="tag" class="w-4 h-4"></i>Category
+                                </span>
+                            </th>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 border-b">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="box" class="w-4 h-4"></i>Item Name
+                                </span>
+                            </th>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 border-b">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="barcode" class="w-4 h-4"></i>Model
+                                </span>
+                            </th>
+                            <th class="p-4 text-center text-sm font-semibold text-gray-600 border-b">
+                                <span class="flex items-center justify-center gap-2">
+                                    <i data-lucide="layers" class="w-4 h-4"></i>Total Quantity
+                                </span>
+                            </th>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 border-b">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>Status
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-body" class="divide-y divide-gray-100">
+                        <!-- Items will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden py-16 text-center">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="package-open" class="w-12 h-12 text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">No items found</h3>
+                <p class="text-gray-500 mb-6">Get started by adding your first PC component</p>
+                <button onclick="openModal()" class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span>Add First Item</span>
+                </button>
+            </div>
+
+            <!-- Table Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-sm text-gray-500">
+                    Showing <span id="showingCount" class="font-semibold text-gray-700">0</span>
+                </span>
+                <div class="flex items-center gap-2">
+                    <button id="prevPage" class="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <span class="text-sm text-gray-600">Page <span id="currentPage" class="font-semibold">1</span> of <span id="totalPages">1</span></span>
+                    <button id="nextPage" class="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
                     </button>
                 </div>
-                <div id="lowStockList" class="space-y-2">
-                    <!-- Low stock items will be inserted here -->
-                </div>
             </div>
+        </div>
 
-            <!-- History Log Section -->
-            <div class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                        <i class="fas fa-history mr-2"></i>Recent Activity
-                    </h3>
-                    <button onclick="clearHistory()" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                        Clear History
-                    </button>
-                </div>
-                <div id="historyLog" class="space-y-2 max-h-60 overflow-y-auto">
-                    <!-- History entries will be inserted here -->
-                </div>
-            </div>
-        </main>
-    </div>
+    </main>
 
 
     <!-- Add/Edit Modal -->
     <div id="itemModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop absolute inset-0" onclick="closeModal()"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg animate-slide-up">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-slide-up">
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 id="modalTitle" class="text-xl font-semibold text-gray-800 dark:text-white">Add New Item</h3>
-                    <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                        <i class="fas fa-times text-gray-500"></i>
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-blue-600 rounded-t-2xl">
+                    <h3 id="modalTitle" class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-6 h-6"></i>Add New Item
+                    </h3>
+                    <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-white/20 transition">
+                        <i data-lucide="x" class="w-5 h-5 text-white"></i>
                     </button>
                 </div>
                 
@@ -413,26 +321,29 @@ stockroom.html
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Item Name -->
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="type" class="w-4 h-4"></i>Item Name *
+                            </label>
                             <input 
                                 type="text" 
                                 id="itemName" 
                                 required 
                                 maxlength="100"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g., NVIDIA RTX 4080"
                             >
                             <p class="text-xs text-gray-500 mt-1">Max 100 characters</p>
                         </div>
 
-
                         <!-- Category -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="tag" class="w-4 h-4"></i>Category *
+                            </label>
                             <select 
                                 id="itemCategory" 
                                 required 
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
                             >
                                 <option value="">Select Category</option>
                                 <option value="GPU">GPU / Graphics Card</option>
@@ -448,40 +359,41 @@ stockroom.html
                             </select>
                         </div>
 
-
-                        <!-- SKU -->
+                        <!-- Model/Brand -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SKU</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="hash" class="w-4 h-4"></i>Model/Brand
+                            </label>
                             <input 
                                 type="text" 
-                                id="itemSku" 
-                                maxlength="50"
-                                pattern="[A-Za-z0-9\-_]+"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., GPU-RTX-4080"
+                                id="itemModel" 
+                                maxlength="100"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., ASUS ROG Strix"
                             >
-                            <p class="text-xs text-gray-500 mt-1">Alphanumeric, hyphens, and underscores only</p>
                         </div>
-
 
                         <!-- Quantity -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="layers" class="w-4 h-4"></i>Quantity *
+                            </label>
                             <input 
                                 type="number" 
                                 id="itemQuantity" 
                                 required 
                                 min="0"
                                 max="999999"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="0"
                             >
                         </div>
 
-
-                        <!-- Price -->
+                        <!-- Unit Price -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-tag mr-1"></i>Unit Price </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="tag" class="w-4 h-4"></i>Unit Price *
+                            </label>
                             <input 
                                 type="number" 
                                 id="itemPrice" 
@@ -489,89 +401,42 @@ stockroom.html
                                 min="0"
                                 max="999999.99"
                                 step="0.01"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="0.00"
                             >
                         </div>
 
-
-                        <!-- Min Stock -->
+                        <!-- Min Stock Level -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min Stock Level</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i>Min Stock Level
+                            </label>
                             <input 
                                 type="number" 
                                 id="itemMinStock" 
                                 min="0"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="5"
                             >
-                        </div>
-
-                        <!-- Functional -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-clock mr-1"></i>Functional</label>
-                            <input 
-                                type="text" 
-                                id="itemLifespan" 
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., 3 years, 50000 hours"
-                            >
-                        </div>
-
-                        <!-- Item Image -->
-                        <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Image</label>
-                            <div class="flex items-center space-x-4">
-                                <div id="imagePreview" class="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
-                                    <i class="fas fa-image text-gray-400 text-2xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <input 
-                                        type="file" 
-                                        id="itemImage" 
-                                        accept="image/*"
-                                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                        onchange="previewImage(this)"
-                                    >
-                                    <p class="text-xs text-gray-500 mt-1">Max 2MB (JPEG, PNG, GIF)</p>
-                                </div>
-                                <button type="button" onclick="clearImage()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                            <textarea 
-                                id="itemDescription" 
-                                rows="3"
-                                maxlength="500"
-                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Add any notes about this item..."
-                            ></textarea>
-                            <p class="text-xs text-gray-500 mt-1 text-right"><span id="descCharCount">0</span>/500</p>
                         </div>
                     </div>
                 </form>
 
-
                 <!-- Modal Footer -->
-                <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
                     <button 
                         type="button" 
                         onclick="closeModal()" 
-                        class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                        class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition flex items-center gap-2"
                     >
-                        Cancel
+                        <i data-lucide="x" class="w-4 h-4"></i>Cancel
                     </button>
                     <button 
                         type="submit" 
                         form="itemForm" 
-                        class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition shadow-lg"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-lg flex items-center gap-2"
                     >
-                        <i class="fas fa-save mr-2"></i>Save Item
+                        <i data-lucide="save" class="w-4 h-4"></i>Save Item
                     </button>
                 </div>
             </div>
@@ -582,25 +447,25 @@ stockroom.html
     <div id="deleteModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop absolute inset-0" onclick="closeDeleteModal()"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md animate-slide-up">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-slide-up">
                 <div class="p-8 text-center">
-                    <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-trash-alt text-3xl text-red-500"></i>
+                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="trash-2" class="w-10 h-10 text-red-500"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Delete Item?</h3>
-                    <p id="deleteMessage" class="text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
-                    <div class="flex items-center justify-center space-x-3">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Delete Item?</h3>
+                    <p id="deleteMessage" class="text-gray-500 mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
+                    <div class="flex items-center justify-center gap-3">
                         <button 
                             onclick="closeDeleteModal()" 
-                            class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                            class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition flex items-center gap-2"
                         >
-                            Cancel
+                            <i data-lucide="x" class="w-4 h-4"></i>Cancel
                         </button>
                         <button 
                             id="confirmDeleteBtn" 
-                            class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-lg"
+                            class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-lg flex items-center gap-2"
                         >
-                            <i class="fas fa-trash mr-2"></i>Delete
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>Delete
                         </button>
                     </div>
                 </div>
@@ -610,193 +475,318 @@ stockroom.html
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 flex items-center space-x-3">
+        <div class="bg-white rounded-xl shadow-2xl p-4 flex items-center gap-3">
             <div id="toastIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
-                <i class="text-xl"></i>
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
             </div>
             <div>
-                <p id="toastTitle" class="font-semibold text-gray-800 dark:text-white"></p>
-                <p id="toastMessage" class="text-sm text-gray-500 dark:text-gray-400"></p>
+                <p id="toastTitle" class="font-semibold text-gray-800"></p>
+                <p id="toastMessage" class="text-sm text-gray-500"></p>
             </div>
         </div>
     </div>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 flex items-center space-x-3">
+        <div class="bg-white rounded-xl p-6 flex items-center gap-3">
             <div class="loading-spinner"></div>
-            <span class="text-gray-700 dark:text-gray-300">Processing...</span>
+            <span class="text-gray-700">Processing...</span>
         </div>
     </div>
 
     <!-- Undo Notification -->
-    <div id="undoNotification" class="fixed bottom-4 left-4 bg-gray-800 text-white px-6 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-3">
+    <div id="undoNotification" class="fixed bottom-4 left-4 bg-gray-800 text-white px-6 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
+        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
         <span id="undoMessage">Item deleted</span>
-        <button onclick="undoDelete()" class="text-blue-400 hover:text-blue-300 font-semibold">Undo</button>
+        <button onclick="undoDelete()" class="text-blue-400 hover:text-blue-300 font-semibold ml-2">Undo</button>
     </div>
 
     <script>
-let stockData = [];
-let filteredData = [];
-let currentPage = 1;
-const itemsPerPage = 10;
+        // Initialize Lucide icons
+        lucide.createIcons();
 
-// 🚀 INIT
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadStockRoom();
-    setupEventListeners();
-    updateStats();
-});
+        let stockData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
-// 📦 FETCH FROM BACKEND
+        // INIT
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStockRoom();
+            setupEventListeners();
+            updateStats();
+            lucide.createIcons();
+        });
 
+        // FETCH FROM BACKEND
+        async function loadStockRoom() {
+            try {
+                const res = await fetch('/stock_room/get-stock-room');
+                stockData = await res.json();
+                renderStockTable(stockData);
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error loading stock:", err);
+            }
+        }
 
-async function loadStockRoom() {
-    try {
-        const res = await fetch('/stock_room/get-stock-room');
-        stockData = await res.json();
+        function renderStockTable(data) {
+            const tbody = document.getElementById('stock-body');
+            tbody.innerHTML = '';
 
-        renderStockTable(stockData);
-    } catch (err) {
-        console.error("Error loading stock:", err);
-    }
-}
-function renderStockTable(data) {
-    const tbody = document.getElementById('stock-body');
-    tbody.innerHTML = '';
+            if (!data || data.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('showingCount').textContent = '0';
+                updatePaginationControls(0);
+                return;
+            }
 
-    if (!data || data.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center py-4 text-gray-500">
-                    No stock found
-                </td>
-            </tr>
-        `;
-        return;
-    }
+            document.getElementById('emptyState').classList.add('hidden');
+            
+            // Calculate pagination
+            const totalItems = data.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedData = data.slice(startIndex, endIndex);
+            
+            paginatedData.forEach(item => {
+                const status = getStockStatus(item);
+                const statusColor = status === 'In Stock' ? 'text-green-600 bg-green-50' : 
+                                   status === 'Low Stock' ? 'text-yellow-600 bg-yellow-50' : 
+                                   'text-red-600 bg-red-50';
+                const statusIcon = status === 'In Stock' ? 'check-circle' : 
+                                  status === 'Low Stock' ? 'alert-circle' : 'x-circle';
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-4 border-b">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                            ${item.category}
+                        </span>
+                    </td>
+                    <td class="p-4 border-b font-medium text-gray-800">${item.item_name}</td>
+                    <td class="p-4 border-b text-gray-600">${item.brand_model || '-'}</td>
+                    <td class="p-4 border-b text-center">
+                        <span class="text-lg font-bold text-gray-800">${item.total_quantity}</span>
+                    </td>
+                    <td class="p-4 border-b">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColor} flex items-center gap-1 w-fit">
+                            <i data-lucide="${statusIcon}" class="w-4 h-4"></i>
+                            ${status}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('showingCount').textContent = `${startIndex + 1}-${endIndex} of ${totalItems}`;
+            updatePaginationControls(totalPages);
+            lucide.createIcons({ nodes: [tbody] });
+        }
 
-    data.forEach(item => {
-        tbody.innerHTML += `
-            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                <td class="p-2 border font-semibold">${item.category}</td>
-                <td class="p-2 border">${item.item_name}</td>
-                <td class="p-2 border">${item.brand_model || '-'}</td>
-                <td class="p-2 border text-center font-bold">${item.total_quantity}</td>
-                <td class="p-2 border text-xs text-gray-500">${item.source}</td>
-            </tr>
-        `;
-    });
-}
+        function updatePaginationControls(totalPages) {
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages || 1;
+            
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
+        }
 
-function filterStock() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
+        function changePage(direction) {
+            const data = filteredData.length > 0 ? filteredData : stockData;
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderStockTable(data);
+            }
+        }
 
-    const filtered = stockData.filter(item =>
-        item.category.toLowerCase().includes(search) ||
-        item.item_name.toLowerCase().includes(search) ||
-        (item.brand_model && item.brand_model.toLowerCase().includes(search))
-    );
+        function filterStock() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
 
-    renderStockTable(filtered);
-}
-// 🎯 FILTERS
-function setupEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', filterData);
-    document.getElementById('categoryFilter').addEventListener('change', filterData);
-}
+            filteredData = stockData.filter(item => {
+                const matchSearch =
+                    item.category.toLowerCase().includes(search) ||
+                    item.item_name.toLowerCase().includes(search) ||
+                    (item.brand_model && item.brand_model.toLowerCase().includes(search));
+                
+                const matchCategory = !category || item.category === category;
 
-// 🔍 FILTER FUNCTION
-function filterData() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
+                return matchSearch && matchCategory;
+            });
 
-    filteredData = stockData.filter(item => {
-        const matchSearch =
-            item.item_name.toLowerCase().includes(search) ||
-            item.category.toLowerCase().includes(search);
+            currentPage = 1;
+            renderStockTable(filteredData);
+        }
 
-        const matchCategory = !category || item.category === category;
+        // FILTERS
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', filterStock);
+            document.getElementById('categoryFilter').addEventListener('change', filterStock);
+            document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+            document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+        }
 
-        return matchSearch && matchCategory;
-    });
+        // STATUS LOGIC
+        function getStockStatus(item) {
+            const minStock = item.min_stock || 5;
+            if (item.total_quantity === 0) return 'Out of Stock';
+            if (item.total_quantity <= minStock) return 'Low Stock';
+            return 'In Stock';
+        }
 
-    currentPage = 1;
-    renderTable();
-}
+        // STATS
+        function updateStats() {
+            const totalItems = stockData.reduce((sum, i) => sum + Number(i.total_quantity || 0), 0);
+            const categories = [...new Set(stockData.map(i => i.category))].length;
+            const lowStock = stockData.filter(i => {
+                const minStock = i.min_stock || 5;
+                return i.total_quantity <= minStock;
+            }).length;
+            const totalValue = stockData.reduce((sum, i) => sum + (i.total_quantity * (i.unit_price || 0)), 0);
 
-// 📊 STATUS LOGIC
-function getStockStatus(item) {
-    if (item.total_quantity === 0) return 'Out of Stock';
-    if (item.total_quantity <= 5) return 'Low Stock';
-    return 'In Stock';
-}
+            document.getElementById('totalItems').textContent = totalItems.toLocaleString();
+            document.getElementById('totalCategories').textContent = categories;
+            document.getElementById('lowStockCount').textContent = lowStock;
+            document.getElementById('totalValue').textContent = '₱' + totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            checkLowStock();
+        }
 
-// 📈 STATS
-function updateStats() {
-    const totalItems = stockData.reduce((sum, i) => sum + i.total_quantity, 0);
-    const categories = [...new Set(stockData.map(i => i.category))].length;
-    const lowStock = stockData.filter(i => i.total_quantity <= 5).length;
+        // LOW STOCK ALERT
+        function checkLowStock() {
+            const lowItems = stockData.filter(i => {
+                const minStock = i.min_stock || 5;
+                return i.total_quantity <= minStock && i.total_quantity > 0;
+            });
 
-    document.getElementById('totalItems').textContent = totalItems;
-    document.getElementById('totalCategories').textContent = categories;
-    document.getElementById('lowStockCount').textContent = lowStock;
-}
+            const list = document.getElementById('lowStockList');
+            const section = document.getElementById('lowStockSection');
 
-// ⚠️ LOW STOCK ALERT
-function checkLowStock() {
-    const lowItems = stockData.filter(i => i.total_quantity <= 5);
+            if (lowItems.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
 
-    const list = document.getElementById('lowStockList');
-    const section = document.getElementById('lowStockSection');
+            section.classList.remove('hidden');
 
-    if (lowItems.length === 0) {
-        section.classList.add('hidden');
-        return;
-    }
+            list.innerHTML = lowItems.map(item => `
+                <div class="flex justify-between items-center p-3 bg-white rounded-lg border border-red-100">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="package" class="w-4 h-4 text-red-500"></i>
+                        <span class="font-medium">${item.item_name}</span>
+                    </div>
+                    <span class="text-red-600 font-bold">${item.total_quantity} left</span>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
 
-    section.classList.remove('hidden');
+        function dismissLowStockAlerts() {
+            document.getElementById('lowStockSection').classList.add('hidden');
+        }
 
-    list.innerHTML = lowItems.map(item => `
-        <div class="flex justify-between p-2 bg-white rounded">
-            <span>${item.item_name}</span>
-            <span class="text-red-500 font-bold">${item.total_quantity}</span>
-        </div>
-    `).join('');
-}
+        // MODAL FUNCTIONS
+        function openModal() {
+            document.getElementById('itemModal').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = '<i data-lucide="plus-circle" class="w-6 h-6"></i>Add New Item';
+            document.getElementById('itemForm').reset();
+            lucide.createIcons();
+        }
 
-// 📋 TABLE RENDER
-function renderTable() {
-    const tbody = document.getElementById('stock-body');
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
 
-    if (filteredData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4">No stock found</td></tr>`;
-        return;
-    }
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
 
-    const start = (currentPage - 1) * itemsPerPage;
-    const pageData = filteredData.slice(start, start + itemsPerPage);
+        // Export/Import Functions
+        function exportToJSON() {
+            const dataStr = JSON.stringify(stockData, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'stock-room-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Export Successful', 'Data exported as JSON');
+        }
 
-    tbody.innerHTML = pageData.map(item => {
-        const status = getStockStatus(item);
+        function exportToCSV() {
+            const headers = ['Category', 'Item Name', 'Model', 'Quantity', 'Unit Price'];
+            const rows = stockData.map(item => [
+                item.category,
+                item.item_name,
+                item.brand_model || '',
+                item.total_quantity,
+                item.unit_price || 0
+            ]);
+            
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csvContent], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'stock-room-data.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Export Successful', 'Data exported as CSV');
+        }
 
-        const statusColor =
-            status === 'In Stock' ? 'text-green-600' :
-            status === 'Low Stock' ? 'text-yellow-600' :
-            'text-red-600';
+        function importFromJSON(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    showToast('Import Successful', `Imported ${data.length} items`);
+                } catch (err) {
+                    showToast('Import Failed', 'Invalid JSON file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
 
-        return `
-            <tr>
-                <td class="p-2 border font-semibold">${item.category}</td>
-                <td class="p-2 border">${item.item_name}</td>
-                <td class="p-2 border">${item.brand_model || '-'}</td>
-                <td class="p-2 border text-center font-bold">${item.total_quantity}</td>
-                <td class="p-2 border ${statusColor} font-semibold">${status}</td>
-            </tr>
-        `;
-    }).join('');
-}
-</script>
+        // Toast Notification
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            if (type === 'success') {
+                toastIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-green-100';
+                toastIcon.innerHTML = '<i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>';
+            } else {
+                toastIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-red-100';
+                toastIcon.innerHTML = '<i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>';
+            }
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
 

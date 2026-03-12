@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 07, 2026 at 02:08 PM
+-- Generation Time: Mar 05, 2026 at 06:23 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -405,8 +405,7 @@ CREATE TABLE `inventory_audit_log` (
 
 INSERT INTO `inventory_audit_log` (`audit_id`, `entity_type`, `entity_id`, `action`, `field_name`, `old_value`, `new_value`, `performed_by`, `performed_at`, `ip_address`, `user_agent`) VALUES
 (1, 'PC', 83, 'UPDATE', 'pcname', 'pc300', 'pc3001', 9, '2026-01-08 21:23:32', NULL, NULL),
-(2, 'PC', 83, 'UPDATE', 'pcname', 'pc3001', 'pc30014', 9, '2026-01-08 21:25:21', NULL, NULL),
-(3, 'PC', 84, 'UPDATE', 'municipal_serial_no', '', 'MUN-6767', 9, '2026-03-05 21:43:44', NULL, NULL);
+(2, 'PC', 83, 'UPDATE', 'pcname', 'pc3001', 'pc30014', 9, '2026-01-08 21:25:21', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -598,8 +597,7 @@ INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quanti
 (79, 'pc-do-09', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-139349', 'MSN-1761583172156-702518', 'Available', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2026-03-04 04:37:18', '2026-03-04', 30, 100, 'Low'),
 (80, '213', 1, '123', 1, 123.00, '0000-00-00', '123', '213', '123', 'Available', '123', NULL, '123', '123', '213', '123', '123', '214', '214', '2025-10-27 16:41:19', '2026-03-04 04:37:18', '2026-03-04', 30, 100, 'Low'),
 (81, 'pc222', 1, 'Computer Lab C', 1, 50000.00, '0000-00-00', 'John Doe', 'SN-0000053434', 'MUN-00012522213', 'Surrendered', '', NULL, '324221', '123', '12412', '123', '2133', '123', '123', '2025-12-30 22:15:43', '2026-02-22 15:06:05', '2025-12-31', 30, 100, 'Low'),
-(83, 'pc30014', 1, 'Computer Lab A', 1, 33333.00, '2025-06-08', 'John Doe', 'SN-300005', 'MUN-301252', 'Surrendered', '5', NULL, 'qwe', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '214', '2026-01-08 02:39:55', '2026-02-22 15:06:05', NULL, 30, 80, 'Low'),
-(84, 'pc juan', 1, 'Computer Lab C', 1, 6767.00, '2026-03-05', 'John Doe', 'SN-000084', 'MUN-6767', 'Available', '6511', NULL, 'gigabyte a67m', 'ramsta 67gb', 'ramsta 67', 'GTX 1067 Ti', 'Corsair 67W', 'CoolerMaster 67', 'yes', '2026-03-05 13:42:47', '2026-03-05 13:43:44', NULL, 30, 100, 'Low');
+(83, 'pc30014', 1, 'Computer Lab A', 1, 33333.00, '2025-06-08', 'John Doe', 'SN-300005', 'MUN-301252', 'Surrendered', '5', NULL, 'qwe', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '214', '2026-01-08 02:39:55', '2026-02-22 15:06:05', NULL, 30, 80, 'Low');
 
 --
 -- Triggers `pcinfofull`
@@ -683,22 +681,6 @@ CREATE TABLE `students` (
 
 INSERT INTO `students` (`student_id`, `last_name`, `first_name`, `middle_initial`) VALUES
 ('2021-0442', 'Bautista', 'Renato', 'SD');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `transactions`
---
-
-CREATE TABLE `transactions` (
-  `transaction_id` int(11) NOT NULL,
-  `accession_id` int(11) NOT NULL,
-  `transaction_type` enum('receive','return') NOT NULL,
-  `quantity` int(11) NOT NULL,
-  `remarks` text DEFAULT NULL,
-  `transacted_by` varchar(100) DEFAULT NULL,
-  `transaction_date` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -888,13 +870,6 @@ ALTER TABLE `students`
   ADD PRIMARY KEY (`student_id`);
 
 --
--- Indexes for table `transactions`
---
-ALTER TABLE `transactions`
-  ADD PRIMARY KEY (`transaction_id`),
-  ADD KEY `accession_id` (`accession_id`);
-
---
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -933,7 +908,7 @@ ALTER TABLE `concern_history`
 -- AUTO_INCREMENT for table `consumables`
 --
 ALTER TABLE `consumables`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `damage_reports`
@@ -963,7 +938,7 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
@@ -975,7 +950,7 @@ ALTER TABLE `devices_units`
 -- AUTO_INCREMENT for table `inventory_audit_log`
 --
 ALTER TABLE `inventory_audit_log`
-  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inventory_settings`
@@ -1011,19 +986,13 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `pcinfofull`
 --
 ALTER TABLE `pcinfofull`
-  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `pcparts`
 --
 ALTER TABLE `pcparts`
   MODIFY `part_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT for table `transactions`
---
-ALTER TABLE `transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1101,12 +1070,6 @@ ALTER TABLE `pcparts`
 --
 ALTER TABLE `pcs`
   ADD CONSTRAINT `pcs_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `transactions`
---
-ALTER TABLE `transactions`
-  ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`accession_id`) REFERENCES `consumables` (`accession_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

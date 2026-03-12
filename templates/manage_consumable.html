@@ -79,11 +79,11 @@
       <div></div>
       {% if permissions.get('inventory', {}).get('edit', False) %}
       <button 
-  type="button"
-  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  onclick="openConsumableModalFromPage()">
-  <i data-lucide="plus"></i> Add Consumable
-</button>
+        id="addButton"
+        onclick="openConsumableModal()" 
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+        Add Consumable
+      </button>
       {% endif %}
     </div>
 
@@ -205,7 +205,7 @@
                 {% if permissions.get('inventory', {}).get('edit', False) %}
                 <td class="px-4 py-2 border-b">
                   <div class="flex flex-wrap gap-1">
-                    <button type="button" onclick="openConsumableModalById('{{ item.accession_id }}')" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
+                    <button onclick="openConsumableModal({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
                     <button type="button" onclick="openDeleteModal('{{ url_for('manage_consumable_bp.delete_consumable', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
                     <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
                     <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
@@ -457,96 +457,6 @@
         }
       });
     }
-
-    async function openConsumableModalFromPage() {
-
-  if (!document.getElementById("addConsumableModal")) {
-
-    try {
-
-      const res = await fetch("/addconsumable-modal");
-
-      if (!res.ok) throw new Error("Failed loading modal");
-
-      const html = await res.text();
-
-      document.body.insertAdjacentHTML("beforeend", html);
-
-      if (window.lucide) lucide.createIcons();
-
-    } catch (err) {
-      console.error("❌ Modal load error:", err);
-      alert("Failed to load Consumable modal.");
-      return;
-    }
-  }
-
-  openConsumableModal();
-}
-
-
-// -----------------------
-// OPEN MODAL (CREATE)
-// -----------------------
-function openConsumableModal(data = null) {
-
-  const modal = document.getElementById("addConsumableModal");
-  const form = document.getElementById("consumableForm");
-
-  modal.classList.remove("hidden");
-
-  if (!data) {
-    form.reset();
-    form.action = "/add-consumable";
-  }
-
-  if (data) {
-    form.action = "/update-consumable";
-
-    document.getElementById("accession_id").value = data.accession_id;
-    document.getElementById("item_name").value = data.item_name;
-    document.getElementById("brand_model").value = data.brand_model;
-    document.getElementById("quantity").value = data.quantity;
-    document.getElementById("acquisition_cost").value = data.acquisition_cost;
-    document.getElementById("date_acquired").value = data.date_acquired;
-    document.getElementById("accountable").value = data.accountable;
-    document.getElementById("department_id").value = data.department_id;
-    document.getElementById("status").value = data.status;
-    document.getElementById("maintenance_interval_days").value = data.maintenance_interval_days;
-  }
-}
-
-
-// -----------------------
-// OPEN EDIT MODAL
-// -----------------------
-async function openConsumableModalById(id) {
-
-  try {
-
-    const res = await fetch(`/get-consumable-by-id/${id}`);
-
-    if (!res.ok) throw new Error();
-
-    const data = await res.json();
-
-    openConsumableModal(data);
-
-  } catch {
-
-    alert("Failed to load consumable data.");
-
-  }
-}
-
-
-// -----------------------
-// CLOSE MODAL
-// -----------------------
-function closeConsumableModal() {
-  document.getElementById("addConsumableModal").classList.add("hidden");
-}
-
   </script>
 </body>
 </html>

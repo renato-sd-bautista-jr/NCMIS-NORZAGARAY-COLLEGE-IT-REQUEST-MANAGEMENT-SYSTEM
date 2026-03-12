@@ -1,4 +1,8 @@
 
+Try AI directly in your favorite apps … 
+Use Gemini to generate drafts and refine content, plus get Gemini Pro with access to Google's next-gen AI for ₱1,100 ₱0 for 1 month
+transaction.html
+
 transactions.html
 
  <!DOCTYPE html>
@@ -7,530 +11,455 @@ transactions.html
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receive & Return PC Parts - PC Stock Room</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lucide.js') }}"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
         }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .dark .glass {
-            background: rgba(17, 24, 39, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
+            animation: fadeIn 0.3s ease-in-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
         .animate-slide-up {
-            animation: slideUp 0.5s ease-out;
+            animation: slideUp 0.3s ease-out;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .animate-bounce-in {
-            animation: bounceIn 0.8s ease-out;
-        }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            transition: color 0.3s ease;
-        }
-
-        .form-group:focus-within .input-icon {
-            color: #3b82f6;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-
-        .history-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .history-card:hover {
-            transform: translateX(12px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .tab-button {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .tab-button::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-        .tab-button.active::before {
-            transform: scaleX(1);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .floating-animation {
-            animation: floating 3s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .pulse-glow {
-            animation: pulseGlow 2s ease-in-out infinite;
-        }
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
-        }
-
-        .form-container {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(15px);
-        }
-
-        .stat-number {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 900;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
-      {% include 'sidebar.html' %}
-  {% include 'delete_modal.html' %}
-  {% include 'partials/filter_device_modal.html' %}
-
-  
-  <!-- Header -->
-    <header class="glass shadow-lg sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-18 py-4">
-                <div class="flex items-center space-x-4">
-                    <a href="stockroom.html" class="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105">
-                        <i class="fas fa-microchip text-white text-xl"></i>
-                    </a>
-                    <div>
-                        <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">PC Stock Room</h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Receive & Return Management</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <a href="stockroom.html" class="flex items-center space-x-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="font-medium">Back</span>
-                    </a>
+<body class="flex min-h-screen bg-gray-200 text-gray-800">
+    {% include 'sidebar.html' %}
+    {% include 'delete_modal.html' %}
+    {% include 'partials/filter_device_modal.html' %}
+    
+    <!-- Main Content -->
+    <main class="flex-1 ml-0 md:ml-64 p-4 lg:p-6 transition-all duration-300">
+        <!-- Header -->
+        <div class="flex items-center justify-between bg-blue-600 rounded-xl shadow-lg p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <i data-lucide="arrow-left-right" class="w-8 h-8 text-white"></i>
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Transaction History</h1>
+                    <p class="text-sm text-blue-100">Receive & Return Management</p>
                 </div>
             </div>
+            <a href="{{ url_for('stock_room_bp.stock_room_page') }}" class="flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition shadow-lg font-semibold">
+                <i data-lucide="warehouse" class="w-5 h-5"></i>
+                <span class="hidden sm:inline">Stock Room</span>
+            </a>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <!-- Stats Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Total Received -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-green-100 dark:border-green-900/30 animate-fade-in">
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-green-500 animate-fade-in">
                 <div class="flex items-center justify-between">
-                    <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-arrow-down text-white text-xl"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Received</p>
+                        <p id="totalReceived" class="text-3xl font-bold text-green-600 mt-2">0</p>
                     </div>
-                    <span class="text-3xl font-bold text-green-500" id="totalReceived">0</span>
+                    <div class="bg-green-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="arrow-down" class="w-8 h-8 text-green-500"></i>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Received</p>
-                    <p class="text-gray-800 dark:text-white font-bold text-lg">All Time</p>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> Inbound
+                    </span>
                 </div>
             </div>
             
             <!-- Total Returned -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-orange-100 dark:border-orange-900/30 animate-fade-in" style="animation-delay: 0.1s">
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-orange-500 animate-fade-in" style="animation-delay: 0.1s">
                 <div class="flex items-center justify-between">
-                    <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-arrow-up text-white text-xl"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Returned</p>
+                        <p id="totalReturned" class="text-3xl font-bold text-orange-600 mt-2">0</p>
                     </div>
-                    <span class="text-3xl font-bold text-orange-500" id="totalReturned">0</span>
+                    <div class="bg-orange-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="arrow-up" class="w-8 h-8 text-orange-500"></i>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Returned</p>
-                    <p class="text-gray-800 dark:text-white font-bold text-lg">All Time</p>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-orange-500 flex items-center gap-1">
+                        <i data-lucide="trending-down" class="w-4 h-4"></i> Outbound
+                    </span>
                 </div>
             </div>
             
             <!-- Net Change -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-blue-100 dark:border-blue-900/30 animate-fade-in" style="animation-delay: 0.2s">
+            <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 animate-fade-in" style="animation-delay: 0.2s">
                 <div class="flex items-center justify-between">
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Net Change</p>
+                        <p id="netChange" class="text-3xl font-bold text-blue-600 mt-2">0</p>
                     </div>
-                    <span class="text-3xl font-bold text-blue-500" id="netChange">0</span>
+                    <div class="bg-blue-50 p-3 rounded-xl ml-4">
+                        <i data-lucide="bar-chart-3" class="w-8 h-8 text-blue-500"></i>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Net Change</p>
-                    <p class="text-gray-800 dark:text-white font-bold text-lg">Inventory Flow</p>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-blue-500 flex items-center gap-1">
+                        <i data-lucide="activity" class="w-4 h-4"></i> Live
+                    </span>
                 </div>
             </div>
         </div>
 
-        <!-- Tab Navigation -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-6 animate-fade-in">
-            <div class="flex">
-                <button id="tabReceive" onclick="switchTab('receive')" class="flex-1 py-5 px-6 text-center font-bold text-lg transition-all relative overflow-hidden group">
-                    <span class="relative z-10 flex items-center justify-center space-x-2">
-                        <i class="fas fa-arrow-down text-green-500"></i>
-                        <span class="text-green-600 dark:text-green-400">Receive Stock</span>
-                    </span>
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </button>
-                <button id="tabReturn" onclick="switchTab('return')" class="flex-1 py-5 px-6 text-center font-bold text-lg transition-all relative overflow-hidden group">
-                    <span class="relative z-10 flex items-center justify-center space-x-2">
-                        <i class="fas fa-arrow-up text-orange-500"></i>
-                        <span class="text-orange-600 dark:text-orange-400">Return Stock</span>
-                    </span>
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </button>
-            </div>
-        </div>
-
-        <!-- Forms Container -->
+        <!-- Forms Container - Receive on Left, Return on Right -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Receive Form -->
-            <div id="receiveSection" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-fade-in">
-                <div class="flex items-center space-x-4 mb-8">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-xl">
-                        <i class="fas fa-arrow-down text-white text-2xl"></i>
+            <!-- Receive Form (Left) -->
+            <div id="receiveSection" class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-green-100 p-3 rounded-xl">
+                        <i data-lucide="package-check" class="w-6 h-6 text-green-600"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Receive Stock</h2>
-                        <p class="text-gray-500 dark:text-gray-400">Add new inventory to your stock</p>
+                        <h2 class="text-xl font-bold text-gray-800">Receive Stock</h2>
+                        <p class="text-sm text-gray-500">Add new inventory to your stock</p>
                     </div>
                 </div>
 
-                <form id="receiveForm" class="space-y-5">
-                    <!-- Item Selection -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Item <span class="text-red-500">*</span></label>
-                        <i class="fas fa-box input-icon"></i>
-                        <select id="receiveItem" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                            <option value="">Choose an item from inventory...</option>
-                        </select>
+                <form id="receiveForm" class="space-y-4">
+                    <!-- Item Selection with Search -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Item <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <i data-lucide="package" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <select id="receiveItem" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                                <option value="">Choose an item from inventory...</option>
+                            </select>
+                        </div>
+                        <p id="receiveItemHelp" class="text-xs text-gray-500 mt-1 hidden">No items available. Please add items to inventory first.</p>
                     </div>
 
-                    <!-- Current Stock -->
-                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-                        <div class="flex items-center justify-between">
-                            <span class="text-green-700 dark:text-green-400 font-medium">Current Stock</span>
-                            <span id="currentStockReceive" class="text-2xl font-bold text-green-600 dark:text-green-400">0</span>
-                            <span class="text-green-600 dark:text-green-400 font-medium">units</span>
+                    <!-- Quick Quantity Buttons -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quick Select</label>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="setReceiveQty(1)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">+1</button>
+                            <button type="button" onclick="setReceiveQty(5)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">+5</button>
+                            <button type="button" onclick="setReceiveQty(10)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">+10</button>
+                            <button type="button" onclick="setReceiveQty(50)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">+50</button>
                         </div>
                     </div>
 
                     <!-- Quantity -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quantity to Receive <span class="text-red-500">*</span></label>
-                        <i class="fas fa-plus input-icon"></i>
-                        <input type="number" id="receiveQuantity" required min="1" max="999999" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="Enter quantity">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity to Receive <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <i data-lucide="plus" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="number" id="receiveQuantity" required min="1" max="999999" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition" placeholder="Enter quantity">
+                        </div>
                     </div>
 
                     <!-- Supplier Reference -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Supplier / PO Reference</label>
-                        <i class="fas fa-file-alt input-icon"></i>
-                        <input type="text" id="receiveRef" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="e.g., PO-12345">
-                    </div>
-
-                    <!-- Date -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date Received</label>
-                        <i class="fas fa-calendar input-icon"></i>
-                        <input type="date" id="receiveDate" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
-                        <i class="fas fa-sticky-note input-icon" style="top: 24px;"></i>
-                        <textarea id="receiveNotes" rows="2" class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" placeholder="Additional notes..."></textarea>
-                    </div>
-
-                    <!-- New Stock Preview -->
-                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <span class="text-white font-semibold">New Stock Level</span>
-                            <span id="newStockReceive" class="text-3xl font-extrabold text-white">0</span>
-                            <span class="text-white/80 font-medium">units</span>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier / PO Reference</label>
+                        <div class="relative">
+                            <i data-lucide="file-text" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="text" id="receiveRef" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition" placeholder="e.g., PO-12345">
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl font-bold text-lg flex items-center justify-center space-x-2 transform hover:scale-[1.02]">
-                        <i class="fas fa-check-circle"></i>
+                    <!-- Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date Received</label>
+                        <div class="relative">
+                            <i data-lucide="calendar" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="date" id="receiveDate" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                        <div class="relative">
+                            <i data-lucide="file-text" class="absolute left-3 top-3 text-gray-400 w-5 h-5"></i>
+                            <textarea id="receiveNotes" rows="2" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition resize-none" placeholder="Additional notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- New Stock Preview -->
+                    <div class="bg-green-500 rounded-xl p-4 shadow-md">
+                        <div class="flex items-center justify-between text-white">
+                            <span class="font-semibold flex items-center gap-2">
+                                <i data-lucide="calculator" class="w-5 h-5"></i> New Stock Level
+                            </span>
+                            <span id="newStockReceive" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button with Loading State -->
+                    <button type="submit" id="receiveSubmitBtn" class="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-lg font-semibold flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
                         <span>Confirm Receipt</span>
                     </button>
+                    <div id="receiveLoading" class="hidden w-full py-3 bg-green-400 text-white rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                        <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Processing...</span>
+                    </div>
                 </form>
             </div>
 
-            <!-- Return Form -->
-            <div id="returnSection" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 hidden animate-fade-in">
-                <div class="flex items-center space-x-4 mb-8">
-                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center shadow-xl">
-                        <i class="fas fa-arrow-up text-white text-2xl"></i>
+            <!-- Return Form (Right) -->
+            <div id="returnSection" class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-orange-100 p-3 rounded-xl">
+                        <i data-lucide="package-x" class="w-6 h-6 text-orange-600"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Return Stock</h2>
-                        <p class="text-gray-500 dark:text-gray-400">Remove inventory from your stock</p>
+                        <h2 class="text-xl font-bold text-gray-800">Return Stock</h2>
+                        <p class="text-sm text-gray-500">Remove inventory from your stock</p>
                     </div>
                 </div>
 
-                <form id="returnForm" class="space-y-5">
-                    <!-- Item Selection -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Item <span class="text-red-500">*</span></label>
-                        <i class="fas fa-box input-icon"></i>
-                        <select id="returnItem" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
-                            <option value="">Choose an item from inventory...</option>
-                        </select>
+                <form id="returnForm" class="space-y-4">
+                    <!-- Item Selection with Search -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Item <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <i data-lucide="package" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <select id="returnItem" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                                <option value="">Choose an item from inventory...</option>
+                            </select>
+                        </div>
+                        <p id="returnItemHelp" class="text-xs text-gray-500 mt-1 hidden">No items with stock available.</p>
                     </div>
 
                     <!-- Current Stock -->
-                    <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+                    <div class="bg-orange-50 rounded-xl p-4 border border-orange-200">
                         <div class="flex items-center justify-between">
-                            <span class="text-orange-700 dark:text-orange-400 font-medium">Current Stock</span>
-                            <span id="currentStockReturn" class="text-2xl font-bold text-orange-600 dark:text-orange-400">0</span>
-                            <span class="text-orange-600 dark:text-orange-400 font-medium">units</span>
+                            <span class="text-orange-700 font-medium flex items-center gap-2">
+                                <i data-lucide="warehouse" class="w-4 h-4"></i> Current Stock
+                            </span>
+                            <span id="currentStockReturn" class="text-2xl font-bold text-orange-600">0</span>
+                        </div>
+                        <div class="mt-2 text-xs text-orange-600 flex items-center gap-1">
+                            <i data-lucide="info" class="w-3 h-3"></i>
+                            <span>Stock will update after return</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Quantity Buttons -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quick Select</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" onclick="setReturnQty(1)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">-1</button>
+                            <button type="button" onclick="setReturnQty(5)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">-5</button>
+                            <button type="button" onclick="setReturnQty(10)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">-10</button>
+                            <button type="button" onclick="setReturnQtyAll()" class="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition">All</button>
                         </div>
                     </div>
 
                     <!-- Quantity -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quantity to Return <span class="text-red-500">*</span></label>
-                        <i class="fas fa-minus input-icon"></i>
-                        <input type="number" id="returnQuantity" required min="1" max="999999" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Enter quantity">
-                    </div>
-
-                    <!-- Return Reference -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Reference</label>
-                        <i class="fas fa-file-alt input-icon"></i>
-                        <input type="text" id="returnRef" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="e.g., RTN-001">
-                    </div>
-
-                    <!-- Reason -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Reason</label>
-                        <i class="fas fa-question-circle input-icon"></i>
-                        <select id="returnReason" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none">
-                            <option value="">Select reason...</option>
-                            <option value="Customer Return">Customer Return</option>
-                            <option value="Defective">Defective</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Overstock">Overstock</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <!-- Date -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Return Date</label>
-                        <i class="fas fa-calendar input-icon"></i>
-                        <input type="date" id="returnDate" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="relative">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
-                        <i class="fas fa-sticky-note input-icon" style="top: 24px;"></i>
-                        <textarea id="returnNotes" rows="2" class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Additional notes..."></textarea>
-                    </div>
-
-                    <!-- New Stock Preview -->
-                    <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <span class="text-white font-semibold">New Stock Level</span>
-                            <span id="newStockReturn" class="text-3xl font-extrabold text-white">0</span>
-                            <span class="text-white/80 font-medium">units</span>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity to Return <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <i data-lucide="minus" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="number" id="returnQuantity" required min="1" max="999999" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" placeholder="Enter quantity">
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-bold text-lg flex items-center justify-center space-x-2 transform hover:scale-[1.02]">
-                        <i class="fas fa-check-circle"></i>
+                    <!-- Return Reference -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Return Reference</label>
+                        <div class="relative">
+                            <i data-lucide="file-text" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="text" id="returnRef" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" placeholder="e.g., RTN-001">
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Return Reason</label>
+                        <div class="relative">
+                            <i data-lucide="help-circle" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <select id="returnReason" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                                <option value="">Select reason...</option>
+                                <option value="Customer Return">Customer Return</option>
+                                <option value="Defective">Defective</option>
+                                <option value="Expired">Expired</option>
+                                <option value="Overstock">Overstock</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Return Date</label>
+                        <div class="relative">
+                            <i data-lucide="calendar" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                            <input type="date" id="returnDate" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                        <div class="relative">
+                            <i data-lucide="file-text" class="absolute left-3 top-3 text-gray-400 w-5 h-5"></i>
+                            <textarea id="returnNotes" rows="2" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition resize-none" placeholder="Additional notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- New Stock Preview -->
+                    <div class="bg-orange-500 rounded-xl p-4 shadow-md">
+                        <div class="flex items-center justify-between text-white">
+                            <span class="font-semibold flex items-center gap-2">
+                                <i data-lucide="calculator" class="w-5 h-5"></i> New Stock Level
+                            </span>
+                            <span id="newStockReturn" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button with Loading State -->
+                    <button type="submit" id="returnSubmitBtn" class="w-full py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition shadow-lg font-semibold flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
                         <span>Confirm Return</span>
                     </button>
+                    <div id="returnLoading" class="hidden w-full py-3 bg-orange-400 text-white rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                        <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Processing...</span>
+                    </div>
                 </form>
             </div>
         </div>
 
         <!-- Transaction History -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-history text-white text-xl"></i>
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100 p-3 rounded-xl">
+                        <i data-lucide="history" class="w-6 h-6 text-blue-600"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Transaction History</h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">View all receive and return transactions</p>
+                        <h3 class="text-xl font-bold text-gray-800">Transaction History</h3>
+                        <p class="text-sm text-gray-500">View all receive and return transactions</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-3">
-="filterTransaction" onchange="loadTransactionHistory()" class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-white font-medium">
-                        <option value="all">All Transactions</option>
-                        <option value="receive">Receive Only</option>
-                        <option value="return">Return Only</option>
-                    </select>
-                    <button onclick="clearTransactionHistory()" class="px-4 py-2.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition font-medium border border-red-200 dark:border-red-800">
-                        <i class="fas fa-trash-alt mr-1"></i> Clear
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <i data-lucide="filter" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                        <select id="filterTransaction" onchange="loadTransactionHistory()" class="pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <option value="all">All Transactions</option>
+                            <option value="receive">Receive Only</option>
+                            <option value="return">Return Only</option>
+                        </select>
+                    </div>
+                    <button onclick="clearTransactionHistory()" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition font-medium border border-red-200 flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Clear</span>
                     </button>
                 </div>
             </div>
-            <div id="transactionHistory" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                <p class="text-gray-500 dark:text-gray-400 text-center py-8">No transactions yet</p>
+            
+            <!-- Transaction List -->
+            <div id="transactionHistory" class="space-y-3 max-h-[400px] overflow-y-auto">
+                <!-- Empty State -->
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-500">No transactions yet</p>
+                    <p class="text-gray-400 text-sm mt-1">Your transaction history will appear here</p>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 flex items-center space-x-4 border border-gray-200 dark:border-gray-700">
-            <div id="toastIcon" class="w-12 h-12 rounded-xl flex items-center justify-center">
-                <i class="text-xl"></i>
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-4 flex items-center gap-3 border border-gray-200">
+            <div id="toastIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
             </div>
             <div>
-                <p id="toastTitle" class="font-bold text-gray-800 dark:text-white"></p>
-                <p id="toastMessage" class="text-sm text-gray-500 dark:text-gray-400"></p>
+                <p id="toastTitle" class="font-semibold text-gray-800"></p>
+                <p id="toastMessage" class="text-sm text-gray-500"></p>
             </div>
         </div>
     </div>
 
     <script>
         // Load inventory
-       let inventory = [];
-async function loadInventory(){
-
-    const res = await fetch("/api/consumables");
-    inventory = await res.json();
-
-    const receiveSelect = document.getElementById("receiveItem");
-    const returnSelect = document.getElementById("returnItem");
-
-    receiveSelect.innerHTML = `<option value="">Select Item</option>`;
-    returnSelect.innerHTML = `<option value="">Select Item</option>`;
-
-    inventory.forEach(item=>{
-
-        receiveSelect.innerHTML += `
-            <option value="${item.accession_id}">
-                ${item.item_name} (${item.quantity} in stock)
-            </option>
-        `;
-
-        if(item.quantity > 0){
-            returnSelect.innerHTML += `
-                <option value="${item.accession_id}">
-                    ${item.item_name} (${item.quantity} in stock)
-                </option>
-            `;
-        }
-
-    });
-}
-
-document.addEventListener("DOMContentLoaded", loadInventory);
+        let inventory = JSON.parse(localStorage.getItem('pcInventory')) || [];
 
         // Set today's date as default
         document.getElementById('receiveDate').valueAsDate = new Date();
         document.getElementById('returnDate').valueAsDate = new Date();
 
+        // Quick quantity functions for Receive
+        function setReceiveQty(qty) {
+            document.getElementById('receiveQuantity').value = qty;
+            // Trigger the input event to update preview
+            document.getElementById('receiveQuantity').dispatchEvent(new Event('input'));
+        }
+
+        // Quick quantity functions for Return
+        function setReturnQty(qty) {
+            document.getElementById('returnQuantity').value = qty;
+            document.getElementById('returnQuantity').dispatchEvent(new Event('input'));
+        }
+
+        function setReturnQtyAll() {
+            const currentStock = parseInt(document.getElementById('currentStockReturn').textContent) || 0;
+            if (currentStock > 0) {
+                document.getElementById('returnQuantity').value = currentStock;
+                document.getElementById('returnQuantity').dispatchEvent(new Event('input'));
+            }
+        }
+
         // Populate item dropdowns
         function populateDropdowns() {
             const receiveSelect = document.getElementById('receiveItem');
+            const receiveHelp = document.getElementById('receiveItemHelp');
             receiveSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
-            inventory.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = `${item.name} (${item.quantity} in stock)`;
-                receiveSelect.appendChild(option);
-            });
+            
+            if (inventory.length === 0) {
+                receiveHelp.classList.remove('hidden');
+            } else {
+                receiveHelp.classList.add('hidden');
+                inventory.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.name} (${item.quantity} in stock)`;
+                    receiveSelect.appendChild(option);
+                });
+            }
 
             const returnSelect = document.getElementById('returnItem');
+            const returnHelp = document.getElementById('returnItemHelp');
             returnSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
             const itemsWithStock = inventory.filter(item => item.quantity > 0).sort((a, b) => a.name.localeCompare(b.name));
-            itemsWithStock.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = `${item.name} (${item.quantity} in stock)`;
-                returnSelect.appendChild(option);
-            });
+            
+            if (itemsWithStock.length === 0) {
+                returnHelp.classList.remove('hidden');
+            } else {
+                returnHelp.classList.add('hidden');
+                itemsWithStock.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.name} (${item.quantity} in stock)`;
+                    returnSelect.appendChild(option);
+                });
+            }
+            
+            lucide.createIcons();
         }
 
         populateDropdowns();
         updateStats();
 
-        // Tab switching
+        // Tab switching with animation
         function switchTab(tab) {
             const receiveSection = document.getElementById('receiveSection');
             const returnSection = document.getElementById('returnSection');
@@ -540,22 +469,74 @@ document.addEventListener("DOMContentLoaded", loadInventory);
             if (tab === 'receive') {
                 receiveSection.classList.remove('hidden');
                 returnSection.classList.add('hidden');
-                tabReceive.classList.add('bg-green-50', 'dark:bg-green-900/20');
+                
+                // Add animation class
+                receiveSection.classList.add('animate-fade-in');
+                setTimeout(() => receiveSection.classList.remove('animate-fade-in'), 300);
+                
+                // Update tab styles
+                tabReceive.classList.add('bg-green-50', 'text-green-600');
                 tabReceive.classList.remove('text-gray-500');
-                tabReceive.classList.add('text-green-600', 'dark:text-green-400');
-                tabReturn.classList.remove('bg-orange-50', 'dark:bg-orange-900/20');
-                tabReturn.classList.remove('text-orange-600', 'dark:text-orange-400');
+                tabReceive.querySelector('div').classList.remove('scale-x-0');
+                tabReceive.querySelector('div').classList.add('scale-x-100');
+                
+                tabReturn.classList.remove('bg-orange-50', 'text-orange-600');
                 tabReturn.classList.add('text-gray-500');
+                tabReturn.querySelector('div').classList.add('scale-x-0');
+                tabReturn.querySelector('div').classList.remove('scale-x-100');
             } else {
                 receiveSection.classList.add('hidden');
                 returnSection.classList.remove('hidden');
-                tabReturn.classList.add('bg-orange-50', 'dark:bg-orange-900/20');
+                
+                // Add animation class
+                returnSection.classList.add('animate-fade-in');
+                setTimeout(() => returnSection.classList.remove('animate-fade-in'), 300);
+                
+                // Update tab styles
+                tabReturn.classList.add('bg-orange-50', 'text-orange-600');
                 tabReturn.classList.remove('text-gray-500');
-                tabReturn.classList.add('text-orange-600', 'dark:text-orange-400');
-                tabReceive.classList.remove('bg-green-50', 'dark:bg-green-900/20');
-                tabReceive.classList.remove('text-green-600', 'dark:text-green-400');
+                tabReturn.querySelector('div').classList.remove('scale-x-0');
+                tabReturn.querySelector('div').classList.add('scale-x-100');
+                
+                tabReceive.classList.remove('bg-green-50', 'text-green-600');
                 tabReceive.classList.add('text-gray-500');
+                tabReceive.querySelector('div').classList.add('scale-x-0');
+                tabReceive.querySelector('div').classList.remove('scale-x-100');
             }
+            
+            // Refresh Lucide icons
+            lucide.createIcons();
+        }
+
+        // Hide toast function
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }
+
+        // Counter animation function
+        function animateCounter(elementId, start, end, duration) {
+            const element = document.getElementById(elementId);
+            const range = end - start;
+            const minTimer = 50;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            stepTime = Math.max(stepTime, minTimer);
+            let startTime = new Date().getTime();
+            let endTime = startTime + duration;
+            let timer;
+
+            function run() {
+                let now = new Date().getTime();
+                let remaining = Math.max((endTime - now) / duration, 0);
+                let value = Math.round(end - (remaining * range));
+                element.textContent = value.toLocaleString();
+                if (value == end) {
+                    clearInterval(timer);
+                }
+            }
+
+            timer = setInterval(run, stepTime);
+            run();
         }
 
         // Update Receive preview
@@ -615,8 +596,15 @@ document.addEventListener("DOMContentLoaded", loadInventory);
         });
 
         // Handle Receive form submission
-        document.getElementById('receiveForm').addEventListener('submit', function(e) {
+        document.getElementById('receiveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const submitBtn = document.getElementById('receiveSubmitBtn');
+            const loadingDiv = document.getElementById('receiveLoading');
+            
+            // Show loading state
+            submitBtn.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
             
             const itemId = parseInt(document.getElementById('receiveItem').value);
             const quantity = parseInt(document.getElementById('receiveQuantity').value);
@@ -626,49 +614,66 @@ document.addEventListener("DOMContentLoaded", loadInventory);
 
             if (!itemId || !quantity) {
                 showToast('Error', 'Please select an item and enter quantity', 'error');
+                submitBtn.classList.remove('hidden');
+                loadingDiv.classList.add('hidden');
                 return;
             }
 
-            const item = inventory.find(i => i.id === itemId);
-            const index = inventory.findIndex(i => i.id === itemId);
-            const previousStock = item.quantity;
-            const newStock = previousStock + quantity;
-            
-            inventory[index].quantity = newStock;
-            localStorage.setItem('pcInventory', JSON.stringify(inventory));
+            try {
+                const item = inventory.find(i => i.id === itemId);
+                const index = inventory.findIndex(i => i.id === itemId);
+                const previousStock = item.quantity;
+                const newStock = previousStock + quantity;
+                
+                inventory[index].quantity = newStock;
+                localStorage.setItem('pcInventory', JSON.stringify(inventory));
 
-            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
-            transactions.unshift({
-                type: 'receive',
-                itemId,
-                itemName: item.name,
-                quantity,
-                previousStock,
-                newStock,
-                ref,
-                reason: '',
-                date,
-                notes,
-                timestamp: new Date().toISOString()
-            });
-            if (transactions.length > 100) transactions.pop();
-            localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+                const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+                transactions.unshift({
+                    type: 'receive',
+                    itemId,
+                    itemName: item.name,
+                    quantity,
+                    previousStock,
+                    newStock,
+                    ref,
+                    reason: '',
+                    date,
+                    notes,
+                    timestamp: new Date().toISOString()
+                });
+                if (transactions.length > 100) transactions.pop();
+                localStorage.setItem('stockTransactions', JSON.stringify(transactions));
 
-            showToast('Success', `${quantity} units of ${item.name} received`, 'success');
-            
-            document.getElementById('receiveForm').reset();
-            document.getElementById('receiveDate').valueAsDate = new Date();
-            document.getElementById('currentStockReceive').textContent = '0';
-            document.getElementById('newStockReceive').textContent = '0';
-            
-            populateDropdowns();
-            loadTransactionHistory();
-            updateStats();
+                showToast('Success', `${quantity} units of ${item.name} received`, 'success');
+                
+                document.getElementById('receiveForm').reset();
+                document.getElementById('receiveDate').valueAsDate = new Date();
+                document.getElementById('currentStockReceive').textContent = '0';
+                document.getElementById('newStockReceive').textContent = '0';
+                
+                populateDropdowns();
+                loadTransactionHistory();
+                updateStats();
+            } catch (err) {
+                showToast('Error', 'Failed to process receipt', 'error');
+            } finally {
+                // Hide loading state
+                submitBtn.classList.remove('hidden');
+                loadingDiv.classList.add('hidden');
+            }
         });
 
         // Handle Return form submission
-        document.getElementById('returnForm').addEventListener('submit', function(e) {
+        document.getElementById('returnForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const submitBtn = document.getElementById('returnSubmitBtn');
+            const loadingDiv = document.getElementById('returnLoading');
+            
+            // Show loading state
+            submitBtn.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
             
             const itemId = parseInt(document.getElementById('returnItem').value);
             const quantity = parseInt(document.getElementById('returnQuantity').value);
@@ -679,60 +684,84 @@ document.addEventListener("DOMContentLoaded", loadInventory);
 
             if (!itemId || !quantity) {
                 showToast('Error', 'Please select an item and enter quantity', 'error');
+                submitBtn.classList.remove('hidden');
+                loadingDiv.classList.add('hidden');
                 return;
             }
 
-            const item = inventory.find(i => i.id === itemId);
-            if (quantity > item.quantity) {
-                showToast('Error', 'Cannot return more than available stock', 'error');
-                return;
+            try {
+                const item = inventory.find(i => i.id === itemId);
+                if (quantity > item.quantity) {
+                    showToast('Error', 'Cannot return more than available stock', 'error');
+                    submitBtn.classList.remove('hidden');
+                    loadingDiv.classList.add('hidden');
+                    return;
+                }
+
+                const index = inventory.findIndex(i => i.id === itemId);
+                const previousStock = item.quantity;
+                const newStock = previousStock - quantity;
+                
+                inventory[index].quantity = newStock;
+                localStorage.setItem('pcInventory', JSON.stringify(inventory));
+
+                const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+                transactions.unshift({
+                    type: 'return',
+                    itemId,
+                    itemName: item.name,
+                    quantity,
+                    previousStock,
+                    newStock,
+                    ref,
+                    reason,
+                    date,
+                    notes,
+                    timestamp: new Date().toISOString()
+                });
+                if (transactions.length > 100) transactions.pop();
+                localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+
+                showToast('Success', `${quantity} units of ${item.name} returned`, 'success');
+                
+                document.getElementById('returnForm').reset();
+                document.getElementById('returnDate').valueAsDate = new Date();
+                document.getElementById('currentStockReturn').textContent = '0';
+                document.getElementById('newStockReturn').textContent = '0';
+                
+                populateDropdowns();
+                loadTransactionHistory();
+                updateStats();
+            } catch (err) {
+                showToast('Error', 'Failed to process return', 'error');
+            } finally {
+                // Hide loading state
+                submitBtn.classList.remove('hidden');
+                loadingDiv.classList.add('hidden');
             }
-
-            const index = inventory.findIndex(i => i.id === itemId);
-            const previousStock = item.quantity;
-            const newStock = previousStock - quantity;
-            
-            inventory[index].quantity = newStock;
-            localStorage.setItem('pcInventory', JSON.stringify(inventory));
-
-            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
-            transactions.unshift({
-                type: 'return',
-                itemId,
-                itemName: item.name,
-                quantity,
-                previousStock,
-                newStock,
-                ref,
-                reason,
-                date,
-                notes,
-                timestamp: new Date().toISOString()
-            });
-            if (transactions.length > 100) transactions.pop();
-            localStorage.setItem('stockTransactions', JSON.stringify(transactions));
-
-            showToast('Success', `${quantity} units of ${item.name} returned`, 'success');
-            
-            document.getElementById('returnForm').reset();
-            document.getElementById('returnDate').valueAsDate = new Date();
-            document.getElementById('currentStockReturn').textContent = '0';
-            document.getElementById('newStockReturn').textContent = '0';
-            
-            populateDropdowns();
-            loadTransactionHistory();
-            updateStats();
         });
 
-        // Update stats
-        function updateStats() {
-            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
-            const totalReceived = transactions.filter(t => t.type === 'receive').reduce((sum, t) => sum + t.quantity, 0);
-            const totalReturned = transactions.filter(t => t.type === 'return').reduce((sum, t) => sum + t.quantity, 0);
-            
-            document.getElementById('totalReceived').textContent = totalReceived;
-            document.getElementById('totalReturned').textContent = totalReturned;
-            document.getElementById('netChange').textContent = totalReceived - totalReturned;
+        // Update stats with counter animation
+        async function updateStats() {
+            try {
+                const res = await fetch('/transactions/stats');
+                if (!res.ok) throw new Error('Failed to load stats');
+                const data = await res.json();
+                
+                // Animate the counters
+                const currentReceived = parseInt(document.getElementById('totalReceived').textContent.replace(/,/g, '')) || 0;
+                const currentReturned = parseInt(document.getElementById('totalReturned').textContent.replace(/,/g, '')) || 0;
+                const currentNet = parseInt(document.getElementById('netChange').textContent.replace(/,/g, '')) || 0;
+                
+                animateCounter('totalReceived', currentReceived, data.total_received ?? 0, 1000);
+                animateCounter('totalReturned', currentReturned, data.total_returned ?? 0, 1000);
+                animateCounter('netChange', currentNet, data.net_change ?? 0, 1000);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('totalReceived').textContent = '0';
+                document.getElementById('totalReturned').textContent = '0';
+                document.getElementById('netChange').textContent = '0';
+            }
         }
 
         // Show toast notification
@@ -740,107 +769,120 @@ document.addEventListener("DOMContentLoaded", loadInventory);
             const toast = document.getElementById('toast');
             const toastIcon = document.getElementById('toastIcon');
             
-            if (type === 'success') {
-                toastIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center bg-green-100 text-green-500';
-                toastIcon.innerHTML = '<i class="fas fa-check text-xl"></i>';
-            } else {
-                toastIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center bg-red-100 text-red-500';
-                toastIcon.innerHTML = '<i class="fas fa-times text-xl"></i>';
-            }
+            const icons = {
+                success: { 
+                    icon: 'check-circle', 
+                    color: 'text-green-600 bg-green-100'
+                },
+                error: { 
+                    icon: 'x-circle', 
+                    color: 'text-red-600 bg-red-100'
+                },
+                info: { 
+                    icon: 'info', 
+                    color: 'text-blue-600 bg-blue-100'
+                }
+            };
+            
+            const config = icons[type] || icons.success;
+            
+            toastIcon.className = `w-10 h-10 rounded-full flex items-center justify-center ${config.color}`;
+            toastIcon.innerHTML = `<i data-lucide="${config.icon}" class="w-6 h-6"></i>`;
             
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastMessage').textContent = message;
+            
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+            
+            lucide.createIcons();
+            
+            setTimeout(hideToast, 3000);
         }
 
         // Load transaction history
-        function loadTransactionHistory() {
-            const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
+        async function loadTransactionHistory() {
             const filter = document.getElementById('filterTransaction').value;
             const container = document.getElementById('transactionHistory');
-            
-            let filtered = transactions;
-            if (filter !== 'all') {
-                filtered = transactions.filter(t => t.type === filter);
-            }
-            
-            if (filtered.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8"><i class="fas fa-inbox text-4xl mb-3"></i><br>No transactions yet</p>';
-                return;
-            }
-            
-            container.innerHTML = filtered.map(t => {
-                const isReceive = t.type === 'receive';
-                const colorClass = isReceive ? 'green' : 'orange';
-                const bgClass = isReceive ? 'green' : 'orange';
-                const icon = isReceive ? 'fa-arrow-down' : 'fa-arrow-up';
-                const sign = isReceive ? '+' : '-';
-                
-                return `
-                    <div class="history-card flex items-center justify-between p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-${bgClass}-100 dark:bg-${bgClass}-900/30">
-                                <i class="fas ${icon} text-${colorClass}-500 text-lg"></i>
+
+            try {
+                const res = await fetch(`/transactions/api?filter=${encodeURIComponent(filter)}&limit=200`);
+                if (!res.ok) throw new Error('Failed to load transactions');
+                const data = await res.json();
+                const transactions = data.transactions || [];
+
+                if (transactions.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
                             </div>
-                            <div>
-                                <p class="font-bold text-gray-800 dark:text-white">${t.itemName}</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    <span class="text-${colorClass}-500 font-semibold">${isReceive ? 'Received' : 'Returned'} ${t.quantity} units</span>
-                                    ${t.ref ? ' • ' + t.ref : ''}
-                                    ${t.reason ? ' • ' + t.reason : ''}
+                            <p class="text-gray-500">No transactions yet</p>
+                            <p class="text-gray-400 text-sm mt-1">Your transaction history will appear here</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                container.innerHTML = transactions.map((t) => {
+                    const dt = t.performed_at ? new Date(t.performed_at) : null;
+                    const dateStr = dt ? dt.toLocaleDateString() : '';
+                    const timeStr = dt ? dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                    
+                    const isReceive = t.type === 'receive';
+                    const iconColor = isReceive ? 'text-green-600 bg-green-100' : 'text-orange-600 bg-orange-100';
+                    const qty = t.quantity_change ? Math.abs(t.quantity_change) : 0;
+                    
+                    return `
+                        <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${iconColor} flex items-center justify-center">
+                                    <i data-lucide="${isReceive ? 'arrow-down' : 'arrow-up'}" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">${t.item_name || 'Unknown item'}</p>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                        <span class="px-2 py-0.5 rounded-full ${isReceive ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} text-xs font-medium">
+                                            ${isReceive ? 'Received' : 'Returned'}
+                                        </span>
+                                        <span>${dateStr} ${timeStr}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-bold ${isReceive ? 'text-green-600' : 'text-orange-600'}">
+                                    ${isReceive ? '+' : '-'}${qty}
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1"><i class="far fa-calendar-alt mr-1"></i>${t.date || new Date(t.timestamp).toLocaleDateString()}</p>
+                                <p class="text-xs text-gray-400">${t.performed_by || 'System'}</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-${colorClass}-500 font-bold text-xl">${sign}${t.quantity}</span>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">${t.previousStock} → ${t.newStock}</p>
-                        </div>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i data-lucide="alert-circle" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
+                        <p class="text-gray-500">Failed to load transactions.</p>
                     </div>
                 `;
-            }).join('');
+                lucide.createIcons();
+            }
         }
 
         // Clear transaction history
         function clearTransactionHistory() {
-            if (confirm('Are you sure you want to clear all transaction history?')) {
-                localStorage.removeItem('stockTransactions');
-                loadTransactionHistory();
-                updateStats();
-                showToast('Cleared', 'Transaction history has been cleared', 'success');
-            }
+            showToast('Info', 'Clearing DB-backed history is not enabled.', 'error');
         }
 
-        // Initialize
-        loadTransactionHistory();
-        updateStats();
-        async function submitTransaction(type){
-
-    const item = document.getElementById("receiveItem").value;
-    const quantity = document.getElementById("receiveQuantity").value;
-    const remarks = document.getElementById("remarks").value;
-
-    const res = await fetch("/api/transaction",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-            accession_id:item,
-            quantity:quantity,
-            transaction_type:type,
-            remarks:remarks
-        })
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-        alert("Transaction successful");
-        loadInventory();
-    }
-}
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransactionHistory();
+            updateStats();
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>

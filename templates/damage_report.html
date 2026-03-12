@@ -96,6 +96,32 @@
           <tbody id="damage-report-body" class="text-sm"></tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium">Show:</label>
+          <select id="per-page-select" class="px-3 py-1 border border-gray-300 rounded-md bg-white text-sm">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+          <span class="text-sm text-gray-600">entries</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button id="prev-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm font-medium transition-colors" disabled>
+            Previous
+          </button>
+          <div id="page-numbers" class="flex gap-1"></div>
+          <button id="next-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm font-medium transition-colors" disabled>
+            Next
+          </button>
+        </div>
+        
+        <div id="pagination-info" class="text-sm text-gray-600"></div>
+      </div>
     </section>
   </main>
 
@@ -105,23 +131,32 @@
     // Styling helpers
     document.querySelectorAll('.input').forEach(el => el.classList.add('w-full', 'p-2', 'rounded', 'border', 'border-gray-300', 'bg-gray-50', 'focus:ring-2', 'focus:ring-blue-500'));
 
+    // Global pagination state
+    let currentPage = 1;
+    let perPage = 10;
+    let currentFilters = {};
+
     // -------------------------------
-    // 🧩 Load Damage Reports with Filters
+    // 🧩 Load Damage Reports with Filters and Pagination
     // -------------------------------
-    async function loadDamageReports(filters = {}) {
+    async function loadDamageReports(filters = {}, page = 1, perPage = 10) {
       const params = new URLSearchParams(filters);
+      params.set('page', page);
+      params.set('per_page', perPage);
+      
       const res = await fetch(`/get-damage-reports?${params.toString()}`);
-      const data = await res.json();
+      const response = await res.json();
 
       const tbody = document.getElementById("damage-report-body");
       tbody.innerHTML = "";
 
-      if (data.length === 0) {
+      if (response.data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">No damaged items found.</td></tr>`;
+        updatePaginationControls(null);
         return;
       }
 
-      data.forEach(row => {
+      response.data.forEach(row => {
         const severityClass = row.damage_type === 'Critical' ? 'text-red-600 font-bold' : 
                       row.damage_type === 'Major' ? 'text-orange-600 font-semibold' : 
                       'text-yellow-600';
@@ -139,6 +174,78 @@
             <td class="p-2 border">${row.date_acquired || '-'}</td>
           </tr>`;
       });
+
+      updatePaginationControls(response.pagination);
+    }
+
+    // -------------------------------
+    // 🎯 Update Pagination Controls
+    // -------------------------------
+    function updatePaginationControls(pagination) {
+      if (!pagination) {
+        document.getElementById('pagination-container').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('pagination-container').style.display = 'flex';
+      
+      // Update current state
+      currentPage = pagination.page;
+      perPage = pagination.per_page;
+
+      // Update prev/next buttons
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      
+      prevBtn.disabled = !pagination.has_prev;
+      nextBtn.disabled = !pagination.has_next;
+
+      // Update page numbers
+      const pageNumbers = document.getElementById('page-numbers');
+      pageNumbers.innerHTML = '';
+      
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(pagination.total_pages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+
+      if (startPage > 1) {
+        addPageButton(1);
+        if (startPage > 2) {
+          pageNumbers.innerHTML += '<span class="px-2 text-gray-500">...</span>';
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        addPageButton(i);
+      }
+
+      if (endPage < pagination.total_pages) {
+        if (endPage < pagination.total_pages - 1) {
+          pageNumbers.innerHTML += '<span class="px-2 text-gray-500">...</span>';
+        }
+        addPageButton(pagination.total_pages);
+      }
+
+      // Update info text
+      const startItem = (pagination.page - 1) * pagination.per_page + 1;
+      const endItem = Math.min(pagination.page * pagination.per_page, pagination.total);
+      document.getElementById('pagination-info').textContent = 
+        `Showing ${startItem}-${endItem} of ${pagination.total} entries`;
+    }
+
+    function addPageButton(pageNum) {
+      const pageNumbers = document.getElementById('page-numbers');
+      const button = document.createElement('button');
+      button.textContent = pageNum;
+      button.className = pageNum === currentPage 
+        ? 'px-3 py-1 bg-blue-600 text-white rounded-md text-sm font-medium'
+        : 'px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium transition-colors';
+      button.onclick = () => loadDamageReports(currentFilters, pageNum, perPage);
+      pageNumbers.appendChild(button);
     }
 
     // -------------------------------
@@ -146,8 +253,28 @@
     // -------------------------------
     document.getElementById("filter-form").addEventListener("submit", e => {
       e.preventDefault();
-      const filters = Object.fromEntries(new FormData(e.target).entries());
-      loadDamageReports(filters);
+      currentFilters = Object.fromEntries(new FormData(e.target).entries());
+      currentPage = 1; // Reset to first page when filtering
+      loadDamageReports(currentFilters, currentPage, perPage);
+    });
+
+    // -------------------------------
+    // 🎯 Pagination Event Listeners
+    // -------------------------------
+    document.getElementById('prev-page').addEventListener('click', () => {
+      if (currentPage > 1) {
+        loadDamageReports(currentFilters, currentPage - 1, perPage);
+      }
+    });
+
+    document.getElementById('next-page').addEventListener('click', () => {
+      loadDamageReports(currentFilters, currentPage + 1, perPage);
+    });
+
+    document.getElementById('per-page-select').addEventListener('change', (e) => {
+      perPage = parseInt(e.target.value);
+      currentPage = 1; // Reset to first page when changing per page
+      loadDamageReports(currentFilters, currentPage, perPage);
     });
 
     // -------------------------------

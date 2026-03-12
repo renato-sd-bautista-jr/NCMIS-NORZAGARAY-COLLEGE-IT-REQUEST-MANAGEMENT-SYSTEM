@@ -96,6 +96,28 @@
           <tbody id="report-body" class="text-sm"></tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div id="pagination-container" class="flex items-center justify-between mt-4">
+        <div class="text-sm text-gray-600">
+          Showing <span id="showing-start">0</span> to <span id="showing-end">0</span> of <span id="total-records">0</span> records
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prev-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Previous
+          </button>
+          <div id="page-numbers" class="flex gap-1"></div>
+          <button id="next-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Next
+          </button>
+          <select id="per-page-select" class="ml-4 px-2 py-1 border rounded">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+            <option value="100">100 per page</option>
+          </select>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -105,23 +127,38 @@
     // Styling helpers
     document.querySelectorAll('.input').forEach(el => el.classList.add('w-full', 'p-2', 'rounded', 'border', 'border-gray-300', 'bg-gray-50', 'focus:ring-2', 'focus:ring-blue-500'));
 
+    // Global pagination state
+    let currentPage = 1;
+    let perPage = 10;
+    let currentFilters = {};
+
     // -------------------------------
-    // 🧩 Load Reports with Filters
+    // 🧩 Load Reports with Filters and Pagination
     // -------------------------------
-    async function loadReports(filters = {}) {
-      const params = new URLSearchParams(filters);
+    async function loadReports(filters = {}, page = 1, per_page = 10) {
+      currentFilters = filters;
+      currentPage = page;
+      perPage = per_page;
+      
+      const params = new URLSearchParams({
+        ...filters,
+        page: page.toString(),
+        per_page: per_page.toString()
+      });
+      
       const res = await fetch(`/get-reports?${params.toString()}`);
-      const data = await res.json();
+      const result = await res.json();
 
       const tbody = document.getElementById("report-body");
       tbody.innerHTML = "";
 
-      if (data.length === 0) {
+      if (result.data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">No records found.</td></tr>`;
+        updatePaginationControls(null);
         return;
       }
 
-      data.forEach(row => {
+      result.data.forEach(row => {
         tbody.innerHTML += `
           <tr class="hover:bg-gray-100">
             <td class="p-2 border">${row.name || '-'}</td>
@@ -134,6 +171,59 @@
             <td class="p-2 border">${row.date_acquired || '-'}</td>
           </tr>`;
       });
+      
+      updatePaginationControls(result.pagination);
+    }
+
+    // -------------------------------
+    // 🎯 Update Pagination Controls
+    // -------------------------------
+    function updatePaginationControls(pagination) {
+      if (!pagination) {
+        document.getElementById('pagination-container').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('pagination-container').style.display = 'flex';
+      
+      // Update showing info
+      const start = (pagination.page - 1) * pagination.per_page + 1;
+      const end = Math.min(pagination.page * pagination.per_page, pagination.total);
+      document.getElementById('showing-start').textContent = pagination.total > 0 ? start : 0;
+      document.getElementById('showing-end').textContent = end;
+      document.getElementById('total-records').textContent = pagination.total;
+      
+      // Update prev/next buttons
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      
+      prevBtn.disabled = !pagination.has_prev;
+      nextBtn.disabled = !pagination.has_next;
+      
+      // Update page numbers
+      const pageNumbers = document.getElementById('page-numbers');
+      pageNumbers.innerHTML = '';
+      
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(pagination.total_pages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === pagination.page 
+          ? 'px-3 py-1 bg-blue-600 text-white rounded' 
+          : 'px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded';
+        btn.onclick = () => loadReports(currentFilters, i, perPage);
+        pageNumbers.appendChild(btn);
+      }
+      
+      // Update per-page select
+      document.getElementById('per-page-select').value = perPage;
     }
 
     // -------------------------------
@@ -142,7 +232,25 @@
     document.getElementById("filter-form").addEventListener("submit", e => {
       e.preventDefault();
       const filters = Object.fromEntries(new FormData(e.target).entries());
-      loadReports(filters);
+      loadReports(filters, 1, perPage);
+    });
+
+    // -------------------------------
+    // 🎯 Pagination Event Listeners
+    // -------------------------------
+    document.getElementById('prev-page').addEventListener('click', () => {
+      if (currentPage > 1) {
+        loadReports(currentFilters, currentPage - 1, perPage);
+      }
+    });
+
+    document.getElementById('next-page').addEventListener('click', () => {
+      loadReports(currentFilters, currentPage + 1, perPage);
+    });
+
+    document.getElementById('per-page-select').addEventListener('change', (e) => {
+      const newPerPage = parseInt(e.target.value);
+      loadReports(currentFilters, 1, newPerPage);
     });
 
     // -------------------------------

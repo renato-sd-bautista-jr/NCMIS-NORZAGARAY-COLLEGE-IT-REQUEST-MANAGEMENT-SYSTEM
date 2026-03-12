@@ -184,11 +184,16 @@
     <!-- Add Request Modal -->
     <div id="requestModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-200">
-        <h2 class="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-6 h-6"></i> Add Borrow Request
-        </h2>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-blue-700 flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i> Add Borrow Request
+          </h2>
+          <button type="button" id="closeRequestModalX" class="text-gray-400 hover:text-gray-600 transition">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
 
-        <form action="{{ url_for('userborrow_bp.borrow_page') }}" method="post" class="space-y-5">
+        <form id="borrowRequestForm" action="{{ url_for('userborrow_bp.borrow_page') }}" method="post" class="space-y-5">
           <div>
             <label class="block text-sm font-medium mb-1 text-gray-700">User</label>
             <select name="student_id" class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
@@ -213,6 +218,9 @@
           </div>
 
           <div class="flex justify-end space-x-2 pt-2">
+            <button type="button" id="clearFormBtn" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-4 py-2 rounded-xl transition flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear
+            </button>
             <button type="button" id="closeRequestModal" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-xl transition">Cancel</button>
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition">Save</button>
           </div>
@@ -226,6 +234,62 @@
   <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg hidden"></div>
 
   <script>
+    // Modal functionality
+    const requestModal = document.getElementById('requestModal');
+    const openRequestModal = document.getElementById('openRequestModal');
+    const closeRequestModal = document.getElementById('closeRequestModal');
+    const closeRequestModalX = document.getElementById('closeRequestModalX');
+    const clearFormBtn = document.getElementById('clearFormBtn');
+    const borrowRequestForm = document.getElementById('borrowRequestForm');
+
+    // Open modal
+    openRequestModal.addEventListener('click', () => {
+      requestModal.classList.remove('hidden');
+      lucide.createIcons();
+    });
+
+    // Close modal functions
+    function closeModal() {
+      requestModal.classList.add('hidden');
+    }
+
+    closeRequestModal.addEventListener('click', closeModal);
+    closeRequestModalX.addEventListener('click', closeModal);
+
+    // Close on click outside
+    requestModal.addEventListener('click', (e) => {
+      if (e.target === requestModal) {
+        closeModal();
+      }
+    });
+
+    // Clear form button
+    clearFormBtn.addEventListener('click', () => {
+      borrowRequestForm.reset();
+      // Show toast notification
+      showToast('Form cleared', 'info');
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      
+      if (type === 'info') {
+        toast.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg';
+      } else {
+        toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg';
+      }
+      
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2000);
+    }
+
+    // Initialize Lucide icons
+    lucide.createIcons();
+
     {{ your_existing_javascript_code_here }}
   </script>
 </body>

@@ -93,12 +93,6 @@
           </h3>
           <div class="flex flex-wrap gap-3 mb-4">
             <button 
-  type="button"
-  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  onclick="openPcModalFromPage()">
-  <i data-lucide="plus"></i> ADD PC
-</button>
-            <button 
               type="button"
               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
               onclick="openPcFilterModal()">
@@ -414,12 +408,6 @@
       <button 
         type="button"
         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        onclick="openItemModalFromPage()">
-        <i data-lucide="plus"></i> ADD DEVICE
-      </button>
-      <button 
-        type="button"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         onclick="openDeviceFilterModalFromFile()">
         <i data-lucide="filter"></i> Filter Item
       </button>
@@ -688,12 +676,6 @@
           <i data-lucide="package-open" class="w-6 h-6"></i> Manage Consumables
         </h3>
         <div class="flex flex-wrap gap-3 mb-4">
-                 <button 
-              type="button"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-              onclick="openConsumableModalFromPage()">
-              <i data-lucide="plus"></i> Add Consumable
-            </button>
           <button 
             type="button"
             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -1154,249 +1136,8 @@ function bulkMarkDamagedSelectedPCs() {
       
       
     }
-async function openPcModalFromPage() {
 
-  // Load PC modal if not yet loaded
-  if (!document.getElementById("pcModal")) {
-
-    try {
-
-      const res = await fetch("/pc-modal");
-
-      if (!res.ok) {
-        throw new Error("Failed to load PC modal");
-      }
-
-      const html = await res.text();
-
-      document.body.insertAdjacentHTML("beforeend", html);
-
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-
-    } catch (err) {
-      console.error("❌ Error loading PC modal:", err);
-      alert("Failed to load PC modal.");
-      return;
-    }
-  }
-
-  // call the same function used in manage_pc.js
-  if (typeof openPcModal === "function") {
-    openPcModal();
-  } else {
-    console.error("openPcModal() not found");
-  }
-
-} 
-  async function openPcFilterModal() {
-
-  // Load modal dynamically if it doesn't exist
-  if (!document.getElementById("filterDeviceModal")) {
-    try {
-
-      const res = await fetch("/device-filter-modal");
-
-      if (!res.ok) {
-        throw new Error("Failed to load modal");
-      }
-
-      const html = await res.text();
-
-      document.body.insertAdjacentHTML("beforeend", html);
-
-      lucide.createIcons();
-
-    } catch (err) {
-      console.error("❌ Error loading modal:", err);
-      alert("Failed to load modal.");
-      return;
-    }
-  }
-
-  const modal = document.getElementById("filterDeviceModal");
-  const content = document.getElementById("deviceFilterModalContent");
-
-  modal.classList.remove("hidden");
-
-  setTimeout(() => {
-    content.classList.add("scale-100");
-  }, 50);
-
-  lucide.createIcons();
-}
-
-
-function closePcFilterModal() {
-  const modal = document.getElementById("filterDeviceModal");
-
-  if (modal) {
-    modal.classList.add("hidden");
-  }
-}
-
-
-/* Handle form submit */
-document.addEventListener("DOMContentLoaded", () => {
-
-  document.addEventListener("submit", function(e) {
-
-    if (e.target.id !== "filterDeviceForm") return;
-
-    e.preventDefault();
-
-    const params = new URLSearchParams(new FormData(e.target));
-
-    let sectionParam = "pc";
-
-    if (window.currentSection === "item") {
-      sectionParam = "items";
-    }
-
-    if (window.currentSection === "consumable") {
-      sectionParam = "consumable";
-      params.set("device_type", "Consumable");
-    }
-
-    params.set("section", sectionParam);
-
-    window.location.href = `/manage_inventory?${params.toString()}`;
-
-  });
-
-});
-
-
-async function openItemModalFromPage() {
-
-  // Load modal if it doesn't exist yet
-  if (!document.getElementById("itemModal")) {
-
-    try {
-
-      const res = await fetch("/item-modal");
-
-      if (!res.ok) {
-        throw new Error("Failed to load Item modal");
-      }
-
-      const html = await res.text();
-
-      document.body.insertAdjacentHTML("beforeend", html);
-
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-
-    } catch (err) {
-      console.error("❌ Error loading Item modal:", err);
-      alert("Failed to load Item modal.");
-      return;
-    }
-
-  }
-
-  // call existing modal function
-  if (typeof openItemModal === "function") {
-    openItemModal();
-  } else {
-    console.error("openItemModal() not found");
-  }
-
-}
-
-// -----------------------
-// OPEN ADD MODAL
-// -----------------------
-async function openConsumableModalFromPage() {
-
-  if (!document.getElementById("addConsumableModal")) {
-
-    try {
-
-      const res = await fetch("/addconsumable-modal");
-
-      if (!res.ok) throw new Error("Failed loading modal");
-
-      const html = await res.text();
-
-      document.body.insertAdjacentHTML("beforeend", html);
-
-      if (window.lucide) lucide.createIcons();
-
-    } catch (err) {
-      console.error("❌ Modal load error:", err);
-      alert("Failed to load Consumable modal.");
-      return;
-    }
-  }
-
-  openConsumableModal();
-}
-
-
-// -----------------------
-// OPEN MODAL (CREATE)
-// -----------------------
-function openConsumableModal(data = null) {
-
-  const modal = document.getElementById("addConsumableModal");
-  const form = document.getElementById("consumableForm");
-
-  modal.classList.remove("hidden");
-
-  if (!data) {
-    form.reset();
-    form.action = "/add-consumable";
-  }
-
-  if (data) {
-    form.action = "/update-consumable";
-
-    document.getElementById("accession_id").value = data.accession_id;
-    document.getElementById("item_name").value = data.item_name;
-    document.getElementById("brand_model").value = data.brand_model;
-    document.getElementById("quantity").value = data.quantity;
-    document.getElementById("acquisition_cost").value = data.acquisition_cost;
-    document.getElementById("date_acquired").value = data.date_acquired;
-    document.getElementById("accountable").value = data.accountable;
-    document.getElementById("department_id").value = data.department_id;
-    document.getElementById("status").value = data.status;
-    document.getElementById("maintenance_interval_days").value = data.maintenance_interval_days;
-  }
-}
-
-
-// -----------------------
-// OPEN EDIT MODAL
-// -----------------------
-async function openConsumableModalById(id) {
-
-  try {
-
-    const res = await fetch(`/get-consumable-by-id/${id}`);
-
-    if (!res.ok) throw new Error();
-
-    const data = await res.json();
-
-    openConsumableModal(data);
-
-  } catch {
-
-    alert("Failed to load consumable data.");
-
-  }
-}
-
-
-// -----------------------
-// CLOSE MODAL
-// -----------------------
-function closeConsumableModal() {
-  document.getElementById("addConsumableModal").classList.add("hidden");
-}
+  
 
 lucide.createIcons();
 
