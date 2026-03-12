@@ -87,7 +87,33 @@ def get_item_for_print(item_type, item_id):
                         casing,
                         last_checked,
                         maintenance_interval_days,
-                        health
+                        health_score,
+                        risk_level
+                    FROM pcinfofull
+                    WHERE pcid = %s
+                """, (item_id,))
+                cursor.execute("""
+                    SELECT 
+                        pcid,
+                        pcname,
+                        location,
+                        quantity,
+                        acquisition_cost,
+                        date_acquired,
+                        accountable,
+                        serial_no,
+                        municipal_serial_no,
+                        status,
+                        monitor,
+                        motherboard,
+                        ram,
+                        storage,
+                        gpu,
+                        psu,
+                        casing,
+                        last_checked,
+                        maintenance_interval_days,
+                        health_score
                     FROM pcinfofull
                     WHERE pcid = %s
                 """, (item_id,))
@@ -136,25 +162,65 @@ def device_qr(accession_id):
 
 
 
-@qrcode_bp.route('/get_all_device_qrs')
-def get_all_device_qrs():
-    # Return JSON metadata for all devices for frontend listing
+@qrcode_bp.route('/get_all_pc_qrs')
+def get_all_pc_qrs():
     conn = get_db_connection()
-    devices = []
+    pcs = []
+
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT accession_id, item_name, brand_model, serial_no, status FROM devices_full")
-            devices = cursor.fetchall()
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+
+            cursor.execute("""
+                SELECT 
+                    pcid,
+                    pcname,
+                    serial_no,
+                    municipal_serial_no,
+                    location,
+                    status
+                FROM pcinfofull
+                ORDER BY pcid DESC
+            """)
+
+            pcs = cursor.fetchall()
+
     finally:
         conn.close()
 
-    # Convert serial key to standard key names for JS
     return jsonify([
         {
-            "accession_id": d['accession_id'],
-            "item_name": d['item_name'],
-            "brand_model": d['brand_model'],
-            "serial_number": d['serial_no'],
-            "status": d['status']
-        } for d in devices
+            "pcid": pc['pcid'],
+            "pcname": pc['pcname'],
+            "serial_number": pc['serial_no'],
+            "municipal_serial": pc['municipal_serial_no'],
+            "location": pc['location'],
+            "status": pc['status']
+        }
+        for pc in pcs
     ])
+
+@qrcode_bp.route('/pc_qr/<int:pcid>')
+def pc_qr(pcid):
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+
+            cursor.execute("""
+                SELECT pcid, pcname, serial_no, location
+                FROM pcinfofull
+                WHERE pcid = %s
+            """, (pcid,))
+
+            pc = cursor.fetchone()
+
+    finally:
+        conn.close()
+
+    if not pc:
+        return "PC not found", 404
+
+    qr_data = f"PC|{pc['pcid']}|{pc['serial_no']}|{pc['pcname']}|{pc['location']}"
+
+    return send_qr(qr_data, size=200, filename=f"{pc['pcname']}_QR.png")

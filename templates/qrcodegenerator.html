@@ -84,6 +84,12 @@
             <i data-lucide="camera" class="w-4 h-4"></i>
             <span class="font-medium">Scan QR</span>
           </button>
+
+          <button id="batchPrintBtn"
+class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+<i data-lucide="printer"></i>
+Batch Print QR
+</button>
                     
         </div>
       </div>
@@ -350,8 +356,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('Starting to fetch devices...');
   
   try {
-    console.log('Making request to /get_all_device_qrs');
-    const response = await fetch('/get_all_device_qrs');
+    console.log('Making request to /get_all_pc_qrs');
+    const response = await fetch('/get_all_pc_qrs');
     console.log('Response received:', response.status, response.statusText);
     
     if (!response.ok) {
@@ -419,9 +425,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       let matchesSearch = true; // Default to true if no search term
       if (searchTerm) {
         matchesSearch = 
-          (device.item_name && device.item_name.toLowerCase().includes(searchTerm)) ||
-          (device.brand_model && device.brand_model.toLowerCase().includes(searchTerm)) ||
-          (device.accession_id && device.accession_id.toLowerCase().includes(searchTerm)) ||
+          (device.pcname && device.pcname.toLowerCase().includes(searchTerm)) ||
+          (device.location && device.location.toLowerCase().includes(searchTerm)) ||
+          (device.pcid && device.pcid.toString().includes(searchTerm))  ||
           (device.serial_no && device.serial_no.toLowerCase().includes(searchTerm));
       }
       
@@ -487,15 +493,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.className = "device-card bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg hover:border-blue-300 cursor-pointer slide-in";
       card.style.animationDelay = `${index * 50}ms`;
       card.innerHTML = `
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4">
-            <div class="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-              <i data-lucide="box" class="w-7 h-7 text-blue-600"></i>
+        <div class="flex justify-between items-start">
+
+            <input type="checkbox" class="pc-checkbox" value="${device.pcid}">
+
+            <span class="status-badge inline-flex items-center px-2 py-1 rounded-full text-xs ${statusColor}">
+              ${device.status}
+            </span>
+
+          </div>
+
+          <div class="flex items-center space-x-4 mt-2">
+            <div class="w-14 h-14 flex items-center justify-center bg-blue-100 rounded-xl">
+              <i data-lucide="monitor"></i>
             </div>
+
             <div>
-              <h4 class="font-bold text-gray-800 text-base">${device.item_name}</h4>
-              <p class="text-sm text-gray-600 mb-1">${device.brand_model}</p>
-              <p class="text-xs text-gray-500 font-mono">ID: ${device.accession_id}</p>
+              <h4 class="font-bold">${device.pcname}</h4>
+              <p class="text-xs text-gray-500">PC ID: ${device.pcid}</p>
+              <p class="text-sm text-gray-600 mb-1">${device.location || 'PC Unit'}</p>
+              <p class="text-xs text-gray-500 font-mono">PC ID: ${device.pcid}</p>
               <p class="text-xs text-gray-500 font-mono">S/N: ${device.serial_no || 'N/A'}</p>
             </div>
           </div>
@@ -511,11 +528,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
- card.addEventListener('click', () => {
-  qrDeviceName.textContent = device.item_name;
-  qrImage.src = `/device_qr/${device.accession_id}`;
+card.addEventListener('click', () => {
+  qrDeviceName.textContent = device.pcname;
+  qrImage.src = `/pc_qr/${device.pcid}`;
 
-  // ✅ store full object
   qrModal.dataset.device = JSON.stringify(device);
 
   qrModal.classList.remove('hidden');
@@ -632,9 +648,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   
 printQR.addEventListener('click', async () => {
-  const itemType = 'device';  // Always treat as device
+  const itemType = 'pc';
   const deviceData = JSON.parse(qrModal.dataset.device);
-  const itemId = deviceData.accession_id;
+  const itemId = deviceData.pcid;
   const qrSrc = qrImage.src;
 
   try {
@@ -707,17 +723,22 @@ printQR.addEventListener('click', async () => {
             </div>
 
             <div class="section">
-              <b>Item:</b> ${val(data.item_name)}<br>
-              <b>Brand/Model:</b> ${val(data.brand_model)}<br>
-              <b>Type:</b> ${val(data.device_type)}<br>
-              <b>Quantity:</b> ${val(data.quantity || 1)}<br>
-              <b>Status:</b> ${val(data.status)}<br>
-              <b>Accountable:</b> ${val(data.accountable)}<br>
-              <b>Serial No:</b> ${val(data.serial_no)}<br>
-              <b>Municipal No:</b> ${val(data.municipal_serial_no)}<br>
-              <b>Date Acquired:</b> ${val(data.date_acquired)}<br>
-              <b>Risk Level:</b> ${val(data.risk_level)}
-            </div>
+  <b>PC ID:</b> ${val(data.pcid)}<br>
+  <b>PC Name:</b> ${val(data.pcname)}<br>
+  <b>Location:</b> ${val(data.location)}<br>
+  <b>Status:</b> ${val(data.status)}<br>
+  <b>Accountable:</b> ${val(data.accountable)}<br>
+  <b>Serial No:</b> ${val(data.serial_no)}<br>
+  <b>Date Acquired:</b> ${val(data.date_acquired)}<br>
+</div>
+
+<div class="section">
+  <b>Monitor:</b> ${val(data.monitor)}<br>
+  <b>Motherboard:</b> ${val(data.motherboard)}<br>
+  <b>RAM:</b> ${val(data.ram)}<br>
+  <b>Storage:</b> ${val(data.storage)}<br>
+  <b>GPU:</b> ${val(data.gpu)}<br>
+</div>
 
             <div class="qr">
               <img src="${qrSrc}">
@@ -784,7 +805,7 @@ printQR.addEventListener('click', async () => {
     testApiBtn.addEventListener('click', async () => {
       console.log('Testing API endpoint...');
       try {
-        const response = await fetch('/get_all_device_qrs');
+        const response = await fetch('/get_all_pc_qrs');
         console.log('Test response status:', response.status);
         const data = await response.json();
         console.log('Test data:', data);
@@ -945,16 +966,15 @@ printQR.addEventListener('click', async () => {
     
     if (deviceId) {
       // Search for the device in the current device list
-      const device = allDevices.find(d => d.accession_id === deviceId);
-      
+      const device = allDevices.find(d => d.pcid == deviceId);
       if (device) {
         // Close scan modal and show device QR modal
         scanModal.classList.add('hidden');
         clearUpload();
         
         // Show the device QR modal
-        qrDeviceName.textContent = device.item_name;
-        qrImage.src = `/device_qr/${device.accession_id}`;
+        qrDeviceName.textContent = device.pcname;
+        qrImage.src = `/pc_qr/${device.pcid}`;
         qrModal.dataset.device = JSON.stringify(device);
         qrModal.classList.remove('hidden');
       } else {
@@ -1009,6 +1029,123 @@ printQR.addEventListener('click', async () => {
       searchInput.focus();
     }
   });
+});
+
+document.getElementById("batchPrintBtn").addEventListener("click", async () => {
+
+  const checked = document.querySelectorAll(".pc-checkbox:checked");
+
+  if (checked.length === 0) {
+    alert("Select at least one PC to print.");
+    return;
+  }
+
+  const ids = [...checked].map(c => c.value);
+
+  const printWindow = window.open('', '_blank');
+
+  // fallback function
+  const val = (v) => v ? v : 'N/A';
+
+  let html = `
+  <html>
+  <head>
+  <title>Batch QR Print</title>
+
+  <style>
+
+  body{
+    font-family: Arial, sans-serif;
+    padding:20px;
+  }
+
+  .container{
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:15px;
+  }
+
+  .label{
+    border:2px solid black;
+    padding:10px;
+    width:250px;
+    font-size:11px;
+  }
+
+  .section{
+    margin-bottom:6px;
+    line-height:1.4;
+  }
+
+  .qr{
+    margin-top:6px;
+    text-align:center;
+  }
+
+  .qr img{
+    width:90px;
+  }
+
+  </style>
+
+  </head>
+
+  <body onload="window.print()">
+
+  <div class="container">
+  `;
+
+  for (const id of ids) {
+
+    try {
+
+      const res = await fetch(`/get_item_for_print/pc/${id}`);
+      const data = await res.json();
+
+      html += `
+      <div class="label">
+
+        <div class="section">
+          <b>PC ID:</b> ${val(data.pcid)}<br>
+          <b>PC Name:</b> ${val(data.pcname)}<br>
+          <b>Location:</b> ${val(data.location)}<br>
+          <b>Status:</b> ${val(data.status)}<br>
+          <b>Accountable:</b> ${val(data.accountable)}<br>
+          <b>Serial No:</b> ${val(data.serial_no)}<br>
+          <b>Date Acquired:</b> ${val(data.date_acquired)}<br>
+        </div>
+
+        <div class="section">
+          <b>Monitor:</b> ${val(data.monitor)}<br>
+          <b>Motherboard:</b> ${val(data.motherboard)}<br>
+          <b>RAM:</b> ${val(data.ram)}<br>
+          <b>Storage:</b> ${val(data.storage)}<br>
+          <b>GPU:</b> ${val(data.gpu)}<br>
+        </div>
+
+        <div class="qr">
+          <img src="/pc_qr/${data.pcid}">
+        </div>
+
+      </div>
+      `;
+
+    } catch (err) {
+      console.error("Error loading PC:", id, err);
+    }
+
+  }
+
+  html += `
+  </div>
+
+  </body>
+  </html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+
 });
 </script>
 </body>
