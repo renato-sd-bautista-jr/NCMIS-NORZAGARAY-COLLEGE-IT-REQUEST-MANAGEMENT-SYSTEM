@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div class="flex justify-between items-start">
 
-            <input type="checkbox" class="pc-checkbox" value="${device.pcid}">
+            <input type="checkbox" class="pc-checkbox" value="${device.pcid}" onclick="event.stopPropagation()">
 
             <span class="status-badge inline-flex items-center px-2 py-1 rounded-full text-xs ${statusColor}">
               ${device.status}
