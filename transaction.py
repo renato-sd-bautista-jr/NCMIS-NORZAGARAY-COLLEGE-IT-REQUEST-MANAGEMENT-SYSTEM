@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, send_file
+from flask import Blueprint, jsonify, request, render_template, send_file,session
 import pymysql
 from db import get_db_connection
 from io import BytesIO
@@ -24,135 +24,245 @@ def _safe_int(value):
     except (TypeError, ValueError):
         return None
 
-
-@transaction_bp.route('/transactions/api', methods=['GET'])
+@transaction_bp.route('/consumables/api', methods=['GET'])
 @check_permission('transaction', 'view')
-def get_transactions_api():
-    filter_type = (request.args.get('filter') or 'all').lower()
-    limit = _safe_int(request.args.get('limit')) or 100
-    limit = max(1, min(limit, 500))
+def get_consumables():
 
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
+
     try:
-        cursor.execute(
-            """
-            SELECT
-                a.audit_id,
-                a.entity_type,
-                a.entity_id,
-                a.action,
-                a.field_name,
-                a.old_value,
-                a.new_value,
-                a.performed_by,
-                a.performed_at,
-                u.username AS performed_by_username,
-                df.item_name AS device_item_name,
-                pcf.pcname AS pc_item_name
-            FROM inventory_audit_log a
-            LEFT JOIN users u ON u.user_id = a.performed_by
-            LEFT JOIN devices_full df
-                ON a.entity_type = 'DEVICE' AND df.accession_id = a.entity_id
-            LEFT JOIN pcinfofull pcf
-                ON a.entity_type = 'PC' AND pcf.pcid = a.entity_id
-            ORDER BY a.performed_at DESC
-            LIMIT %s
-            """,
-            (limit,),
-        )
+        cursor.execute("""
+            SELECT 
+                accession_id,
+                item_name,
+                quantity,
+                unit
+            FROM consumables
+            ORDER BY item_name
+        """)
+
         rows = cursor.fetchall() or []
 
-        normalized = []
-        for r in rows:
-            old_qty = _safe_int(r.get('old_value')) if (r.get('field_name') == 'quantity') else None
-            new_qty = _safe_int(r.get('new_value')) if (r.get('field_name') == 'quantity') else None
-            qty_diff = (new_qty - old_qty) if (old_qty is not None and new_qty is not None) else None
-
-            tx_type = 'other'
-            if r.get('field_name') == 'quantity' and qty_diff is not None:
-                if qty_diff > 0:
-                    tx_type = 'receive'
-                elif qty_diff < 0:
-                    tx_type = 'return'
-                else:
-                    tx_type = 'adjust'
-
-            if filter_type in {'receive', 'return'} and tx_type != filter_type:
-                continue
-
-            item_name = r.get('pc_item_name') if (r.get('entity_type') == 'PC') else r.get('device_item_name')
-            if not item_name:
-                item_name = f"{r.get('entity_type')} #{r.get('entity_id')}"
-
-            normalized.append(
-                {
-                    'id': r.get('audit_id'),
-                    'type': tx_type,
-                    'entity_type': r.get('entity_type'),
-                    'entity_id': r.get('entity_id'),
-                    'item_name': item_name,
-                    'action': r.get('action'),
-                    'field_name': r.get('field_name'),
-                    'old_value': r.get('old_value'),
-                    'new_value': r.get('new_value'),
-                    'quantity_change': qty_diff,
-                    'performed_by': r.get('performed_by_username') or r.get('performed_by'),
-                    'performed_at': r.get('performed_at').isoformat() if r.get('performed_at') else None,
-                }
-            )
-
-        return jsonify({'transactions': normalized})
+        return jsonify({
+            "consumables": rows
+        })
 
     except Exception as e:
-        print(f"❌ Error fetching transactions: {e}")
-        return jsonify({'transactions': []}), 500
+        print(f"❌ Error fetching consumables: {e}")
+        return jsonify({"consumables": []}), 500
+
     finally:
         cursor.close()
         conn.close()
 
-
-@transaction_bp.route('/transactions/stats', methods=['GET'])
+@transaction_bp.route('/transactions/api', methods=['GET'])
 @check_permission('transaction', 'view')
-def get_transaction_stats():
+def get_transactions_api():
+
+    limit = int(request.args.get('limit', 200))
+
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-    total_received = 0
-    total_returned = 0
     try:
-        cursor.execute(
-            """
-            SELECT old_value, new_value
-            FROM inventory_audit_log
-            WHERE field_name = 'quantity'
-            ORDER BY performed_at DESC
-            LIMIT 1000
-            """
-        )
-        rows = cursor.fetchall() or []
+
+        cursor.execute("""
+            SELECT
+                t.transaction_id,
+                t.item_name,
+                t.action,
+                t.quantity,
+                t.previous_stock,
+                t.new_stock,
+                t.created_at,
+                u.username
+            FROM consumable_transactions t
+            LEFT JOIN users u
+            ON u.user_id = t.performed_by
+            ORDER BY t.created_at DESC
+            LIMIT %s
+        """, (limit,))
+
+        rows = cursor.fetchall()
+
+        transactions = []
 
         for r in rows:
-            old_qty = _safe_int(r.get('old_value'))
-            new_qty = _safe_int(r.get('new_value'))
-            if old_qty is None or new_qty is None:
-                continue
-            diff = new_qty - old_qty
-            if diff > 0:
-                total_received += diff
-            elif diff < 0:
-                total_returned += abs(diff)
 
-        return jsonify(
-            {
-                'total_received': total_received,
-                'total_returned': total_returned,
-                'net_change': total_received - total_returned,
-            }
-        )
+            qty_change = r["quantity"]
+
+            transactions.append({
+                "id": r["transaction_id"],
+                "type": "receive" if r["action"] == "RECEIVE" else "return",
+                "item_name": r["item_name"],
+                "quantity_change": qty_change,
+                "performed_by": r["username"],
+                "performed_at": str(r["created_at"])
+            })
+
+        return jsonify({"transactions": transactions})
+
     except Exception as e:
-        print(f"❌ Error fetching transaction stats: {e}")
-        return jsonify({'total_received': 0, 'total_returned': 0, 'net_change': 0}), 500
+        print("❌ Transaction fetch error:", e)
+        return jsonify({"transactions": []}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@transaction_bp.route('/transactions/stats')
+def get_transaction_stats():
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                SUM(CASE WHEN action='RECEIVE' THEN quantity ELSE 0 END) AS total_received,
+                SUM(CASE WHEN action='RETURN' THEN quantity ELSE 0 END) AS total_returned
+            FROM consumable_transactions
+        """)
+
+        row = cursor.fetchone()
+
+        total_received = row["total_received"] or 0
+        total_returned = row["total_returned"] or 0
+
+        return jsonify({
+            "total_received": total_received,
+            "total_returned": total_returned,
+            "net_change": total_received - total_returned
+        })
+
+    finally:
+        cursor.close()
+        conn.close()
+
+        
+@transaction_bp.route('/consumables/receive', methods=['POST'])
+@check_permission('transaction', 'add')
+def receive_consumable():
+
+    data = request.json
+    accession_id = data.get('accession_id')
+    qty = int(data.get('quantity'))
+    notes = data.get('notes')
+
+    user_id = session.get("user_id")
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    try:
+
+        cursor.execute(
+            "SELECT quantity, item_name FROM consumables WHERE accession_id=%s",
+            (accession_id,)
+        )
+        item = cursor.fetchone()
+
+        if not item:
+            return jsonify({"success": False, "message": "Item not found"}), 404
+
+        previous_stock = item["quantity"]
+        new_stock = previous_stock + qty
+
+        cursor.execute("""
+            UPDATE consumables
+            SET quantity=%s,
+                last_updated=NOW()
+            WHERE accession_id=%s
+        """, (new_stock, accession_id))
+
+        cursor.execute("""
+            INSERT INTO consumable_transactions
+            (accession_id,item_name,action,quantity,previous_stock,new_stock,notes,performed_by)
+            VALUES (%s,%s,'RECEIVE',%s,%s,%s,%s,%s)
+        """, (
+            accession_id,
+            item["item_name"],
+            qty,
+            previous_stock,
+            new_stock,
+            notes,
+            user_id
+        ))
+
+        conn.commit()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("❌ Receive error:", e)
+        return jsonify({"success": False}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@transaction_bp.route('/consumables/return', methods=['POST'])
+@check_permission('transaction', 'add')
+def return_consumable():
+
+    data = request.json
+    accession_id = data.get('accession_id')
+    qty = int(data.get('quantity'))
+    reason = data.get('reason')
+
+
+    user_id = session.get("user_id")
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    try:
+
+        cursor.execute(
+            "SELECT quantity, item_name FROM consumables WHERE accession_id=%s",
+            (accession_id,)
+        )
+        item = cursor.fetchone()
+
+        if not item:
+            return jsonify({"success": False, "message": "Item not found"}), 404
+
+        previous_stock = item["quantity"]
+
+        if qty > previous_stock:
+            return jsonify({"success": False, "message": "Not enough stock"}), 400
+
+        new_stock = previous_stock - qty
+
+        cursor.execute("""
+            UPDATE consumables
+            SET quantity=%s,
+                last_updated=NOW()
+            WHERE accession_id=%s
+        """, (new_stock, accession_id))
+
+        cursor.execute("""
+            INSERT INTO consumable_transactions
+            (accession_id,item_name,action,quantity,previous_stock,new_stock,reason,performed_by)
+            VALUES (%s,%s,'RETURN',%s,%s,%s,%s,%s)
+        """, (
+            accession_id,
+            item["item_name"],
+            qty,
+            previous_stock,
+            new_stock,
+            reason,
+            user_id
+        ))
+
+        conn.commit()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("❌ Return error:", e)
+        return jsonify({"success": False}), 500
+
     finally:
         cursor.close()
         conn.close()

@@ -1,11 +1,4 @@
-
-Try AI directly in your favorite apps … 
-Use Gemini to generate drafts and refine content, plus get Gemini Pro with access to Google's next-gen AI for ₱1,100 ₱0 for 1 month
-transaction.html
-
-transactions.html
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -419,43 +412,71 @@ transactions.html
         }
 
         // Populate item dropdowns
-        function populateDropdowns() {
-            const receiveSelect = document.getElementById('receiveItem');
-            const receiveHelp = document.getElementById('receiveItemHelp');
-            receiveSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
-            
-            if (inventory.length === 0) {
-                receiveHelp.classList.remove('hidden');
-            } else {
-                receiveHelp.classList.add('hidden');
-                inventory.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = `${item.name} (${item.quantity} in stock)`;
-                    receiveSelect.appendChild(option);
-                });
-            }
+async function populateDropdowns() {
 
-            const returnSelect = document.getElementById('returnItem');
-            const returnHelp = document.getElementById('returnItemHelp');
-            returnSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
-            const itemsWithStock = inventory.filter(item => item.quantity > 0).sort((a, b) => a.name.localeCompare(b.name));
-            
-            if (itemsWithStock.length === 0) {
-                returnHelp.classList.remove('hidden');
-            } else {
-                returnHelp.classList.add('hidden');
-                itemsWithStock.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = `${item.name} (${item.quantity} in stock)`;
-                    returnSelect.appendChild(option);
-                });
-            }
-            
-            lucide.createIcons();
+    const receiveSelect = document.getElementById('receiveItem');
+    const receiveHelp = document.getElementById('receiveItemHelp');
+
+    const returnSelect = document.getElementById('returnItem');
+    const returnHelp = document.getElementById('returnItemHelp');
+
+    receiveSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
+    returnSelect.innerHTML = '<option value="">Choose an item from inventory...</option>';
+
+    try {
+
+        const res = await fetch('/consumables/api');
+        const data = await res.json();
+
+        const inventory = data.consumables || [];
+
+        if (inventory.length === 0) {
+
+            receiveHelp.classList.remove('hidden');
+            returnHelp.classList.remove('hidden');
+            return;
+
         }
 
+        receiveHelp.classList.add('hidden');
+        returnHelp.classList.add('hidden');
+
+        // Sort alphabetically
+        inventory.sort((a,b)=>a.item_name.localeCompare(b.item_name));
+
+        // RECEIVE DROPDOWN
+        inventory.forEach(item => {
+
+            const option = document.createElement('option');
+            option.value = item.accession_id;
+            option.textContent = `${item.item_name} (${item.quantity} ${item.unit} in stock)`;
+
+            receiveSelect.appendChild(option);
+
+        });
+
+        // RETURN DROPDOWN (only items with stock)
+        inventory
+        .filter(item => item.quantity > 0)
+        .forEach(item => {
+
+            const option = document.createElement('option');
+            option.value = item.accession_id;
+            option.textContent = `${item.item_name} (${item.quantity} ${item.unit} in stock)`;
+
+            returnSelect.appendChild(option);
+
+        });
+
+        lucide.createIcons();
+
+    } catch(err){
+
+        console.error("Failed loading consumables:", err);
+        showToast("Error","Failed to load consumables","error");
+
+    }
+}
         populateDropdowns();
         updateStats();
 
@@ -596,151 +617,133 @@ transactions.html
         });
 
         // Handle Receive form submission
-        document.getElementById('receiveForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('receiveSubmitBtn');
-            const loadingDiv = document.getElementById('receiveLoading');
-            
-            // Show loading state
-            submitBtn.classList.add('hidden');
-            loadingDiv.classList.remove('hidden');
-            
-            const itemId = parseInt(document.getElementById('receiveItem').value);
-            const quantity = parseInt(document.getElementById('receiveQuantity').value);
-            const ref = document.getElementById('receiveRef').value;
-            const date = document.getElementById('receiveDate').value;
-            const notes = document.getElementById('receiveNotes').value;
+document.getElementById('receiveForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            if (!itemId || !quantity) {
-                showToast('Error', 'Please select an item and enter quantity', 'error');
-                submitBtn.classList.remove('hidden');
-                loadingDiv.classList.add('hidden');
-                return;
-            }
+    const submitBtn = document.getElementById('receiveSubmitBtn');
+    const loadingDiv = document.getElementById('receiveLoading');
 
-            try {
-                const item = inventory.find(i => i.id === itemId);
-                const index = inventory.findIndex(i => i.id === itemId);
-                const previousStock = item.quantity;
-                const newStock = previousStock + quantity;
-                
-                inventory[index].quantity = newStock;
-                localStorage.setItem('pcInventory', JSON.stringify(inventory));
+    submitBtn.classList.add('hidden');
+    loadingDiv.classList.remove('hidden');
 
-                const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
-                transactions.unshift({
-                    type: 'receive',
-                    itemId,
-                    itemName: item.name,
-                    quantity,
-                    previousStock,
-                    newStock,
-                    ref,
-                    reason: '',
-                    date,
-                    notes,
-                    timestamp: new Date().toISOString()
-                });
-                if (transactions.length > 100) transactions.pop();
-                localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+    const itemId = document.getElementById('receiveItem').value;
+    const quantity = document.getElementById('receiveQuantity').value;
+    const ref = document.getElementById('receiveRef').value;
+    const date = document.getElementById('receiveDate').value;
+    const notes = document.getElementById('receiveNotes').value;
 
-                showToast('Success', `${quantity} units of ${item.name} received`, 'success');
-                
-                document.getElementById('receiveForm').reset();
-                document.getElementById('receiveDate').valueAsDate = new Date();
-                document.getElementById('currentStockReceive').textContent = '0';
-                document.getElementById('newStockReceive').textContent = '0';
-                
-                populateDropdowns();
-                loadTransactionHistory();
-                updateStats();
-            } catch (err) {
-                showToast('Error', 'Failed to process receipt', 'error');
-            } finally {
-                // Hide loading state
-                submitBtn.classList.remove('hidden');
-                loadingDiv.classList.add('hidden');
-            }
+    if (!itemId || !quantity) {
+        showToast('Error','Please select an item and enter quantity','error');
+        submitBtn.classList.remove('hidden');
+        loadingDiv.classList.add('hidden');
+        return;
+    }
+
+    try {
+
+        const response = await fetch('/consumables/receive', {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify({
+                accession_id: itemId,
+                quantity: quantity,
+                reference: ref,
+                date: date,
+                notes: notes
+            })
         });
 
-        // Handle Return form submission
-        document.getElementById('returnForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('returnSubmitBtn');
-            const loadingDiv = document.getElementById('returnLoading');
-            
-            // Show loading state
-            submitBtn.classList.add('hidden');
-            loadingDiv.classList.remove('hidden');
-            
-            const itemId = parseInt(document.getElementById('returnItem').value);
-            const quantity = parseInt(document.getElementById('returnQuantity').value);
-            const ref = document.getElementById('returnRef').value;
-            const reason = document.getElementById('returnReason').value;
-            const date = document.getElementById('returnDate').value;
-            const notes = document.getElementById('returnNotes').value;
+        const result = await response.json();
 
-            if (!itemId || !quantity) {
-                showToast('Error', 'Please select an item and enter quantity', 'error');
-                submitBtn.classList.remove('hidden');
-                loadingDiv.classList.add('hidden');
-                return;
-            }
+        if(result.success){
 
-            try {
-                const item = inventory.find(i => i.id === itemId);
-                if (quantity > item.quantity) {
-                    showToast('Error', 'Cannot return more than available stock', 'error');
-                    submitBtn.classList.remove('hidden');
-                    loadingDiv.classList.add('hidden');
-                    return;
-                }
+            showToast('Success','Stock received successfully','success');
 
-                const index = inventory.findIndex(i => i.id === itemId);
-                const previousStock = item.quantity;
-                const newStock = previousStock - quantity;
-                
-                inventory[index].quantity = newStock;
-                localStorage.setItem('pcInventory', JSON.stringify(inventory));
+            document.getElementById('receiveForm').reset();
+            document.getElementById('receiveDate').valueAsDate = new Date();
 
-                const transactions = JSON.parse(localStorage.getItem('stockTransactions') || '[]');
-                transactions.unshift({
-                    type: 'return',
-                    itemId,
-                    itemName: item.name,
-                    quantity,
-                    previousStock,
-                    newStock,
-                    ref,
-                    reason,
-                    date,
-                    notes,
-                    timestamp: new Date().toISOString()
-                });
-                if (transactions.length > 100) transactions.pop();
-                localStorage.setItem('stockTransactions', JSON.stringify(transactions));
+            loadTransactionHistory();
+            updateStats();
+            populateDropdowns();
 
-                showToast('Success', `${quantity} units of ${item.name} returned`, 'success');
-                
-                document.getElementById('returnForm').reset();
-                document.getElementById('returnDate').valueAsDate = new Date();
-                document.getElementById('currentStockReturn').textContent = '0';
-                document.getElementById('newStockReturn').textContent = '0';
-                
-                populateDropdowns();
-                loadTransactionHistory();
-                updateStats();
-            } catch (err) {
-                showToast('Error', 'Failed to process return', 'error');
-            } finally {
-                // Hide loading state
-                submitBtn.classList.remove('hidden');
-                loadingDiv.classList.add('hidden');
-            }
+        }else{
+            showToast('Error',result.message || 'Failed to receive stock','error');
+        }
+
+    } catch(err){
+        showToast('Error','Server error while receiving stock','error');
+    }
+
+    submitBtn.classList.remove('hidden');
+    loadingDiv.classList.add('hidden');
+});
+document.getElementById('returnForm').addEventListener('submit', async function(e) {
+
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('returnSubmitBtn');
+    const loadingDiv = document.getElementById('returnLoading');
+
+    submitBtn.classList.add('hidden');
+    loadingDiv.classList.remove('hidden');
+
+    const itemId = document.getElementById('returnItem').value;
+    const quantity = document.getElementById('returnQuantity').value;
+    const ref = document.getElementById('returnRef').value;
+    const reason = document.getElementById('returnReason').value;
+    const date = document.getElementById('returnDate').value;
+    const notes = document.getElementById('returnNotes').value;
+
+    if (!itemId || !quantity) {
+        showToast('Error','Please select an item and enter quantity','error');
+        submitBtn.classList.remove('hidden');
+        loadingDiv.classList.add('hidden');
+        return;
+    }
+
+    try {
+
+        const response = await fetch('/consumables/return', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+                accession_id: itemId,
+                quantity: quantity,
+                reference: ref,
+                reason: reason,
+                date: date,
+                notes: notes
+            })
         });
 
+        const result = await response.json();
+
+        if(result.success){
+
+            showToast('Success','Stock returned successfully','success');
+
+            document.getElementById('returnForm').reset();
+            document.getElementById('returnDate').valueAsDate = new Date();
+
+            loadTransactionHistory();
+            updateStats();
+            populateDropdowns();
+
+        }else{
+            showToast('Error',result.message || 'Return failed','error');
+        }
+
+    }catch(err){
+        showToast('Error','Server error while returning stock','error');
+    }
+
+    submitBtn.classList.remove('hidden');
+    loadingDiv.classList.add('hidden');
+});
         // Update stats with counter animation
         async function updateStats() {
             try {
@@ -799,79 +802,125 @@ transactions.html
             setTimeout(hideToast, 3000);
         }
 
-        // Load transaction history
-        async function loadTransactionHistory() {
-            const filter = document.getElementById('filterTransaction').value;
-            const container = document.getElementById('transactionHistory');
+// Load transaction history
+async function loadTransactionHistory() {
 
-            try {
-                const res = await fetch(`/transactions/api?filter=${encodeURIComponent(filter)}&limit=200`);
-                if (!res.ok) throw new Error('Failed to load transactions');
-                const data = await res.json();
-                const transactions = data.transactions || [];
+    const filter = document.getElementById('filterTransaction').value;
+    const container = document.getElementById('transactionHistory');
 
-                if (transactions.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-12">
-                            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
-                            </div>
-                            <p class="text-gray-500">No transactions yet</p>
-                            <p class="text-gray-400 text-sm mt-1">Your transaction history will appear here</p>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                    return;
-                }
+    try {
 
-                container.innerHTML = transactions.map((t) => {
-                    const dt = t.performed_at ? new Date(t.performed_at) : null;
-                    const dateStr = dt ? dt.toLocaleDateString() : '';
-                    const timeStr = dt ? dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                    
-                    const isReceive = t.type === 'receive';
-                    const iconColor = isReceive ? 'text-green-600 bg-green-100' : 'text-orange-600 bg-orange-100';
-                    const qty = t.quantity_change ? Math.abs(t.quantity_change) : 0;
-                    
-                    return `
-                        <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl ${iconColor} flex items-center justify-center">
-                                    <i data-lucide="${isReceive ? 'arrow-down' : 'arrow-up'}" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-800">${t.item_name || 'Unknown item'}</p>
-                                    <div class="flex items-center gap-2 text-sm text-gray-500">
-                                        <span class="px-2 py-0.5 rounded-full ${isReceive ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} text-xs font-medium">
-                                            ${isReceive ? 'Received' : 'Returned'}
-                                        </span>
-                                        <span>${dateStr} ${timeStr}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xl font-bold ${isReceive ? 'text-green-600' : 'text-orange-600'}">
-                                    ${isReceive ? '+' : '-'}${qty}
-                                </p>
-                                <p class="text-xs text-gray-400">${t.performed_by || 'System'}</p>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                lucide.createIcons();
-            } catch (e) {
-                console.error(e);
-                container.innerHTML = `
-                    <div class="text-center py-8">
-                        <i data-lucide="alert-circle" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
-                        <p class="text-gray-500">Failed to load transactions.</p>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
+        const res = await fetch(`/transactions/api?filter=${encodeURIComponent(filter)}&limit=200`);
+
+        if (!res.ok) throw new Error("Failed to load transactions");
+
+        const data = await res.json();
+        let transactions = data.transactions || [];
+
+        // Apply filter client-side
+        if (filter !== "all") {
+            transactions = transactions.filter(t => t.type === filter);
         }
 
+        if (transactions.length === 0) {
+
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-500">No transactions yet</p>
+                    <p class="text-gray-400 text-sm mt-1">Your transaction history will appear here</p>
+                </div>
+            `;
+
+            lucide.createIcons();
+            return;
+        }
+
+        container.innerHTML = transactions.map((t) => {
+
+            const dt = t.performed_at ? new Date(t.performed_at) : null;
+
+            const dateStr = dt ? dt.toLocaleDateString() : "";
+            const timeStr = dt ? dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "";
+
+            const isReceive = t.type === "receive";
+
+            const iconColor = isReceive
+                ? "text-green-600 bg-green-100"
+                : "text-orange-600 bg-orange-100";
+
+            const qty = Math.abs(t.quantity_change || 0);
+
+            return `
+                <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-10 h-10 rounded-xl ${iconColor} flex items-center justify-center">
+                            <i data-lucide="${isReceive ? 'arrow-down' : 'arrow-up'}" class="w-5 h-5"></i>
+                        </div>
+
+                        <div>
+                            <p class="font-semibold text-gray-800">${t.item_name || 'Unknown item'}</p>
+
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+
+                                <span class="px-2 py-0.5 rounded-full ${
+                                    isReceive
+                                        ? 'bg-green-100 text-green-600'
+                                        : 'bg-orange-100 text-orange-600'
+                                } text-xs font-medium">
+
+                                    ${isReceive ? 'Received' : 'Returned'}
+
+                                </span>
+
+                                <span>${dateStr} ${timeStr}</span>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+
+                        <p class="text-xl font-bold ${
+                            isReceive ? "text-green-600" : "text-orange-600"
+                        }">
+
+                            ${isReceive ? "+" : "-"}${qty}
+
+                        </p>
+
+                        <p class="text-xs text-gray-400">
+                            ${t.performed_by || "System"}
+                        </p>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+        lucide.createIcons();
+
+    } catch (err) {
+
+        console.error(err);
+
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <i data-lucide="alert-circle" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
+                <p class="text-gray-500">Failed to load transactions.</p>
+            </div>
+        `;
+
+        lucide.createIcons();
+    }
+}
         // Clear transaction history
         function clearTransactionHistory() {
             showToast('Info', 'Clearing DB-backed history is not enabled.', 'error');
@@ -883,6 +932,8 @@ transactions.html
             updateStats();
             lucide.createIcons();
         });
+
+        loadTransactionHistory();
     </script>
 </body>
 </html>
