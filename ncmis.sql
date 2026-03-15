@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 05, 2026 at 06:23 AM
+-- Generation Time: Mar 15, 2026 at 03:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -174,10 +174,40 @@ INSERT INTO `consumables` (`accession_id`, `item_name`, `category`, `brand`, `qu
 (10, 'Printer Ink Black', 'Printer Supplies', 'HP', 20, 'Cartridges', 1, 'IT Office', 'Available', 'HP 678 Black Ink', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
 (11, 'Ballpen Blue', 'Office Supplies', 'Pilot', 100, 'Pieces', 1, 'Stock Room', 'Available', 'For general writing', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff1'),
 (12, 'Stapler Wire', 'Office Supplies', 'Dong-A', 30, 'Boxes', 1, 'Admin Office', 'Available', 'Standard size stapler wire', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff2'),
-(13, 'Alcohol 70%', 'Cleaning Supplies', 'Green Cross', 25, 'Bottles', 1, 'Clinic', 'Low Stock', 'For sanitation', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'nurse1'),
+(13, 'Alcohol 70%', 'Cleaning Supplies', 'Green Cross', 105, 'Bottles', 1, 'Clinic', 'Low Stock', 'For sanitation', '2026-03-03 11:32:50', '2026-03-14 23:29:14', 'nurse1'),
 (14, 'Face Mask', 'Medical Supplies', 'Generic', 200, 'Pieces', 1, 'Clinic', 'Available', 'Disposable masks', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'nurse1'),
 (15, 'Whiteboard Marker', 'Office Supplies', 'Pilot', 40, 'Pieces', 1, 'Classroom A', 'Available', 'Black markers', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'teacher1'),
 (16, 'USB Flash Drive 16GB', 'IT Supplies', 'SanDisk', 15, 'Pieces', 1, 'IT Office', 'Available', 'For file storage', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `consumable_transactions`
+--
+
+CREATE TABLE `consumable_transactions` (
+  `transaction_id` int(11) NOT NULL,
+  `accession_id` int(11) NOT NULL,
+  `item_name` varchar(255) DEFAULT NULL,
+  `action` enum('RECEIVE','RETURN') NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `previous_stock` int(11) DEFAULT NULL,
+  `new_stock` int(11) DEFAULT NULL,
+  `reference_no` varchar(100) DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `performed_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `consumable_transactions`
+--
+
+INSERT INTO `consumable_transactions` (`transaction_id`, `accession_id`, `item_name`, `action`, `quantity`, `previous_stock`, `new_stock`, `reference_no`, `reason`, `notes`, `performed_by`, `created_at`) VALUES
+(1, 13, 'Alcohol 70%', 'RECEIVE', 50, 75, 125, NULL, NULL, '', NULL, '2026-03-14 15:22:47'),
+(2, 13, 'Alcohol 70%', 'RETURN', 10, 125, 115, NULL, 'Defective', NULL, NULL, '2026-03-14 15:28:56'),
+(3, 13, 'Alcohol 70%', 'RETURN', 10, 115, 105, NULL, '', NULL, NULL, '2026-03-14 15:29:14');
 
 -- --------------------------------------------------------
 
@@ -757,6 +787,13 @@ ALTER TABLE `consumables`
   ADD KEY `department_id` (`department_id`);
 
 --
+-- Indexes for table `consumable_transactions`
+--
+ALTER TABLE `consumable_transactions`
+  ADD PRIMARY KEY (`transaction_id`),
+  ADD KEY `accession_id` (`accession_id`);
+
+--
 -- Indexes for table `damage_reports`
 --
 ALTER TABLE `damage_reports`
@@ -911,6 +948,12 @@ ALTER TABLE `consumables`
   MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
+-- AUTO_INCREMENT for table `consumable_transactions`
+--
+ALTER TABLE `consumable_transactions`
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `damage_reports`
 --
 ALTER TABLE `damage_reports`
@@ -1022,6 +1065,12 @@ ALTER TABLE `concern_devices`
 --
 ALTER TABLE `consumables`
   ADD CONSTRAINT `consumables_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
+
+--
+-- Constraints for table `consumable_transactions`
+--
+ALTER TABLE `consumable_transactions`
+  ADD CONSTRAINT `consumable_transactions_ibfk_1` FOREIGN KEY (`accession_id`) REFERENCES `consumables` (`accession_id`);
 
 --
 -- Constraints for table `damage_reports`
