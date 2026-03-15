@@ -1,29 +1,25 @@
-import os,pymysql
-
-# def get_db_connection():
-#     return pymysql.connect(
-#         host='localhost',
-#         user='root',
-#         password='',
-#         database='ncmis',
-#        cursorclass=pymysql.cursors.DictCursor  # always returns dict rows
-#     )
-
-
+import pymysql
+import os
 
 def get_db_connection():
 
-    host = os.getenv("MYSQLHOST", "localhost")
-    user = os.getenv("MYSQLUSER", "root")
-    password = os.getenv("MYSQLPASSWORD", "")
-    database = os.getenv("MYSQLDATABASE", "ncmis")
-    port = int(os.getenv("MYSQLPORT", 3306))
+    # If running on Railway
+    if os.getenv("MYSQL_PUBLIC_URL"):
+        return pymysql.connect(
+            host=os.getenv("MYSQLHOST_PUBLIC") or "maglev.proxy.rlwy.net",
+            user=os.getenv("MYSQLUSER") or "root",
+            password=os.getenv("MYSQLPASSWORD"),
+            database=os.getenv("MYSQLDATABASE") or "railway",
+            port=int(os.getenv("MYSQLPORT") or 48540),
+            cursorclass=pymysql.cursors.DictCursor
+        )
 
-    return pymysql.connect(
-        host=host,
-        user=user,
-        password=password,
-        database=database,
-        port=port,
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    # If running locally (XAMPP)
+    else:
+        return pymysql.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="ncmis",
+            cursorclass=pymysql.cursors.DictCursor
+        )
