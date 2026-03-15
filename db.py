@@ -3,19 +3,19 @@ import os
 
 def get_db_connection():
     try:
-        # If running on Railway
+        # Running on Railway
         if os.getenv("MYSQLHOST"):
             conn = pymysql.connect(
-                host=os.getenv("maglev.proxy.rlwy.net"),
-                user=os.getenv("root"),
-                password=os.getenv("mYhPJsfLwPUcVMYfHeoWOpFSmUXXfFIG"),
-                database=os.getenv("railway"),
-                port=int(os.getenv("48540")),
+                host=os.getenv("MYSQLHOST"),
+                user=os.getenv("MYSQLUSER"),
+                password=os.getenv("MYSQLPASSWORD"),
+                database=os.getenv("MYSQLDATABASE"),
+                port=int(os.getenv("MYSQLPORT")),
                 cursorclass=pymysql.cursors.DictCursor
             )
             print("Connected to Railway database")
 
-        # If running locally (XAMPP)
+        # Running locally (XAMPP)
         else:
             conn = pymysql.connect(
                 host="localhost",
@@ -24,7 +24,7 @@ def get_db_connection():
                 database="ncmis",
                 cursorclass=pymysql.cursors.DictCursor
             )
-            print("Connected to local XAMPP database")
+            print("Connected to local database")
 
         return conn
 
