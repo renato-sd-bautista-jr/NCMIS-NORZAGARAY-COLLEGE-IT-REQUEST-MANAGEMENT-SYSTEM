@@ -237,7 +237,19 @@ function closeDeleteModal() {
   const modal = document.getElementById("deleteModal");
   if (modal) modal.classList.add("hidden");
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const cancelBtn = document.getElementById("cancelDelete");
 
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeDeleteModal);
+  }
+});
+
+document.getElementById("deleteModal").addEventListener("click", function(e){
+  if(e.target === this){
+    closeDeleteModal();
+  }
+});
 // Bind cancel button once DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   const cancelBtn = document.getElementById("cancelDelete");

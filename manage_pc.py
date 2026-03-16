@@ -16,6 +16,7 @@ def delete_pc(pcid):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM pcinfofull WHERE pcid = %s", (pcid,))
             conn.commit()
+            print(f"PC with ID {pcid} deleted successfully.")
         flash("PC deleted successfully.", "success")
     except Exception as e:
         conn.rollback()
@@ -23,7 +24,7 @@ def delete_pc(pcid):
     finally:
         conn.close()
 
-    return redirect(url_for("manage_inventory.inventory_load"))
+    return redirect(url_for('manage_inventory.inventory_load'))
 
 
 @manage_pc_bp.route('/filter-pcs', methods=['GET'])

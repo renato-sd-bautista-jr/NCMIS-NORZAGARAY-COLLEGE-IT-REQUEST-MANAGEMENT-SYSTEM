@@ -111,31 +111,26 @@ function renderPcTable(pcs) {
         <td class="px-4 py-2 border-b">${pc.accountable ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.serial_no ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.municipal_serial_no ?? "—"}</td>
-        <td class="px-4 py-2 border-b">${pc.note ?? "—"}</td>
 
-        <td class="px-4 py-2 border-b ${statusClass}">${pc.status ?? "—"}</td>
-        <td class="px-4 py-2 border-b font-semibold ${riskClass}">${pc.risk_level ?? "—"}</td>
-        <td class="px-4 py-2 border-b">${pc.health_score ?? "—"}%</td>
+        <td class="px-4 py-2 border-b ${statusClass}">${pc.status ?? "—"}</td> 
 
         <td class="px-4 py-2 border-b flex gap-2">
-          <button
-            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
-            data-pc='${encodeURIComponent(JSON.stringify(pc))}'
-            onclick="openPcModalFromBtn(this)">
-            Edit
-          </button>
+          
 
-          <button
-            onclick="markPcChecked(${pc.pcid})"
-            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
-            Mark Checked
-          </button>
+         
+                    <button onclick="openPcModalById(${pc.pcid})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+                    
+<button onclick="openDeleteModal('/delete-pc/${pc.pcid}')"
+class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">
+Delete
+</button>
 
-          <button
-            onclick="openMaintenanceLog(${pc.pcid}, 'PC')"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs">
-            History
-          </button>
+                    <button onclick="markPcChecked(${ pc.pcid })" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+                     
+                    <button onclick="openMaintenanceLog(${ pc.pcid }, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
+                   
+                   
+          
         </td>
       </tr>
     `);

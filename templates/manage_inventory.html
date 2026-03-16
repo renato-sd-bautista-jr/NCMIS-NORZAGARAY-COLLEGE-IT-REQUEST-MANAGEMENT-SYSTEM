@@ -67,6 +67,7 @@
       </button>
     </nav>
 
+
     <!-- PAGE CONTENT BELOW NAVBAR -->
     <div class="space-y-8">
       <!-- ACTION BAR -->
@@ -150,9 +151,9 @@
                   <th class="px-4 py-2 border-b text-left">Serial No.</th>
                   <th class="px-4 py-2 border-b text-left">Municipal Serial No.</th> 
                   <th class="px-4 py-2 border-b text-left">Status</th>
-                  {% if permissions.get('inventory', {}).get('edit', False) %}
-                  <th class="px-4 py-2 border-b text-left">Functionality</th>
+                  {% if permissions.get('inventory', {}).get('edit', False) %} 
                   <th class="px-4 py-2 border-b text-left">Actions</th>
+                  
                   {% endif %}
                 </tr>
               </thead>
@@ -161,10 +162,10 @@
                 {% for pc in pc_list %}
                 <tr class="hover:bg-gray-100 transition">
                   <td class="px-4 py-2 border-b">
-  <input type="checkbox"
-         class="pc-checkbox"
-         value="{{ pc.pcid }}">
-</td>
+                    <input type="checkbox"
+                          class="pc-checkbox"
+                          value="{{ pc.pcid }}">
+                  </td>
                   <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
@@ -174,41 +175,29 @@
                   <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.serial_no }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>   
-  <!-- STATUS -->
-  <td class="px-4 py-2 border-b font-medium
-      {% if pc.status == 'Available' %}text-green-600
-      {% elif pc.status == 'In Used' %}text-blue-600
-      {% elif pc.status == 'Inactive' %}text-gray-500
-      {% else %}text-red-600{% endif %}">
-    {{ pc.status }}
-  </td>
-<td class="px-4 py-2 border-b font-medium
-      {% if pc.status == 'Damaged' %}
-          text-red-600
-      {% else %}
-          text-green-600
-      {% endif %}">
-    {% if pc.status == 'Damaged' %}
-        Not Functional
-    {% else %}
-        Functional
-    {% endif %}
-</td>
- 
-     <!-- ACTIONS -->
-{% if permissions.get('inventory', {}).get('edit', False) %}
-  <td class="px-4 py-2 border-b">
-    <div class="flex flex-wrap gap-1">
-      {% if permissions.get('inventory', {}).get('edit', False) %}
-      <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
-      <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
-      {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
-      <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
-      {% endif %}
-      <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
-      {% endif %}
-    </div>
-  </td>
+                  <!-- STATUS -->
+                  <td class="px-4 py-2 border-b font-medium
+                      {% if pc.status == 'Available' %}text-green-600
+                      {% elif pc.status == 'In Used' %}text-blue-600
+                      {% elif pc.status == 'Inactive' %}text-gray-500
+                      {% else %}text-red-600{% endif %}">
+                    {{ pc.status }}
+
+                  </td>
+                    <!-- ACTIONS -->
+                {% if permissions.get('inventory', {}).get('edit', False) %}
+                  <td class="px-4 py-2 border-b">
+                    <div class="flex flex-wrap gap-1">
+                      {% if permissions.get('inventory', {}).get('edit', False) %}
+                      <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edita</button>
+                      <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
+                      {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+                      <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
+                      {% endif %}
+                      <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
+                      {% endif %}
+                    </div>
+                  </td>
             {% endif %}
           </tr>
           {% endfor %}
@@ -259,16 +248,31 @@
               </div>
               
               {% if permissions.get('inventory', {}).get('edit', False) %}
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
-                <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
-                {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
-                <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
-                {% endif %}
-                <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
-              </div>
-              {% endif %}
-            </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+              <!-- <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+                    <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
+                    {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
+                    <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+                    {% endif %}
+                    <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
+                  </div>
+                  {% endif %}
+                </div> -->
             {% endfor %}
           </div>
           <!-- PAGINATION -->
@@ -1056,6 +1060,19 @@ function bulkMarkDamagedSelectedPCs() {
       modal.classList.add('hidden');
       confirmationCallback = null;
     }
+// Render PCs into table
+function renderPcTable(pc) {
+  const tbody = document.getElementById("pcTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  if (!pcs.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="13" class="text-center py-6 text-gray-500">No PCs found.</td>
+      </tr>`;
+    return;
+  }
 
     // Confirmation function for risk update
     function confirmRiskUpdate() {
@@ -1175,3 +1192,5 @@ lucide.createIcons();
 
 </body>
 </html>
+
+      
