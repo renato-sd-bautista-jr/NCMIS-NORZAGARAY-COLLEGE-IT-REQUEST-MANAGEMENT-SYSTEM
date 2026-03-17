@@ -36,39 +36,38 @@
       <div class="w-6"></div>
     </div>
 
-    <!-- NAVIGATION BUTTONS -->
-    <nav class="flex flex-col md:flex-row gap-3 px-4 py-3 mb-4 bg-white rounded-xl shadow-sm border border-gray-200">
-      <button onclick="showSection('inventorySection'); setActiveNav(this)"
-        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-blue-50 text-blue-700 border border-blue-300 shadow-sm transition-all duration-200"
-        id="inventoryBtn">
-        <i data-lucide="cpu" class="w-5 h-5 mr-2 text-blue-600"></i>
-        Manage PC
-      </button>
+<nav class="flex flex-col md:flex-row gap-3 px-4 py-3 mb-4 bg-white rounded-xl shadow-sm border border-gray-200">
 
-      <button onclick="showSection('surrenderedSection'); setActiveNav(this)"
-        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-gray-200 shadow-sm transition-all duration-200"
-        id="surrenderedBtn">
-        <i data-lucide="archive" class="w-5 h-5 mr-2 text-red-600"></i>
-        Surrendered PCs
-      </button>
+<button onclick="showSection('inventorySection'); setActiveNav(this)"
+class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-blue-50 text-blue-700 border border-blue-300 shadow-sm transition-all duration-200"
+id="inventoryBtn">
+<i data-lucide="cpu" class="w-5 h-5 mr-2 text-blue-600"></i>
+Manage PC
+</button>
 
-      <button onclick="showSection('itemsSection'); setActiveNav(this)"
-        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
-        id="itemsBtn">
-        <i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
-        Manage Item
-      </button>
+<button onclick="showSection('itemsSection'); setActiveNav(this)"
+class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
+id="itemsBtn">
+<i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
+Manage Item
+</button>
 
-      <button onclick="showSection('consumablesSection'); setActiveNav(this)"
-        class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 shadow-sm transition-all duration-200"
-        id="consumablesBtn">
-        <i data-lucide="package-open" class="w-5 h-5 mr-2 text-green-600"></i>
-        Manage Consumables
-      </button>
-    </nav>
+<button onclick="showSection('consumablesSection'); setActiveNav(this)"
+class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 shadow-sm transition-all duration-200"
+id="consumablesBtn">
+<i data-lucide="package-open" class="w-5 h-5 mr-2 text-green-600"></i>
+Manage Consumables
+</button>
 
+<button onclick="showSection('surrenderedSection'); setActiveNav(this)"
+class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-gray-200 shadow-sm transition-all duration-200"
+id="surrenderedBtn">
+<i data-lucide="archive" class="w-5 h-5 mr-2 text-red-600"></i>
+Surrendered PCs
+</button>
 
-    <!-- PAGE CONTENT BELOW NAVBAR -->
+</nav>
+  <!-- PAGE CONTENT BELOW NAVBAR -->
     <div class="space-y-8">
       <!-- ACTION BAR -->
     <div class="flex justify-between items-center mb-4">
@@ -121,10 +120,32 @@
           </button>
           <button id="bulkDamagedBtn"
            onclick="bulkMarkDamagedSelectedPCs()"
-  class="bg-red-600 text-white px-3 py-1 rounded"
- >
-  Mark as Damaged
+            class="bg-red-600 text-white px-3 py-1 rounded"
+          >
+            Mark as Damaged
+          </button>
+
+          <button onclick="exportSelectedPCs()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm">
+          Export Selected PCs
+          </button>
+
+          <div class="flex items-center gap-2">
+
+<input type="file" id="pcExcelFile" accept=".xlsx,.xls" class="border p-1">
+
+<select id="duplicateOption" class="border p-1 rounded">
+  <option value="skip">Skip duplicates</option>
+  <option value="ignore">Ignore row</option>
+  <option value="overwrite">Overwrite existing</option>
+</select>
+
+<button onclick="importPCExcel()"
+class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm">
+Import Excel
 </button>
+
+</div>
             {% endif %}
           </div>
 
@@ -189,7 +210,7 @@
                   <td class="px-4 py-2 border-b">
                     <div class="flex flex-wrap gap-1">
                       {% if permissions.get('inventory', {}).get('edit', False) %}
-                      <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edita</button>
+                      <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
                       <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
                       {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
                       <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
@@ -881,43 +902,11 @@
 
   <script>
  
-    // Highlight active navigation
-    function setActiveNav(btn) {
-      document.querySelectorAll('nav button').forEach(b => {
-        b.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
-        b.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
-      });
-      btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
-      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
-    }
+    
 
     // Bulk Mark Checked Modal functions
     let bulkMarkCheckedCallback = null;
       // Bulk surrender selected PCs
-      function bulkSurrenderSelectedPCs() {
-        const checked = Array.from(document.querySelectorAll('.pc-checkbox')).filter(cb => cb.checked).map(cb => cb.value);
-        if (checked.length === 0) {
-          alert('No PCs selected');
-          return;
-        }
-
-        if (!confirm(`Surrender ${checked.length} selected PC(s)? This will mark them as Surrendered.`)) return;
-
-        fetch('/inventory/pc/bulk-surrender', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pcids: checked })
-        })
-        .then(r => r.json())
-        .then(d => {
-          if (d && d.success) location.reload();
-          else alert('Surrender failed: ' + (d.error || 'unknown'));
-        })
-        .catch(err => {
-          console.error(err);
-          alert('Surrender failed');
-        });
-      }
 
       // ---------- CONSUMABLE HELPERS ----------
       function toggleSelectAllConsumables() {
@@ -1001,40 +990,7 @@
 
     // Confirmation modal functions
     let confirmationCallback = null;
-function bulkMarkDamagedSelectedPCs() {
-  const checked = Array.from(document.querySelectorAll('.pc-checkbox'))
-    .filter(cb => cb.checked)
-    .map(cb => cb.value);
 
-  if (checked.length === 0) {
-    alert('No PCs selected');
-    return;
-  }
-
-  if (!confirm(`Mark ${checked.length} PC(s) as DAMAGED?`)) return;
-
-  fetch('/inventory/pc/bulk-damaged', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      pcids: checked,
-      damage_type_id: 1, // temporary (you can make dynamic later)
-      severity: 'High',
-      description: 'Bulk marked as damaged'
-    })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d && d.success) location.reload();
-    else alert('Failed: ' + (d.error || 'unknown'));
-  })
-  .catch(err => {
-    console.error(err);
-    alert('Operation failed');
-  });
-}
     function showConfirmationModal(title, message, confirmText, callback) {
       console.log('showConfirmationModal called with:', title, message, confirmText);
       
@@ -1144,15 +1100,7 @@ function renderPcTable(pc) {
     });
 
 
-    function setActiveNav(element) {
-      // Remove active classes from all nav buttons
-      document.querySelectorAll('nav button').forEach(btn => {
-        btn.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300', 'bg-green-50', 'text-green-700', 'border-green-300');
-        btn.classList.add('bg-white', 'border-gray-200');
-      });
-      
-      
-    }
+    
 
   
 
@@ -1160,26 +1108,7 @@ lucide.createIcons();
 
   </script>
 
-<!-- Initialize section based on query string -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // choose section passed from Flask
-    const initial = "{{ request.args.get('section','pc') }}";
-    if (initial === 'pc') {
-      showSection('inventorySection');
-      setActiveNav(document.getElementById('inventoryBtn'));
-    } else if (initial === 'item') {
-      showSection('itemsSection');
-      setActiveNav(document.getElementById('itemsBtn'));
-    } else if (initial === 'consumable') {
-      showSection('consumablesSection');
-      setActiveNav(document.getElementById('consumablesBtn'));
-    } else if (initial === 'surrendered') {
-      showSection('surrenderedSection');
-      setActiveNav(document.getElementById('surrenderedBtn'));
-    }
-  });
-</script>
+
 
 <!-- PC Logic -->
 <script src="{{ url_for('static', filename='js/manage_pc.js') }}"></script>
@@ -1188,7 +1117,7 @@ lucide.createIcons();
 <!-- Device Logic -->
 <script src="{{ url_for('static', filename='js/manage_device.js') }}"></script>
 <script src="{{ url_for('static', filename='js/filter_device_modal.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/manage_inventory.js') }}"></script>
 
 </body>
 </html>

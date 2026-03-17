@@ -1,14 +1,17 @@
-// static/js/filter_device_modal.js
+window.currentSection = "item"; // global state to track current section (pc, item, consumable, surrendered)
 
 async function openDeviceFilterModalFromFile() {
-  // Load modal dynamically if it doesn't exist yet
+
   if (!document.getElementById("filterDeviceModal")) {
     try {
       const res = await fetch("/device-filter-modal");
       if (!res.ok) throw new Error(`Failed to load modal: ${res.status}`);
+
       const html = await res.text();
       document.body.insertAdjacentHTML("beforeend", html);
-      lucide.createIcons();
+
+      if (window.lucide) lucide.createIcons();
+
     } catch (err) {
       console.error("❌ Error loading Device Filter Modal:", err);
       alert("Failed to load Device Filter Modal.");
@@ -20,50 +23,54 @@ async function openDeviceFilterModalFromFile() {
   const content = document.getElementById("deviceFilterModalContent");
 
   modal.classList.remove("hidden");
+
   setTimeout(() => {
     content.classList.add("scale-100");
   }, 50);
 
-  // prefill device type filter based on current section
-  if (window.currentSection === 'consumable') {
-    const dtInput = modal.querySelector('input[name="device_type"]');
-    if (dtInput) dtInput.value = 'Consumable';
-  } else if (window.currentSection === 'item') {
-    const dtInput = modal.querySelector('input[name="device_type"]');
-    if (dtInput) dtInput.value = '';
+  // Auto set device type depending on section
+  const dtInput = modal.querySelector('input[name="device_type"]');
+
+  if (window.currentSection === "consumable") {
+    if (dtInput) dtInput.value = "Consumable";
+  } else {
+    if (dtInput) dtInput.value = "";
   }
 
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
-// Close modal
 function closeDeviceFilterModal() {
   const modal = document.getElementById("filterDeviceModal");
   if (modal) modal.classList.add("hidden");
 }
 
-// Handle filtering (rest of the code from earlier)
-document.addEventListener("DOMContentLoaded", () => {
-  const tableBody = document.getElementById("deviceTableBody");
 
-  document.addEventListener("submit", async (e) => {
-    if (e.target.id !== "filterDeviceForm") return;
-    e.preventDefault();
+// =============================
+// FILTER SUBMIT
+// =============================
+document.addEventListener("submit", async (e) => {
 
-    const params = new URLSearchParams(new FormData(e.target));
-    
-    // determine section based on global state (managed in manage_pc.js)
-    let sectionParam = 'pc';
-    if (window.currentSection === 'item') {
-      sectionParam = 'items';
-    } else if (window.currentSection === 'consumable') {
-      sectionParam = 'consumable';
-      // ensure device_type filter is set so backend restricts to consumables
-      params.set('device_type', 'Consumable');
-    }
-    params.set('section', sectionParam);
-    
-    // Redirect to the same page with filter parameters
-    window.location.href = `/manage_inventory?${params.toString()}`;
-  });
+  if (e.target.id !== "filterDeviceForm") return;
+
+  e.preventDefault();
+
+  const params = new URLSearchParams(new FormData(e.target));
+
+  let sectionParam = "pc";
+
+  if (window.currentSection === "item") {
+    sectionParam = "items";
+  }
+  else if (window.currentSection === "consumable") {
+    sectionParam = "consumables";
+    params.set("device_type", "Consumable");
+  }
+
+  params.set("section", sectionParam);
+  params.set("ui_section", window.currentSection);
+
+  window.location.href = `/manage_inventory?${params.toString()}`;
+
 });
+ 

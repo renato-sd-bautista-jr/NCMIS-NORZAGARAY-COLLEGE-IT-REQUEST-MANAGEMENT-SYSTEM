@@ -1,5 +1,7 @@
-from flask import request, render_template, redirect, url_for, flash, Blueprint,jsonify,session
+from flask import request, render_template, redirect, url_for, flash, Blueprint,jsonify,session,send_file
 from db import get_db_connection
+from io import BytesIO
+import pandas as pd
 import pymysql,re
 import uuid
 from datetime import date
@@ -92,6 +94,8 @@ def filter_pcs():
         """
 
         params = []
+        if status != 'Surrendered':
+             query += " AND p.status != 'Surrendered'"
 
         if department_id:
             query += " AND p.department_id = %s"
@@ -441,5 +445,166 @@ def batch_add_pcinfofull():
     except Exception as e:
         print("❌ Batch insert error:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@manage_pc_bp.route('/manage_pc/export-selected-pcs', methods=['POST'])
+def export_selected_pcs():
+
+    data = request.json
+    pcids = data.get("pcids", [])
+
+    if not pcids:
+        return jsonify({"error": "No PCs selected"}), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            format_strings = ','.join(['%s'] * len(pcids))
+
+            cur.execute(f"""
+                SELECT
+                    pcid,
+                    pcname,
+                    department_id,
+                    location,
+                    acquisition_cost,
+                    date_acquired,
+                    accountable,
+                    serial_no,
+                    municipal_serial_no,
+                    status
+                FROM pcinfofull
+                WHERE pcid IN ({format_strings})
+            """, pcids)
+
+            rows = cur.fetchall()
+
+        df = pd.DataFrame(rows)
+
+        output = BytesIO()
+
+        # ⭐ Proper Excel writer
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='PC Inventory')
+
+        output.seek(0)
+
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="selected_pcs.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    except Exception as e:
+        print("❌ Export error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        conn.close()
+
+@manage_pc_bp.route('/manage_pc/import-pcs-excel', methods=['POST'])
+def import_pcs_excel():
+
+    file = request.files.get("file")
+    duplicate_option = request.form.get("duplicate_option", "skip")
+
+    if not file:
+        return jsonify({"success": False, "error": "No file uploaded"})
+
+    try:
+
+        df = pd.read_excel(file)
+
+        conn = get_db_connection()
+        cur = conn.cursor(pymysql.cursors.DictCursor)
+
+        added = 0
+        updated = 0
+        skipped = 0
+
+        for _, row in df.iterrows():
+
+            serial = row.get("serial_no")
+            municipal = row.get("municipal_serial_no")
+
+            cur.execute("""
+                SELECT pcid FROM pcinfofull
+                WHERE serial_no=%s OR municipal_serial_no=%s
+            """, (serial, municipal))
+
+            existing = cur.fetchone()
+
+            if existing:
+
+                if duplicate_option == "skip":
+                    skipped += 1
+                    continue
+
+                if duplicate_option == "ignore":
+                    skipped += 1
+                    continue
+
+                if duplicate_option == "overwrite":
+
+                    cur.execute("""
+                        UPDATE pcinfofull SET
+                        pcname=%s,
+                        department_id=%s,
+                        location=%s,
+                        acquisition_cost=%s,
+                        date_acquired=%s,
+                        accountable=%s,
+                        status=%s
+                        WHERE pcid=%s
+                    """, (
+                        row.get("pcname"),
+                        row.get("department_id"),
+                        row.get("location"),
+                        row.get("acquisition_cost"),
+                        row.get("date_acquired"),
+                        row.get("accountable"),
+                        row.get("status"),
+                        existing["pcid"]
+                    ))
+
+                    updated += 1
+                    continue
+
+            cur.execute("""
+                INSERT INTO pcinfofull
+                (pcname,department_id,location,acquisition_cost,date_acquired,
+                 accountable,serial_no,municipal_serial_no,status)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                row.get("pcname"),
+                row.get("department_id"),
+                row.get("location"),
+                row.get("acquisition_cost"),
+                row.get("date_acquired"),
+                row.get("accountable"),
+                serial,
+                municipal,
+                row.get("status")
+            ))
+
+            added += 1
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "added": added,
+            "updated": updated,
+            "skipped": skipped
+        })
+
+    except Exception as e:
+        print("Import error:", e)
+        return jsonify({"success": False, "error": str(e)})
+
     finally:
         conn.close()

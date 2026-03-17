@@ -3,51 +3,11 @@
 // =======================
 
 // SECTION STATE
-let currentSection = "pc";
+ 
 
-// ---------- SECTION SWITCHING ----------
-function showSection(id) {
-  // hide all sections then show the requested one
-  document.querySelectorAll("section").forEach(sec =>
-    sec.classList.add("hidden")
-  );
-  const target = document.getElementById(id);
-  if (target) target.classList.remove("hidden");
+ 
 
-  const addBtn = document.getElementById("addButton");
-  if (!addBtn) return;
-
-  // update button text and handler based on section
-  if (id === "inventorySection") {
-  currentSection = "pc";
-  addBtn.textContent = "Add PC";
-  addBtn.onclick = handleAddButtonClick;
-} else if (id === "itemsSection" || id === "consumablesSection") {
-  currentSection = id === "itemsSection" ? "item" : "consumable";
-  if (currentSection === 'item') {
-    addBtn.textContent = "Add Item";
-    addBtn.onclick = () => openItemModal();
-  } else {
-    addBtn.textContent = "Add Consumable";
-    addBtn.onclick = () => openConsumableModal();
-  }
-
-  } else if (id === "surrenderedSection") {
-    currentSection = "surrendered";
-    addBtn.style.display = 'none';
-  } else {
-    currentSection = "";
-    addBtn.textContent = "Add";
-    addBtn.onclick = null;
-    addBtn.style.display = '';
-  }
-}
-
-function handleAddButtonClick() {
-  if (currentSection === "pc") openPcModal();
-  else openItemModal();
-}
-
+ 
 // ---------- PC MODAL ----------
 async function openPcModalById(pcid) {
   try {
@@ -133,6 +93,103 @@ function toggleSelectAllPCs(master) {
   document.querySelectorAll(".pc-checkbox")
     .forEach(cb => cb.checked = master.checked);
 }
+      function bulkSurrenderSelectedPCs() {
+        const checked = Array.from(document.querySelectorAll('.pc-checkbox')).filter(cb => cb.checked).map(cb => cb.value);
+        if (checked.length === 0) {
+          alert('No PCs selected');
+          return;
+        }
+
+        if (!confirm(`Surrender ${checked.length} selected PC(s)? This will mark them as Surrendered.`)) return;
+
+        fetch('/inventory/pc/bulk-surrender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pcids: checked })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.success) location.reload();
+          else alert('Surrender failed: ' + (d.error || 'unknown'));
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Surrender failed');
+        });
+      }
+
+      function exportSelectedPCs() {
+
+  const selected = Array.from(document.querySelectorAll('.pc-checkbox'))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  if (selected.length === 0) {
+    alert("Select at least one PC to export.");
+    return;
+  }
+
+  fetch('/manage_pc/export-selected-pcs', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ pcids: selected })
+  })
+  .then(res => res.blob())
+  .then(blob => {
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "selected_pcs.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Export failed.");
+  });
+
+}
+function bulkMarkDamagedSelectedPCs() {
+  const checked = Array.from(document.querySelectorAll('.pc-checkbox'))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  if (checked.length === 0) {
+    alert('No PCs selected');
+    return;
+  }
+
+  if (!confirm(`Mark ${checked.length} PC(s) as DAMAGED?`)) return;
+
+  fetch('/inventory/pc/bulk-damaged', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      pcids: checked,
+      damage_type_id: 1, // temporary (you can make dynamic later)
+      severity: 'High',
+      description: 'Bulk marked as damaged'
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d && d.success) location.reload();
+    else alert('Failed: ' + (d.error || 'unknown'));
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Operation failed');
+  });
+}
+
 
 // ---------- RISK UPDATE ----------
 async function runRiskUpdate() {
@@ -257,3 +314,39 @@ document.addEventListener("DOMContentLoaded", () => {
     cancelBtn.addEventListener("click", closeDeleteModal);
   }
 });
+
+function importPCExcel() {
+
+  const fileInput = document.getElementById("pcExcelFile");
+  const option = document.getElementById("duplicateOption").value;
+
+  if (!fileInput.files.length) {
+    alert("Select an Excel file first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("duplicate_option", option);
+
+  fetch("/manage_pc/import-pcs-excel", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    if (data.success) {
+      alert(`Import completed\nAdded: ${data.added}\nUpdated: ${data.updated}\nSkipped: ${data.skipped}`);
+      location.reload();
+    } else {
+      alert("Import failed: " + data.error);
+    }
+
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Import failed.");
+  });
+
+}
