@@ -31,6 +31,7 @@
           {% include 'pceditmodal.html' %}
           {% include 'itemeditmodal.html' %}
           {% include 'consumable_modal.html' %}
+          {% include 'addconsumable-modal.html' %}
         </div>
 
       <div class="w-6"></div>
@@ -417,6 +418,12 @@ Import Excel
     </h3>
     <div class="flex flex-wrap gap-3 mb-4">
       <button 
+              id="addButton"
+              onclick="openItemModal()" 
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+              Add Item
+            </button>
+      <button 
         type="button"
         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         onclick="openDeviceFilterModalFromFile()">
@@ -676,6 +683,12 @@ Import Excel
           <i data-lucide="package-open" class="w-6 h-6"></i> Manage Consumables
         </h3>
         <div class="flex flex-wrap gap-3 mb-4">
+          <button 
+              type="button"
+              onclick="openConsumableModal()"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+              Add Consumable
+          </button>
           <button 
             type="button"
             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -1075,7 +1088,14 @@ function renderPcTable(pc) {
     });
 
 
-    
+    function openConsumableModal() {
+  console.log("clicked");
+  document.getElementById('addConsumableModal').classList.remove('hidden');
+}
+
+function closeConsumableModal() {
+  document.getElementById('addConsumableModal').classList.add('hidden');
+}
 
   
 

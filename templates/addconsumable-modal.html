@@ -1,9 +1,9 @@
-<div id="addConsumableModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+<div id="addConsumableModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+
 
 <div class="bg-white rounded-lg shadow-lg w-[600px] p-6">
 
 <h2 class="text-xl font-bold mb-4">Add / Edit Consumable</h2>
-
 <form id="consumableForm" method="POST" action="/add-consumable">
 
 <input type="hidden" name="accession_id" id="accession_id">
@@ -62,3 +62,66 @@ Save
 
 </div>
 </div>
+ 
+<script>
+
+let isEditMode = false;
+
+function openConsumableModal(data = null) {
+  const modal = document.getElementById('addConsumableModal');
+  const form = document.getElementById('consumableForm');
+
+  if (!modal || !form) {
+    console.error("Modal or form not found!");
+    return;
+  }
+
+  form.reset();
+  document.getElementById('accession_id').value = '';
+
+  if (data) {
+    form.action = "/update-consumable";
+    Object.keys(data).forEach(key => {
+      const input = document.getElementById(key);
+      if (input) input.value = data[key] ?? '';
+    });
+  } else {
+    form.action = "/add-consumable";
+  }
+
+  modal.classList.remove('hidden');
+}
+function closeConsumableModal() {
+  document.getElementById('addConsumableModal').classList.add('hidden');
+}
+
+document.getElementById("consumableForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const formData = new URLSearchParams(new FormData(form));
+
+  try {
+    const res = await fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: formData
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      alert(result.message);
+      location.reload(); // refresh table
+    } else {
+      alert("Failed to save.");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error submitting form.");
+  }
+});
+</script>
