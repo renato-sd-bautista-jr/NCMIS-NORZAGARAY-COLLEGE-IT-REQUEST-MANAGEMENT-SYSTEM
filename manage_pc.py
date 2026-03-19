@@ -439,7 +439,8 @@ def batch_add_pcinfofull():
         conn.commit()
         return jsonify({
             'success': True,
-            'message': f'Successfully added {inserted} PCs under {dept_row['department_name']} ({dept_code.upper()})'
+        #     'message': f'Successfully added {inserted} PCs under {dept_row['department_name']} ({dept_code.upper()})'
+        # 
         })
 
     except Exception as e:

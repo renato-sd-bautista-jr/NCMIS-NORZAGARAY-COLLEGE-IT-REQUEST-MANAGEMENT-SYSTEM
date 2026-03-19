@@ -114,7 +114,11 @@
 
       <!-- Buttons -->
       <div class="flex justify-end gap-3 mt-8 pt-4 border-t">
-        <button type="button" onclick="toggleBatchAdd()" class="btn-blue">
+        <button 
+          id="batchAddBtn"
+          type="button" 
+          onclick="toggleBatchAdd()" 
+          class="btn-blue">
           <i data-lucide="layers" class="w-4 h-4"></i> Batch Add
         </button>
 
@@ -196,6 +200,27 @@
 
 
 <script>
+
+let isEditMode = false;
+
+function updateBatchUI() {
+  const batchBtn = document.getElementById("batchAddBtn");
+  const batchInput = document.getElementById("batchCount");
+  const batchSection = document.getElementById("batchAddSection");
+
+  if (isEditMode) {
+    batchBtn.disabled = true;
+    batchBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    batchInput.disabled = true;
+    batchSection.classList.add("hidden"); // auto-hide
+  } else {
+    batchBtn.disabled = false;
+    batchBtn.classList.remove("opacity-50", "cursor-not-allowed");
+
+    batchInput.disabled = false;
+  }
+}
 async function openPcModal(pcData = null) {
   const modal = document.getElementById('pcModal');
   const modalTitle = document.getElementById('modalTitle');
@@ -226,7 +251,9 @@ async function openPcModal(pcData = null) {
 
   // 🟦 EDIT MODE
   if (pcData) {
+    isEditMode = true;
     modalTitle.textContent = "Edit PC";
+     
     form.action = "{{ url_for('manage_pc_bp.update_pcinfofull') }}";
     submitBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Update PC';
 
@@ -271,7 +298,9 @@ async function openPcModal(pcData = null) {
 
   } else {
     // 🟩 ADD MODE
+    
     modalTitle.textContent = "Add PC";
+    let isEditMode = false;
     form.action = "{{ url_for('manage_pc_bp.add_pcinfofull') }}";
     submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add PC';
   }

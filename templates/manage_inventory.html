@@ -73,12 +73,7 @@ Surrendered PCs
     <div class="flex justify-between items-center mb-4">
       <div></div>
       {% if permissions.get('inventory', {}).get('edit', False) %}
-      <button 
-        id="addButton"
-        onclick="handleAddButtonClick()" 
-        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
-        Add PC
-      </button>
+      
       
       {% endif %}
     </div>
@@ -92,6 +87,13 @@ Surrendered PCs
             <i data-lucide="cpu" class="w-6 h-6"></i> Manage PC
           </h3>
           <div class="flex flex-wrap gap-3 mb-4">
+
+            <button 
+              id="addButton"
+              onclick="openPcModal()" 
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
+              Add PC
+            </button>
             <button 
               type="button"
               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -268,7 +270,7 @@ Import Excel
                 <label class="text-sm text-gray-600">Select for bulk actions</label>
               </div>
               
-              {% if permissions.get('inventory', {}).get('edit', False) %}
+    
         
         
         
@@ -277,23 +279,7 @@ Import Excel
         
         
         
-        
-        
-        
-        
-        
-        
-        
-              <!-- <div class="grid grid-cols-2 gap-2">
-                    <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
-                    <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
-                    {% if pc.status == 'Needs Checking' or pc.risk_level != 'Low' %}
-                    <button onclick="markPcChecked({{ pc.pcid }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
-                    {% endif %}
-                    <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
-                  </div>
-                  {% endif %}
-                </div> -->
+         
             {% endfor %}
           </div>
           <!-- PAGINATION -->
@@ -506,17 +492,6 @@ Import Excel
     {{ item.status }}
   </td>
 
-<td class="px-4 py-2 border-b font-medium
-      {% if item.status == 'Damaged' %}
-          text-red-600
-      {% else %}
-          text-green-600
-      {% endif %}">
-    {% if item.status == 'Damaged' %}
-        Not Functional
-    {% else %}
-        Functional
-    {% endif %}
 
 
 
