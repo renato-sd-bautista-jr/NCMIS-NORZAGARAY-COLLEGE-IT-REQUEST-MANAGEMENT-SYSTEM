@@ -1,0 +1,142 @@
+<div id="consumableModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-2xl w-full max-w-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+
+    <h3 id="consumableModalTitle" class="text-xl font-semibold text-green-600 mb-4">
+      Add Consumable
+    </h3>
+
+    <div id="consumableError" class="hidden bg-red-100 text-red-700 p-2 rounded mb-3"></div>
+
+    <form id="consumableForm">
+      <input type="hidden" id="accession_id" name="accession_id">
+
+      <div class="grid grid-cols-2 gap-3">
+
+        <input type="text" name="item_name" id="item_name" placeholder="Item Name" required class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+        <input type="text" name="category" id="category" placeholder="Category" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+        <input type="text" name="brand" id="brand" placeholder="Brand" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+        <input type="number" name="quantity" id="quantity" placeholder="Quantity" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+        <input type="text" name="unit" id="unit" placeholder="Unit (e.g. Reams)" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+        <input type="text" name="location" id="location" placeholder="Location" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500">
+
+            <select name="department_id" id="department_id" required
+            class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+
+            <option value="">Select Department</option>
+
+            {% for dept in departments %}
+                <option value="{{ dept.department_id }}">
+                {{ dept.department_name }}
+                </option>
+            {% endfor %}
+
+            </select>
+        <select name="status" id="status" placeholder="Status" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500" required> 
+
+          <option value="Available" >Available </option>
+          <option value="Low Stock">Low Stock</option>
+          <option value="Out of Stock">Out of Stock</option>
+        </select>
+
+        <textarea name="description" id="description" placeholder="Description" class="w-full p-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:ring-2 focus:ring-blue-500"></textarea> 
+
+      </div>
+
+      <div class="flex justify-end mt-4 gap-2">
+        <button type="button" onclick="closeConsumableModal()" class="bg-gray-400 px-4 py-2 rounded text-white">Cancel</button>
+        <button type="submit" class="bg-green-600 px-4 py-2 rounded text-white">Save</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+
+<script>
+
+async function openConsumableModalById(id) {
+  try {
+    const res = await fetch(`/get-consumable-by-id/${id}`);
+    if (!res.ok) throw new Error("Failed to fetch consumable data");
+    const data = await res.json();
+    openConsumableModal(data);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load consumable data.");
+  }
+}
+
+async function openConsumableModal(data = null) {
+  const modal = document.getElementById('consumableModal');
+  const form = document.getElementById('consumableForm');
+  const title = document.getElementById('consumableModalTitle');
+
+  form.reset();
+  document.getElementById('accession_id').value = '';
+
+  if (data) {
+    title.textContent = "Edit Consumable";
+    form.action = "/update-consumable";
+
+    // Fill all inputs except department first
+    const fields = ['accession_id','item_name','category','brand','quantity','unit','location','status','description'];
+    fields.forEach(key => {
+      const el = document.getElementById(key);
+      if (el) el.value = data[key] ?? '';
+    });
+  } else {
+    title.textContent = "Add Consumable";
+    form.action = "/add-consumable";
+  }
+
+  // Load departments and select current one if editing
+  const res = await fetch('/get-departments');
+  const departments = await res.json();
+  const deptSelect = document.getElementById('department_id');
+  deptSelect.innerHTML = '<option value="">Select Department</option>';
+
+  departments.forEach(dep => {
+    const selected = data && data.department_id == dep.department_id ? 'selected' : '';
+    deptSelect.innerHTML += `<option value="${dep.department_id}" ${selected}>${dep.department_name}</option>`;
+  });
+
+  modal.classList.remove('hidden');
+}
+
+function closeConsumableModal() {
+  document.getElementById('consumableModal').classList.add('hidden');
+}
+
+// ---------- FORM SUBMIT ----------
+document.getElementById("consumableForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const formData = new URLSearchParams(new FormData(form));
+
+  try {
+    const res = await fetch(form.action, { method: "POST", body: formData });
+    const result = await res.json();
+
+    if (result.success) {
+      alert(result.message);
+      location.reload();
+    } else {
+      alert("Failed to save consumable.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error submitting form.");
+  }
+});
+
+// ---------- EDIT BUTTON HANDLER ----------
+window.editConsumable = function(id) {
+  openConsumableModalById(id);
+};
+</script>

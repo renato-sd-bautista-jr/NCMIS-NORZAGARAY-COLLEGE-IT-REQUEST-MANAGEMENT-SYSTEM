@@ -29,9 +29,8 @@
 
         <div class="flex items-center gap-2">
           {% include 'pceditmodal.html' %}
-          {% include 'itemeditmodal.html' %}
-          {% include 'consumable_modal.html' %}
-          {% include 'addconsumable-modal.html' %}
+          {% include 'itemeditmodal.html' %}  
+          {% include 'consumableeditmodal.html' %} 
         </div>
 
       <div class="w-6"></div>
@@ -732,12 +731,12 @@ Import Excel
 </th>
                 <th class="px-4 py-2 border-b text-left">ID</th>
                 <th class="px-4 py-2 border-b text-left">Item Name</th>
-                <th class="px-4 py-2 border-b text-left">Brand / Model</th>
-                <th class="px-4 py-2 border-b text-left">Quantity</th>
-                <th class="px-4 py-2 border-b text-left">Acquisition Cost</th>
-                <th class="px-4 py-2 border-b text-left">Date Acquired</th>
-                <th class="px-4 py-2 border-b text-left">Accountable</th>
+                <th  class="px-4 py-2 border-b text-left">Category</th>
+                <th  class="px-4 py-2 border-b text-left">Brand</th>
+                <th  class="px-4 py-2 border-b text-left">Unit</th>
+                <th class="px-4 py-2 border-b text-left">Location</th>
                 <th class="px-4 py-2 border-b text-left">Department</th>
+                <th class="px-4 py-2 border-b text-left">Date Added</th> 
                 <th class="px-4 py-2 border-b text-left">Status</th>
                 <th class="px-4 py-2 border-b text-left">Functionality</th>
                 <th class="px-4 py-2 border-b text-left">Actions</th>
@@ -753,10 +752,12 @@ Import Excel
 </td>
                 <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
                 <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
-                <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
-                <td class="px-4 py-2 border-b font-semibold">{{ item.quantity }}</td>
-                <td class="px-4 py-2 border-b">₱{{ '%.2f'|format(item.acquisition_cost or 0) }}</td>
-                <td class="px-4 py-2 border-b">{{ item.date_acquired or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.category or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.brand or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.unit or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.location or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.date_added }}</td>
                 <td class="px-4 py-2 border-b">{{ item.accountable or '—' }}</td>
                 <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
                 <td class="px-4 py-2 border-b font-medium
@@ -774,7 +775,7 @@ Import Excel
 {% if permissions.get('inventory', {}).get('edit', False) %}
   <td class="px-4 py-2 border-b">
     <div class="flex flex-wrap gap-1">
-      <button onclick="openConsumableModal({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
+      <button onclick="editConsumable({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
       <button type="button" onclick="openDeleteModal('{{ url_for('manage_consumable_bp.delete_consumable', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
       <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
       <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
@@ -819,7 +820,7 @@ Import Excel
             
             {% if permissions.get('inventory', {}).get('edit', False) %}
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="openConsumableModal({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
+              <button onclick="editConsumable({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
               <button type="button" onclick="openDeleteModal('{{ url_for('manage_consumable_bp.delete_consumable', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
               <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
               <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
@@ -1088,14 +1089,7 @@ function renderPcTable(pc) {
     });
 
 
-    function openConsumableModal() {
-  console.log("clicked");
-  document.getElementById('addConsumableModal').classList.remove('hidden');
-}
-
-function closeConsumableModal() {
-  document.getElementById('addConsumableModal').classList.add('hidden');
-}
+ 
 
   
 
