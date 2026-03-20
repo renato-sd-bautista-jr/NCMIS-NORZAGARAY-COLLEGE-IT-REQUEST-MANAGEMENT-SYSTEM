@@ -33,7 +33,7 @@ def export_reports():
     query = """
         SELECT 
             d.item_name AS Name,
-            d.device_type AS Category,
+            'd.device_type' AS Category,
             dept.department_name AS Department,
             '' AS Location,
             d.accountable AS Accountable,
@@ -107,11 +107,7 @@ def export_reports():
 # 2️⃣ Get Combined Reports Data
 # -------------------------------
 @report_bp.route('/get-reports', methods=['GET'])
-def get_reports():
-    """
-    Combine items from devices_full and pcinfofull into a unified report view.
-    Supports filters like name, category, department, status, and date range.
-    """
+def loadReports():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
@@ -123,12 +119,15 @@ def get_reports():
     date_from = request.args.get('date_from', '').strip()
     date_to = request.args.get('date_to', '').strip()
 
-    # Base query combining both tables
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    offset = (page - 1) * per_page
+
     query = """
         SELECT 
             d.accession_id AS id,
             d.item_name AS name,
-            d.device_type AS category,
+            'Device' AS category,
             dept.department_name AS department,
             '' AS location,
             d.accountable,
@@ -157,7 +156,6 @@ def get_reports():
     filters = []
     params = []
 
-    # 🧩 Apply filters
     if name:
         filters.append("name LIKE %s")
         params.append(f"%{name}%")
@@ -180,11 +178,31 @@ def get_reports():
     if filters:
         query = f"SELECT * FROM ({query}) AS combined WHERE {' AND '.join(filters)}"
 
-    query += " ORDER BY date_acquired DESC"
+    # ---------- TOTAL COUNT ----------
+    count_query = f"SELECT COUNT(*) as total FROM ({query}) as count_table"
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()["total"]
+
+    # ---------- PAGINATION ----------
+    query += " ORDER BY date_acquired DESC LIMIT %s OFFSET %s"
+    params.extend([per_page, offset])
 
     cursor.execute(query, params)
     data = cursor.fetchall()
 
     cursor.close()
     conn.close()
-    return jsonify(data)
+
+    total_pages = (total + per_page - 1) // per_page
+
+    return jsonify({
+        "data": data,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": total_pages,
+            "has_prev": page > 1,
+            "has_next": page < total_pages
+        }
+    })

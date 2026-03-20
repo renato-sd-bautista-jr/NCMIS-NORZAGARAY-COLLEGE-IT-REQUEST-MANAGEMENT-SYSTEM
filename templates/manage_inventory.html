@@ -733,12 +733,14 @@ Import Excel
                 <th class="px-4 py-2 border-b text-left">Item Name</th>
                 <th  class="px-4 py-2 border-b text-left">Category</th>
                 <th  class="px-4 py-2 border-b text-left">Brand</th>
+                <th  class="px-4 py-2 border-b text-left">Quantity</th>
                 <th  class="px-4 py-2 border-b text-left">Unit</th>
-                <th class="px-4 py-2 border-b text-left">Location</th>
                 <th class="px-4 py-2 border-b text-left">Department</th>
-                <th class="px-4 py-2 border-b text-left">Date Added</th> 
+                <th class="px-4 py-2 border-b text-left">Location</th> 
                 <th class="px-4 py-2 border-b text-left">Status</th>
-                <th class="px-4 py-2 border-b text-left">Functionality</th>
+                <th class="px-4 py-2 border-b text-left">Description</th>
+                <th class="px-4 py-2 border-b text-left">Date Added</th>
+                <th class="px-4 py-2 border-b text-left">Last Updated</th> 
                 <th class="px-4 py-2 border-b text-left">Actions</th>
               </tr>
             </thead>
@@ -754,23 +756,24 @@ Import Excel
                 <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
                 <td class="px-4 py-2 border-b">{{ item.category or '—' }}</td>
                 <td class="px-4 py-2 border-b">{{ item.brand or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.quantity or '—' }}</td>
                 <td class="px-4 py-2 border-b">{{ item.unit or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
                 <td class="px-4 py-2 border-b">{{ item.location or '—' }}</td>
-                <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
-                <td class="px-4 py-2 border-b">{{ item.date_added }}</td>
-                <td class="px-4 py-2 border-b">{{ item.accountable or '—' }}</td>
-                <td class="px-4 py-2 border-b">{{ item.department_name or '—' }}</td>
                 <td class="px-4 py-2 border-b font-medium
-      {% if item.status == 'Available' %}text-green-600
-      {% elif item.status == 'In Used' %}text-blue-600
-      {% elif item.status == 'Inactive' %}text-gray-500
-      {% else %}text-red-600{% endif %}">
-  {{ item.status }}
-</td>
-<td class="px-4 py-2 border-b font-medium
-      {% if item.status == 'Damaged' %}text-red-600{% else %}text-green-600{% endif %}">
-  {% if item.status == 'Damaged' %}Not Functional{% else %}Functional{% endif %}
-</td>
+                    {% if item.quantity == 0 %} text-red-600 {% elif item.quantity <= 50 %} text-yellow-500 {% else %} text-green-600 {% endif %}">
+                    {% if item.quantity == 0 %}
+                        No Stock
+                    {% elif item.quantity <= 50 %}
+                        Low Stock
+                    {% else %}
+                        Good Stock
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 border-b">{{ item.description or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.date_added or '—' }}</td>
+                <td class="px-4 py-2 border-b">{{ item.last_updated or '—' }}</td>
+ 
      <!-- ACTIONS -->
 {% if permissions.get('inventory', {}).get('edit', False) %}
   <td class="px-4 py-2 border-b">

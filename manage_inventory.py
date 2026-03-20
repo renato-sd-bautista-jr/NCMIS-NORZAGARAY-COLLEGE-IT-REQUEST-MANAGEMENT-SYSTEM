@@ -222,33 +222,6 @@ def bulk_mark_pc_checked():
     finally:
         conn.close()
 
-def get_consumables_list():
-    """Get all consumables with department information."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                    SELECT 
-                        df.accession_id,
-                        df.item_name,
-                        df.brand AS brand_model,
-                        df.quantity,
-                        NULL AS acquisition_cost,
-                        df.date_added AS date_acquired,
-                        df.added_by AS accountable,
-                        df.status,
-                        dep.department_id,
-                        dep.department_name
-                    FROM consumables df
-                    LEFT JOIN departments dep ON df.department_id = dep.department_id
-                    WHERE 1=1
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching consumables: {e}")
-        return []
-    finally:
-        conn.close()
 
  
 
@@ -1118,14 +1091,19 @@ def get_consumables_list(department_id=None, status=None, accountable=None,
             SELECT 
                 c.accession_id,
                 c.item_name,
-                c.brand AS brand_model,
+                c.category,
+                c.brand,
                 c.quantity,
-                c.date_added,
-                c.added_by AS accountable,
+                c.unit,
+                c.department_id,
+                dep.department_name,
+                c.location,
                 c.status,
-                d.department_name
+                c.description,
+                c.date_added,
+                c.last_updated
             FROM consumables c
-            LEFT JOIN departments d ON c.department_id = d.department_id
+            LEFT JOIN departments dep ON c.department_id = dep.department_id
             WHERE 1=1
         """
         params = []

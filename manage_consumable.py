@@ -31,7 +31,49 @@ def get_departments_list():
     finally:
         conn.close()
 
- 
+@manage_consumable_bp.route('/get-consumable-by-id/<int:item_id>')
+def get_consumable_by_id(item_id):
+    """Fetch a single consumable record with full details."""
+    
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            cur.execute("""
+                SELECT
+                    c.accession_id,
+                    c.item_name,
+                    c.category,
+                    c.brand,
+                    c.quantity,
+                    c.unit,
+                    c.department_id,
+                    d.department_name,
+                    c.location,
+                    c.status,
+                    c.description,
+                    c.date_added,
+                    c.last_updated
+                FROM consumables c
+                LEFT JOIN departments d
+                    ON c.department_id = d.department_id
+                WHERE c.accession_id = %s
+            """, (item_id,))
+
+            item = cur.fetchone()
+
+        if not item:
+            return jsonify({'error': 'Consumable not found'}), 404
+        print(f"✅ Fetched consumable by ID {item_id}: {item['item_name']}")
+        return jsonify(item)
+
+    except Exception as e:
+        print(f"❌ Error fetching consumable by ID: {e}")
+        return jsonify({'error': 'Database error'}), 500
+
+    finally:
+        conn.close()
 # ✅ Filter Consumables
 @manage_consumable_bp.route('/filter-consumable', methods=['GET'])
 def filter_consumables():
@@ -133,6 +175,8 @@ def get_consumables():
                 c.description,
                 c.date_added,
                 dep.department_name
+                        
+                
             FROM consumables c
             LEFT JOIN departments dep 
                 ON c.department_id = dep.department_id
@@ -158,18 +202,17 @@ def manage_consumable_page():
             SELECT 
                 df.accession_id,
                 df.item_name,
-                df.brand_model,
+                df.category,
+                df.brand,
                 df.quantity,
-                df.acquisition_cost,
-                df.date_acquired,
-                df.accountable,
+                df.unit,
+                df.department_id,
+                df.location,
                 df.status,
-                df.risk_level,
-                df.health_score,
-                df.last_checked,
-                df.maintenance_interval_days,
-                dep.department_id,
-                dep.department_name
+                df.description,
+                df.date_added,
+                df.last_updated,
+                added_by
             FROM consumables c
             LEFT JOIN departments dep ON c.department_id = dep.department_id
         """
@@ -201,9 +244,58 @@ def manage_consumable_page():
         conn.close()
 
     return render_template('manage_consumable.html', consumables=consumables, departments=departments)
-
 @manage_consumable_bp.route('/add-consumable', methods=['POST'])
 def add_consumable():
+    conn = get_db_connection()
+    try:
+        form = request.form
+
+        item_name = form.get('item_name')
+        category = form.get('category')
+        brand = form.get('brand')
+        quantity = int(form.get('quantity') or 0)
+        unit = form.get('unit')
+        department_id = form.get('department_id')
+        location = form.get('location')
+        status = form.get('status') or "Available"
+        description = form.get('description')
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO consumables
+                (item_name, category, brand, quantity, unit, department_id, location, status, description, date_added, last_updated, added_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),NOW(),%s)
+            """, (
+                item_name,
+                category,
+                brand,
+                quantity,
+                unit,
+                department_id,
+                location,
+                status,
+                description,
+                "admin"
+            ))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Consumable added successfully!"
+        })
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ Error adding consumable:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Error adding consumable."
+        })
+
+    finally:
+        conn.close()
     conn = get_db_connection()
     try:
         form = request.form
@@ -250,24 +342,22 @@ def update_consumable():
     try:
         form = request.form
         accession_id = form.get('accession_id')
-        if not accession_id:
-            flash("Missing consumable ID.", "danger")
-            return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
 
         with conn.cursor() as cur:
             cur.execute("""
-            UPDATE consumables
-            SET item_name=%s,
-                category=%s,
-                brand=%s,
-                quantity=%s,
-                unit=%s,
-                department_id=%s,
-                location=%s,
-                status=%s,
-                description=%s,
-                last_updated=NOW()
-            WHERE accession_id=%s
+                UPDATE consumables
+                SET
+                    item_name=%s,
+                    category=%s,
+                    brand=%s,
+                    quantity=%s,
+                    unit=%s,
+                    department_id=%s,
+                    location=%s,
+                    status=%s,
+                    description=%s,
+                    last_updated=NOW()
+                WHERE accession_id=%s
             """, (
                 form.get('item_name'),
                 form.get('category'),
@@ -280,19 +370,26 @@ def update_consumable():
                 form.get('description'),
                 accession_id
             ))
-            conn.commit()
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({"success": True, "message": "Consumable updated successfully!"})
-        else:
-            flash("Consumable updated successfully!", "success")
-            return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Consumable updated successfully!"
+        })
+
     except Exception as e:
         conn.rollback()
-        print(f"❌ Error updating consumable: {e}")
-        flash("Error updating consumable.", "danger")
-        return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
+        print("❌ Error updating consumable:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Update failed."
+        })
+
     finally:
         conn.close()
+
 
 @manage_consumable_bp.route('/delete-consumable/<int:id>', methods=['POST'])
 def delete_consumable(id):
@@ -309,58 +406,8 @@ def delete_consumable(id):
         conn.close()
     return redirect(url_for('manage_consumable_bp.manage_consumable_page'))
 
-@manage_consumable_bp.route('/get-consumable-by-id/<int:item_id>')
-def get_consumable_by_id(item_id):
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    accession_id,
-                    item_name,
-                    category,
-                    brand,
-                    quantity,
-                    unit,
-                    department_id,
-                    location,
-                    status,
-                    description,
-                    date_added
-                FROM consumables
-                WHERE accession_id = %s
-            """, (item_id,))
-            
-            item = cur.fetchone()
+ 
 
-            if item:
-            # Remap fields for modal
-                item_modal = {
-                    'accession_id': item['accession_id'],
-                    'item_name': item['item_name'] or '',
-                    'category': item['category'] or '',
-                    'brand': item['brand'] or '',
-                    'quantity': item['quantity'] or 0,
-                    'unit': item['unit'] or '',
-                    'department_id': item['department_id'] or '',
-                    'location': item['location'] or '',
-                    'status': item['status'] or 'Available',
-                    'description': item['description'] or '',
-                    'date_acquired': item['date_added'].strftime('%Y-%m-%d') if item['date_added'] else ''
-                }
-                return jsonify(item_modal)
-
-        if not item:
-            return jsonify({'error': 'Consumable not found'}), 404
-
-        return jsonify(item)
-
-    except Exception as e:
-        print("❌ Error:", e)
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        conn.close()
-# ✅ Bulk Update Consumables
 @manage_consumable_bp.route('/consumable/bulk-update', methods=['POST'])
 def bulk_update_consumables():
     conn = get_db_connection()
