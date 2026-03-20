@@ -338,9 +338,7 @@ Import Excel
 
         
       </section>
-
-      <!-- MANAGE DEVICES SECTION -->
-      <!-- SURRENDERED PCS SECTION -->
+ 
       <section id="surrenderedSection" class="hidden">
         <div class="bg-white rounded-xl shadow-lg p-6">
           <h3 class="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
@@ -445,6 +443,13 @@ Import Excel
         <i data-lucide="check-square"></i>
         Apply to Selected
       </button>
+      <button
+              onclick="bulkMarkCheckedSelectedDevices()"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+              <i data-lucide="check-square"></i>
+              Mark Selected Checked
+            </button>
+          <button>
       <button id="bulkDamagedBtn"
           onclick="bulkMarkDamagedSelectedDevices()"
           class="bg-red-600 text-white px-3 py-1 rounded"
@@ -713,8 +718,7 @@ Import Excel
             <option value="Damaged">Damaged</option>
             <option value="Inactive">Inactive</option>
           </select>
-
-          <button
+          
             onclick="bulkUpdateConsumables()"
             class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <i data-lucide="check-square"></i>

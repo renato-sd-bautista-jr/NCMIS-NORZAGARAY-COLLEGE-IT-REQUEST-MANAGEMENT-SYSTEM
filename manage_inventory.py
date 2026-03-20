@@ -223,7 +223,106 @@ def bulk_mark_pc_checked():
         conn.close()
 
 
- 
+@manage_inventory_bp.route('/inventory/device/bulk-check', methods=['POST'])
+def bulk_mark_device_checked():
+    data = request.get_json()
+    device_ids = data.get("device_ids", [])
+
+    if not device_ids:
+        return jsonify(success=False, error="No devices selected"), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            placeholders = ','.join(['%s'] * len(device_ids))
+
+            # Get previous status/risk
+            cur.execute(f"""
+                SELECT accession_id, status, risk_level
+                FROM devices_full
+                WHERE accession_id IN ({placeholders})
+            """, tuple(device_ids))
+
+            devices = cur.fetchall()
+
+            # Update devices
+            cur.execute(f"""
+                UPDATE devices_full
+                SET
+                    last_checked = CURDATE(),
+                    health_score = 100,
+                    risk_level = 'Low',
+                    status = 'Available'
+                WHERE accession_id IN ({placeholders})
+            """, tuple(device_ids))
+
+            # Insert logs
+            for dev in devices:
+
+                cur.execute("""
+                    INSERT INTO maintenance_logs (
+                        asset_type,
+                        asset_id,
+                        previous_status,
+                        new_status,
+                        previous_risk_level,
+                        new_risk_level,
+                        action
+                    ) VALUES (
+                        'Device',
+                        %s,
+                        %s,
+                        'Available',
+                        %s,
+                        'Low',
+                        'Bulk inspection completed'
+                    )
+                """, (
+                    dev['accession_id'],
+                    dev['status'],
+                    dev['risk_level']
+                ))
+
+                cur.execute("""
+                    INSERT INTO maintenance_history (
+                        asset_type,
+                        asset_id,
+                        action,
+                        old_status,
+                        new_status,
+                        risk_level,
+                        health_score,
+                        performed_by,
+                        remarks
+                    ) VALUES (
+                        'Device',
+                        %s,
+                        'Bulk inspection completed',
+                        %s,
+                        'Available',
+                        'Low',
+                        100,
+                        %s,
+                        %s
+                    )
+                """, (
+                    dev['accession_id'],
+                    dev['status'],
+                    'System',
+                    'Bulk marked as checked'
+                ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()
 
 @manage_inventory_bp.route('/inventory/device/bulk-update', methods=['POST'])
 def bulk_update_devices():

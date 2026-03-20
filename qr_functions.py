@@ -147,7 +147,7 @@ def device_qr(accession_id):
             cursor.execute("""
                 SELECT accession_id, item_name, brand_model, serial_no
                 FROM devices_full
-                WHERE accession_id = %s
+                WHERE status = 'Available' AND accession_id = %s 
             """, (accession_id,))
             device = cursor.fetchone()
     finally:
@@ -179,7 +179,9 @@ def get_all_pc_qrs():
                     location,
                     status
                 FROM pcinfofull
+                WHERE status = 'Available'
                 ORDER BY pcid DESC
+               
             """)
 
             pcs = cursor.fetchall()
@@ -210,7 +212,7 @@ def pc_qr(pcid):
             cursor.execute("""
                 SELECT pcid, pcname, serial_no, location
                 FROM pcinfofull
-                WHERE pcid = %s
+                WHERE pcid = %s and status == 'Active'
             """, (pcid,))
 
             pc = cursor.fetchone()

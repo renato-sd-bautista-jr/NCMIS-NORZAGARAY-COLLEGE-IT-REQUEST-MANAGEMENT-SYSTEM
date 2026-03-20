@@ -140,3 +140,56 @@ function toggleSelectAllDevices(master) {
   document.querySelectorAll(".device-checkbox")
     .forEach(cb => cb.checked = master.checked);
 }
+
+
+function bulkMarkCheckedSelectedDevices() {
+  const selected = [...document.querySelectorAll(".device-checkbox:checked")]
+    .map(cb => cb.value);
+
+  if (!selected.length) {
+    if (typeof showConfirmationModal === 'function') {
+      showConfirmationModal(
+        "Selection Required",
+        "Please select at least one device to mark as checked.",
+        "OK"
+      );
+    } else {
+      alert("Select at least one device.");
+    }
+    return;
+  }
+
+  const executeBulkCheck = () => {
+    fetch("/inventory/device/bulk-check", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ device_ids: selected })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.error || "Bulk update failed");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Server error during bulk update.");
+    });
+  };
+
+  if (typeof showBulkMarkCheckedModal === "function") {
+    showBulkMarkCheckedModal(
+      `Mark ${selected.length} selected device(s) as checked?`,
+      executeBulkCheck
+    );
+  } else {
+    if (!confirm(`Mark ${selected.length} devices as checked?`)) return;
+    executeBulkCheck();
+  }
+
+  loadDevices();
+}
