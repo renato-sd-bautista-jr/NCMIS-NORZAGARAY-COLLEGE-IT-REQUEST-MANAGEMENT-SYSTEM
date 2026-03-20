@@ -88,3 +88,8 @@ if (btn) setActiveNav(btn);
   }
 
 });
+
+function toggleSelectAllDevices(master) {
+  document.querySelectorAll(".device-checkbox")
+    .forEach(cb => cb.checked = master.checked);
+}

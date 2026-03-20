@@ -2,13 +2,8 @@
 // MANAGE DEVICES SECTION
 // =======================
 
-// ---------- SELECT ALL ----------
-function toggleSelectAllDevices() {
-  const master = document.getElementById("selectAllDevices");
-  document.querySelectorAll(".device-checkbox")
-    .forEach(cb => cb.checked = master.checked);
-}
 
+ 
 // ---------- BULK STATUS UPDATE ----------
 function bulkUpdateDevices() {
   const status = document.getElementById("bulkDeviceStatus").value;
@@ -106,8 +101,42 @@ window.bulkUpdateDevices = function () {
   );
 };
 
-window.toggleSelectAllDevices = function () {
-  const master = document.getElementById("selectAllDevices");
+ 
+function bulkMarkDamagedSelectedDevices() {
+  const checked = Array.from(document.querySelectorAll('.device-checkbox'))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  if (checked.length === 0) {
+    alert('No Devices selected');
+    return;
+  }
+
+  if (!confirm(`Mark ${checked.length} Device(s) as DAMAGED?`)) return;
+
+  fetch('/inventory/device-bulk-damaged', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      device_ids: checked,
+      damage_type: 'General Damage',
+      description: 'Bulk marked as damaged'
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d && d.success) location.reload();
+    else alert('Failed: ' + (d.error || 'unknown'));
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Operation failed');
+  });
+}
+
+function toggleSelectAllDevices(master) {
   document.querySelectorAll(".device-checkbox")
     .forEach(cb => cb.checked = master.checked);
-};
+}

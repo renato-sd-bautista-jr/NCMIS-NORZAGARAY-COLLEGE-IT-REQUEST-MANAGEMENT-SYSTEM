@@ -168,8 +168,8 @@
             <td class="p-2 border">${row.department || '-'}</td>
             <td class="p-2 border">${row.location || '-'}</td>
             <td class="p-2 border">${row.accountable || '-'}</td>
-            <td class="p-2 border ${severityClass}">${row.damage_type || '-'}</td>
-            <td class="p-2 border">${row.damage_description || '-'}</td>
+            <td class="p-2 border ${severityClass}">${row.status || 'Needs Repair'}</td>
+            <td class="p-2 border">${row.damage_description || 'Unknown'}</td>
             <td class="p-2 border">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
             <td class="p-2 border">${row.date_acquired || '-'}</td>
           </tr>`;
@@ -289,6 +289,8 @@
       // Trigger download
       window.location.href = `/export-damage-reports?${params}`;
     });
+
+    loadDamageReports();
   </script>
 </body>
 </html>

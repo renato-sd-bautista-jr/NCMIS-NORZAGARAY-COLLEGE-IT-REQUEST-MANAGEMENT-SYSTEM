@@ -445,6 +445,12 @@ Import Excel
         <i data-lucide="check-square"></i>
         Apply to Selected
       </button>
+      <button id="bulkDamagedBtn"
+          onclick="bulkMarkDamagedSelectedDevices()"
+          class="bg-red-600 text-white px-3 py-1 rounded"
+        >
+          Mark as Damaged
+        </button>
       {% endif %}
     </div>
     {% if item_list|length == 0 %}
@@ -455,7 +461,10 @@ Import Excel
         <thead class="bg-gray-200 text-gray-700">
           <tr>
             <th class="px-4 py-2 border-b text-left">
-  <input type="checkbox" id="selectAllDevices" onclick="toggleSelectAllDevices()">
+  <input
+  type="checkbox"
+  id="selectAllDevices"
+  onclick="toggleSelectAllDevices(this)">
 </th>
             <th class="px-4 py-2 border-b text-left">ID</th>
             <th class="px-4 py-2 border-b text-left">Device Name</th>
@@ -475,10 +484,10 @@ Import Excel
           {% for item in item_list %}
           <tr class="hover:bg-gray-100 transition">
             <td class="px-4 py-2 border-b">
-  <input type="checkbox"
-         class="device-checkbox"
-         value="{{ item.accession_id }}">
-</td>
+                    <input type="checkbox"
+                          class="device-checkbox"
+                          value="{{ item.accession_id }}">
+                  </td>
   <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
   <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
   <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>

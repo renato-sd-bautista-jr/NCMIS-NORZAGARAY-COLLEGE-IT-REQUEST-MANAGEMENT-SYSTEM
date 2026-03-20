@@ -20,7 +20,7 @@ def damage_report_page():
 
 @damage_report_bp.route('/get-damage-reports', methods=['GET'])
 @check_permission('damage_report', 'view')
-def get_damage_reports():
+def loadDamageReports():
 
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -29,60 +29,78 @@ def get_damage_reports():
     name = request.args.get('name', '').strip()
     category = request.args.get('category', '').strip()
     department = request.args.get('department', '').strip()
-    severity = request.args.get('severity', '').strip()
+    status = request.args.get('status', '').strip()
     date_from = request.args.get('date_from', '').strip()
     date_to = request.args.get('date_to', '').strip()
 
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    offset = (page - 1) * per_page
+
     query = """
         SELECT 
-            dr.id,
+            d.accession_id AS id,
+            d.item_name AS name,
+            'Device' AS category,
+            dept.department_name AS department,
+            '' AS location,
+            d.accountable,
+            d.status,
+            d.acquisition_cost,
+            d.date_acquired
+        FROM devices_full d
+        LEFT JOIN departments dept ON dept.department_id = d.department_id
+        WHERE d.status = 'Damaged'
+        UNION ALL
+
+        SELECT 
+            p.pcid AS id,
             p.pcname AS name,
             'PC' AS category,
             dept.department_name AS department,
             p.location,
             p.accountable,
-            dr.damage_type,
-            dr.description AS damage_description,
+            p.status,
             p.acquisition_cost,
-            p.date_acquired,
-            dr.date_reported
-        FROM damage_reports dr
-        LEFT JOIN pcinfofull p ON dr.pcid = p.pcid
+            p.date_acquired
+        FROM pcinfofull p
         LEFT JOIN departments dept ON dept.department_id = p.department_id
-        WHERE dr.pcid IS NOT NULL
+        WHERE p.status = 'Damaged'
     """
 
     filters = []
     params = []
 
     if name:
-        filters.append("p.pcname LIKE %s")
+        filters.append("name LIKE %s")
         params.append(f"%{name}%")
-
     if category and category.lower() != "all":
-        filters.append("'PC' = %s")
+        filters.append("category = %s")
         params.append(category)
-
     if department and department.lower() != "all":
-        filters.append("dept.department_name = %s")
+        filters.append("department = %s")
         params.append(department)
-
-    if severity and severity.lower() != "all":
-        filters.append("dr.damage_type = %s")  # using damage_type instead
-        params.append(severity)
-
+    if status and status.lower() != "all":
+        filters.append("status = %s")
+        params.append(status)
     if date_from:
-        filters.append("p.date_acquired >= %s")
+        filters.append("date_acquired >= %s")
         params.append(date_from)
-
     if date_to:
-        filters.append("p.date_acquired <= %s")
+        filters.append("date_acquired <= %s")
         params.append(date_to)
 
     if filters:
-        query += " AND " + " AND ".join(filters)
+        query = f"SELECT * FROM ({query}) AS combined WHERE {' AND '.join(filters)}"
 
-    query += " ORDER BY dr.date_reported DESC"
+    # ---------- TOTAL COUNT ----------
+    count_query = f"SELECT COUNT(*) as total FROM ({query}) as count_table"
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()["total"]
+
+    # ---------- PAGINATION ----------
+    query += " ORDER BY date_acquired DESC LIMIT %s OFFSET %s"
+    params.extend([per_page, offset])
 
     cursor.execute(query, params)
     data = cursor.fetchall()
@@ -90,4 +108,16 @@ def get_damage_reports():
     cursor.close()
     conn.close()
 
-    return jsonify(data)
+    total_pages = (total + per_page - 1) // per_page
+
+    return jsonify({
+        "data": data,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": total_pages,
+            "has_prev": page > 1,
+            "has_next": page < total_pages
+        }
+    })

@@ -1196,3 +1196,62 @@ def bulk_damaged_pcs():
 
     finally:
         conn.close()
+@manage_inventory_bp.route('/inventory/device-bulk-damaged', methods=['POST'])
+def bulk_damaged_devices():
+    data = request.get_json()
+
+    device_ids = data.get('device_ids', [])
+    damage_type = data.get('damage_type', 'General Damage')
+    description = data.get('description', '')
+
+    if not device_ids:
+        return jsonify(success=False, error="No devices selected"), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            placeholders = ','.join(['%s'] * len(device_ids))
+
+            # 1️⃣ Update status
+            cur.execute(
+                f"""
+                UPDATE devices_full 
+                SET status = 'Damaged' 
+                WHERE accession_id  IN ({placeholders})
+                """,
+                tuple(device_ids)
+            )
+
+            # 2️⃣ Insert damage reports
+            cur.execute(f"""
+                INSERT INTO device_damage_reports (
+                    accession_id,
+                    reported_by,
+                    damage_type,
+                    description
+                )
+                SELECT 
+                    dev.accession_id,
+                    'System',
+                    %s,
+                    %s
+                FROM devices_full dev
+                WHERE dev.accession_id IN ({placeholders})
+            """, (
+                damage_type,
+                description,
+                *device_ids
+            ))
+
+        conn.commit()
+        return jsonify(success=True)
+
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+    finally:
+        conn.close()

@@ -136,7 +136,7 @@ def loadReports():
             d.date_acquired
         FROM devices_full d
         LEFT JOIN departments dept ON dept.department_id = d.department_id
-
+        WHERE d.status = 'Available'
         UNION ALL
 
         SELECT 
@@ -151,6 +151,7 @@ def loadReports():
             p.date_acquired
         FROM pcinfofull p
         LEFT JOIN departments dept ON dept.department_id = p.department_id
+        WHERE p.status = 'Available'
     """
 
     filters = []
