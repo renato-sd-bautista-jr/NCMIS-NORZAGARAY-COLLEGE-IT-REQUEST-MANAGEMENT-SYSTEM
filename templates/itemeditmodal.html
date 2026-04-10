@@ -1,10 +1,16 @@
 <!-- Item Add/Edit Modal -->
-<div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-  <div class="bg-white p-8 rounded-2xl w-full max-w-4xl shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200">
-    <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-4 flex items-center gap-2">
-      <i data-lucide="plus-circle"></i>
-      <span>Add Item</span>
-    </h3>
+<!-- Ensure modal and backdrop are always above page content and pagination -->
+<div id="itemModal" class="hidden fixed inset-0 inventory-modal-backdrop flex items-center justify-center z-[9999] p-4">
+  <div class="inventory-item-card bg-white p-8 rounded-2xl w-full max-w-4xl shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-200 z-[10000]">
+    <div class="item-modal-header">
+      <h3 id="modalTitle" class="text-xl font-semibold text-blue-600 mb-0 flex items-center gap-2">
+        <i data-lucide="plus-circle"></i>
+        <span>Add Item</span>
+      </h3>
+      <button type="button" onclick="closeItemModal()" class="item-modal-close" aria-label="Close item modal">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
 
     <!-- Error Message -->
     <div id="itemModalError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
@@ -15,8 +21,27 @@
       <!-- Device Name -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Item Name</label>
-        <input type="text" name="item_name" id="item_name" required
+        <input type="text" name="item_name" id="item_name" list="pcPartNameOptions" required
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
+        <datalist id="pcPartNameOptions">
+          <option value="Motherboard"></option>
+          <option value="Processor (CPU)"></option>
+          <option value="RAM"></option>
+          <option value="Storage (SSD)"></option>
+          <option value="Storage (HDD)"></option>
+          <option value="Graphics Card (GPU)"></option>
+          <option value="Power Supply (PSU)"></option>
+          <option value="Casing"></option>
+          <option value="CPU Cooler"></option>
+          <option value="Monitor"></option>
+          <option value="Keyboard"></option>
+          <option value="Mouse"></option>
+          <option value="Network Card"></option>
+          <option value="LAN Cable"></option>
+          <option value="Power Cable"></option>
+          <option value="UPS"></option>
+          <option value="AVR"></option>
+        </datalist>
       </div>
 
       <!-- Brand / Model -->
@@ -43,7 +68,7 @@
       <!-- Quantity -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Quantity</label>
-        <input type="number" name="quantity" id="quantity" value="1" min="1"
+        <input type="number" name="quantity" id="quantity" min="1" required autocomplete="off"
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
       </div>
 
@@ -103,10 +128,10 @@
 
       <!-- Maintenance Duration -->
       <div>
-        <label class="block text-gray-700 font-medium mb-1"> Duration </label>
-        <input type="number" name="maintenance_interval_days" id="maintenance_interval_days" value="5" min="1" max="3650"
+        <label class="block text-gray-700 font-medium mb-1">Duration (Years)</label>
+        <input type="number" name="maintenance_interval_days" id="maintenance_interval_days" value="5" min="1" max="50"
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-        <p class="text-xs text-gray-500 mt-1">Set how many days before maintenance is required</p>
+        <p class="text-xs text-gray-500 mt-1">Set how many years before maintenance is required</p>
       </div>
 
       <!-- Buttons -->
@@ -124,7 +149,73 @@
   </div>
 </div>
 
+<style>
+.inventory-item-card {
+  border-radius: 1rem;
+  z-index: 10000 !important; /* Ensure modal content is above everything */
+}
+
+#itemModal {
+  z-index: 9999 !important; /* Ensure modal backdrop is above everything */
+}
+
+.item-modal-header {
+  margin: -2rem -2rem 1.25rem;
+  padding: 0.95rem 1.35rem;
+  border-radius: 0.85rem 0.85rem 0 0;
+  background: linear-gradient(112deg, #2563eb 0%, #4f46e5 58%, #4338ca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.item-modal-header h3,
+.item-modal-header i {
+  color: #ffffff !important;
+}
+
+.item-modal-close {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+.item-modal-close:hover {
+  transform: rotate(90deg);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-open-item #itemPaginationNav,
+.modal-open-item #itemPaginationSummary,
+.modal-open-item #itemPerPageForm {
+  display: none !important;
+}
+</style>
+
 <script>
+function convertStoredDaysToDisplayYears(rawValue) {
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return '';
+  if (numericValue >= 365) {
+    return String(Math.max(1, Math.round(numericValue / 365)));
+  }
+  return String(Math.round(numericValue));
+}
+
+function convertDisplayYearsToStoredDays(rawValue) {
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return '';
+  return String(Math.round(numericValue * 365));
+}
+
 async function openItemModal(itemData = null) {
   const modal = document.getElementById('itemModal');
   const title = document.getElementById('modalTitle');
@@ -183,8 +274,8 @@ async function openItemModal(itemData = null) {
     } else {
       serialNoGroup.classList.remove('hidden');
       municipalGroup.classList.remove('hidden');
-      quantity.readOnly = true;
-      quantity.classList.add('bg-gray-100', 'cursor-not-allowed');
+      quantity.readOnly = false;
+      quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
     }
   }
 
@@ -204,6 +295,8 @@ async function openItemModal(itemData = null) {
       if (key === 'date_acquired' && value && value !== "0000-00-00") {
         const dateObj = new Date(value);
         input.value = dateObj.toISOString().split('T')[0];
+      } else if (key === 'maintenance_interval_days' && value) {
+        input.value = convertStoredDaysToDisplayYears(value);
       } else {
         input.value = value ?? '';
       }
@@ -213,8 +306,8 @@ async function openItemModal(itemData = null) {
     serialInput.classList.remove('bg-gray-100');
     municipalInput.readOnly = false;
     municipalInput.classList.remove('bg-gray-100');
-    quantity.readOnly = true;
-    quantity.classList.add('bg-gray-100', 'cursor-not-allowed');
+    quantity.readOnly = false;
+    quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
     applyItemTypeRules(deviceTypeInput.value);
   } else {
     // ADD MODE
@@ -223,7 +316,7 @@ async function openItemModal(itemData = null) {
     submitBtn.textContent = "Add Item";
 
     quantity.readOnly = false;
-    quantity.value = 1;
+    quantity.value = '';
     quantity.classList.remove('bg-gray-100', 'cursor-not-allowed');
 
     // Generate Serials
@@ -259,6 +352,11 @@ document.getElementById("itemForm").addEventListener("submit", async function (e
   errorDiv.textContent = '';
 
   const data = new FormData(form);
+  const durationYears = data.get('maintenance_interval_days');
+  const durationDays = convertDisplayYearsToStoredDays(durationYears);
+  if (durationDays) {
+    data.set('maintenance_interval_days', durationDays);
+  }
   const serial_no = data.get('serial_no');
   const municipal_serial_no = data.get('municipal_serial_no');
   const accession_id = data.get('accession_id');
@@ -280,8 +378,10 @@ document.getElementById("itemForm").addEventListener("submit", async function (e
     const submitRes = await fetch(actionUrl, { method: 'POST', body: formData });
     if (!submitRes.ok) throw new Error(`HTTP ${submitRes.status}`);
 
-    // Reload or refresh the table
-    location.reload();
+    closeItemModal();
+    if (typeof window.refreshItemTableWithoutReload === 'function') {
+      window.refreshItemTableWithoutReload();
+    }
   } catch (err) {
     console.error(err);
     errorDiv.textContent = "Error submitting form. See console.";

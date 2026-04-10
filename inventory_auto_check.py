@@ -73,96 +73,61 @@ def parse_date(value):
         except ValueError:
             return None
     return None
+
+
+def normalize_interval_days(raw_value, default_days=30):
+    """
+    Normalize maintenance interval to days.
+
+    Backward compatibility:
+    - Existing rows may store small year-like values (e.g., 5) in
+      maintenance_interval_days due to older UI labeling.
+    - Values below 365 are interpreted as years and converted to days.
+    - Values 365+ are already treated as day counts.
+    """
+    try:
+        interval = int(raw_value or default_days)
+    except (TypeError, ValueError):
+        interval = default_days
+
+    interval = max(interval, 1)
+    if interval < 365:
+        interval *= 365
+
+    return interval
+
+
 def calculate_health_and_risk(pc):
-    score = 100
     today = date.today()
+    status = (pc.get("status") or "").strip()
+    status_key = status.lower()
 
-    date_acquired = parse_date(pc.get("date_acquired"))
+    if status_key in {"damaged", "damage", "unusable"}:
+        return 0, "High"
+
+    interval = normalize_interval_days(pc.get("maintenance_interval_days"), default_days=30)
+
     last_checked = parse_date(pc.get("last_checked"))
-    interval = pc.get("maintenance_interval_days") or 30
-    status = pc.get("status") or ""
-
-    # ---- Age penalty ----
-    if date_acquired:
-        age_years = (today - date_acquired).days / 365
-        if age_years > 5:
-            score -= 30
-        elif age_years > 3:
-            score -= 20
-        elif age_years > 1:
-            score -= 10
-
-    # ---- Maintenance delay ----
+    date_acquired = parse_date(pc.get("date_acquired"))
     if last_checked:
-        overdue_days = (today - last_checked).days - interval
-        if overdue_days > 90:
-            score -= 30
-        elif overdue_days > 30:
-            score -= 20
-        elif overdue_days > 0:
-            score -= 10
+        elapsed_days = max(0, (today - last_checked).days)
     else:
-        score -= 20  # never checked
+        baseline_date = date_acquired or today
+        elapsed_days = max(0, (today - baseline_date).days)
 
-    # ---- Status penalty ----
-    if status == "Needs Checking":
-        score -= 15
-    elif status == "In Used":
-        score -= 5
+    duration_percent = (elapsed_days / interval) * 100
+    score = round(max(0.0, 100.0 - duration_percent))
 
-    # ---- Clamp ----
-    score = max(score, 0)
+    score = max(0, min(100, int(score)))
 
-    # ---- Risk level ----
-    if score < 50:
+    if duration_percent >= 100:
         risk = "High"
-    elif score < 80:
+    elif duration_percent >= 80:
         risk = "Medium"
     else:
         risk = "Low"
 
-    return score, risk
-
-    score = 100
-    today = date.today()
-
-    # ---- Age penalty ----
-    if pc["date_acquired"]:
-        age_years = (today - pc["date_acquired"]).days / 365
-        if age_years > 5:
-            score -= 30
-        elif age_years > 3:
-            score -= 20
-        elif age_years > 1:
-            score -= 10
-
-    # ---- Maintenance delay ----
-    if pc["last_checked"]:
-        overdue_days = (today - pc["last_checked"]).days - pc["maintenance_interval_days"]
-        if overdue_days > 90:
-            score -= 30
-        elif overdue_days > 30:
-            score -= 20
-        elif overdue_days > 0:
-            score -= 10
-    else:
-        score -= 20  # never checked
-
-    # ---- Status penalty ----
-    if pc["status"] == "Needs Checking":
-        score -= 15
-    elif pc["status"] == "In Used":
-        score -= 5
-
-    # ---- Clamp score ----
-    score = max(score, 0)
-
-    # ---- Risk level ----
-    if score < 50:
-        risk = "High"
-    elif score < 80:
+    if status_key == "needs checking" and risk == "Low":
         risk = "Medium"
-    else:
-        risk = "Low"
 
     return score, risk

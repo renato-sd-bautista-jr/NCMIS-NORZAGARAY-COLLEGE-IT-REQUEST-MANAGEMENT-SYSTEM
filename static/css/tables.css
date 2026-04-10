@@ -21,10 +21,26 @@
 }
 
 .btn-link {
-  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #2563eb;
+  color: white;
   font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
 .btn-link:hover {
-  text-decoration: underline;
+  background-color: #1d4ed8;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.btn-link:active {
+  transform: translateY(0);
 }

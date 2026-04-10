@@ -1,7 +1,7 @@
 import pymysql
 import json
 from db import get_db_connection
-from flask import Blueprint, jsonify, request, render_template, redirect, url_for
+from flask import Blueprint, jsonify, request, render_template, redirect, url_for, flash
 from werkzeug.security import generate_password_hash
 manage_user_bp = Blueprint('manage_user_bp', __name__, template_folder='templates')
 
@@ -12,11 +12,32 @@ manage_user_bp = Blueprint('manage_user_bp', __name__, template_folder='template
 @manage_user_bp.route('/manage-user')
 def manage_user_page():
     """
-    Load Manage Users page and display all users.
+    Load Manage Users page with pagination.
     """
+    # Pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Validate per_page
+    if per_page not in [5, 10, 25, 50]:
+        per_page = 10
+    if page < 1:
+        page = 1
+    
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Get total count
+            cursor.execute("SELECT COUNT(*) as total FROM users")
+            total_items = cursor.fetchone()['total']
+
+            total_pages = (total_items + per_page - 1) // per_page if total_items else 1
+            if total_items and page > total_pages:
+                page = total_pages
+
+            offset = (page - 1) * per_page
+            
+            # Get paginated users
             cursor.execute("""
                  SELECT 
                 user_id,
@@ -31,9 +52,16 @@ def manage_user_page():
                 created_at
                 FROM users
                 ORDER BY faculty_name
-            """)
+                LIMIT %s OFFSET %s
+            """, (per_page, offset))
             users = cursor.fetchall()
-        return render_template('manage_user.html', users=users)
+        
+        return render_template('manage_user.html', 
+                             users=users,
+                             page=page,
+                             per_page=per_page,
+                             total_items=total_items,
+                             total_pages=total_pages)
     finally:
         conn.close()
 
@@ -95,9 +123,16 @@ def add_or_update_user():
         "inventory": {"view": "inventory_view" in permissions, "edit": "inventory_edit" in permissions},
         "qrlist": {"view": "qrlist_view" in permissions, "edit": "qrlist_edit" in permissions},
         "report": {"view": "report_view" in permissions, "edit": "report_edit" in permissions},
-        "dept": {"view": "dept_view" in permissions, "edit": "dept_edit" in permissions},
+        "dept": {
+            "view": "dept_view" in permissions,
+            "edit": "dept_edit" in permissions,
+            "delete": "dept_delete" in permissions
+        },
         "damage_report": {"view": "damage_report_view" in permissions, "edit": "damage_report_edit" in permissions},
-        "receive_item": {"view": "receive_item_view" in permissions, "edit": "receive_item_edit" in permissions}
+        "receive_item": {"view": "receive_item_view" in permissions, "edit": "receive_item_edit" in permissions},
+        "activity_log": {"view": "activity_log_view" in permissions, "edit": "activity_log_edit" in permissions},
+        "manage_user": {"view": "manage_user_view" in permissions, "edit": "manage_user_edit" in permissions},
+        "maintenance": {"view": "maintenance_view" in permissions, "edit": "maintenance_edit" in permissions}
     }
 
     if not first_name or not last_name or not username or not email:
@@ -106,6 +141,28 @@ def add_or_update_user():
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
+            email_check_query = """
+                SELECT user_id
+                FROM users
+                WHERE LOWER(email) = LOWER(%s)
+            """
+            email_check_params = [email]
+
+            if user_id:
+                email_check_query += " AND user_id <> %s"
+                email_check_params.append(user_id)
+
+            email_check_query += " LIMIT 1"
+            cursor.execute(email_check_query, tuple(email_check_params))
+            duplicate_email_row = cursor.fetchone()
+
+            if duplicate_email_row:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({"error": "Email already exists. Please use a different email."}), 409
+
+                flash("Email already exists. Please use a different email.", "error")
+                return redirect(url_for('manage_user_bp.manage_user_page'))
+
             if user_id:  # Update existing user
                 if new_password:
                     if new_password != confirm_password:

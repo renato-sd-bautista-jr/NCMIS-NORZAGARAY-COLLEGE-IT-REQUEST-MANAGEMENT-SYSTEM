@@ -3,11 +3,334 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Manage Offices/Facility</title>
+  <title>Manage Offices/Facility</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --page-bg-soft: #eef4ff;
+      --page-bg-accent: #e6ecff;
+      --card-border: #dbe5ff;
+    }
+
+    body {
+      font-family: 'Sora', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(900px 380px at 0% -10%, rgba(147, 197, 253, 0.35), transparent 60%),
+        radial-gradient(900px 380px at 100% -8%, rgba(165, 180, 252, 0.28), transparent 58%),
+        linear-gradient(135deg, #f8fbff 0%, var(--page-bg-soft) 48%, var(--page-bg-accent) 100%);
+    }
+
+    .hero-panel {
+      background: linear-gradient(112deg, #1454d4 0%, #3749d7 48%, #4338ca 100%);
+      box-shadow: 0 18px 50px rgba(30, 64, 175, 0.28);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero-panel::before,
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-panel::before {
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+      top: -180px;
+      right: -120px;
+    }
+
+    .hero-panel::after {
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(147, 197, 253, 0.35) 0%, rgba(147, 197, 253, 0) 72%);
+      bottom: -120px;
+      left: -90px;
+    }
+
+    .layout-card {
+      border: 1px solid var(--card-border);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      box-shadow: 0 15px 35px rgba(51, 65, 85, 0.08);
+    }
+
+    .meta-pill {
+      font-family: 'Manrope', sans-serif;
+      letter-spacing: 0.01em;
+    }
+
+    .action-btn {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-rendering: geometricPrecision;
+    }
+
+    .btn-premium {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.48rem;
+      border-radius: 0.8rem;
+      padding: 0.66rem 1.08rem;
+      font-size: 0.82rem;
+      line-height: 1;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      box-shadow: 0 14px 24px -18px rgba(15, 23, 42, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+
+    .btn-premium::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      background: linear-gradient(115deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 34%, rgba(255, 255, 255, 0) 62%);
+      transition: opacity 0.18s ease;
+    }
+
+    .btn-premium > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 28px -18px rgba(15, 23, 42, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      filter: saturate(1.12);
+    }
+
+    .btn-premium:hover::after {
+      opacity: 0.85;
+    }
+
+    .btn-premium:active {
+      transform: translateY(0) scale(0.99);
+      filter: saturate(1);
+    }
+
+    .btn-premium:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.26), 0 14px 24px -16px rgba(15, 23, 42, 0.55);
+    }
+
+    .btn-premium-emerald {
+      background: linear-gradient(140deg, #10b981 0%, #059669 56%, #047857 100%);
+      border-color: #047857;
+    }
+
+    .btn-premium-rose {
+      background: linear-gradient(140deg, #f43f5e 0%, #e11d48 56%, #be123c 100%);
+      border-color: #9f1239;
+    }
+
+    .btn-premium-indigo {
+      background: linear-gradient(140deg, #2563eb 0%, #4f46e5 56%, #4338ca 100%);
+      border-color: #3730a3;
+    }
+
+    .btn-modal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border-radius: 0.72rem;
+      padding: 0.58rem 1.04rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1;
+      border: 1px solid transparent;
+      box-shadow: 0 8px 16px -14px rgba(15, 23, 42, 0.35);
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease, filter 0.14s ease;
+    }
+
+    .btn-modal:hover {
+      transform: translateY(-1px);
+      filter: saturate(1.05);
+    }
+
+    .btn-modal:active {
+      transform: translateY(0);
+    }
+
+    .btn-modal:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 10px 18px -12px rgba(15, 23, 42, 0.45);
+    }
+
+    .btn-modal-neutral {
+      color: #334155;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-color: #cbd5e1;
+      box-shadow: 0 8px 14px -13px rgba(71, 85, 105, 0.5);
+    }
+
+    .btn-modal-neutral:hover {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    }
+
+    .btn-modal-success {
+      color: #ffffff;
+      background: linear-gradient(140deg, #16a34a 0%, #15803d 60%, #166534 100%);
+      border-color: #166534;
+      box-shadow: 0 11px 20px -14px rgba(22, 163, 74, 0.58);
+    }
+
+    .btn-modal-success:hover {
+      box-shadow: 0 14px 24px -14px rgba(22, 163, 74, 0.62);
+    }
+
+    .btn-modal-primary {
+      color: #ffffff;
+      background: linear-gradient(140deg, #2563eb 0%, #4f46e5 60%, #4338ca 100%);
+      border-color: #3730a3;
+      box-shadow: 0 11px 20px -14px rgba(59, 130, 246, 0.58);
+    }
+
+    .btn-modal-primary:hover {
+      box-shadow: 0 14px 24px -14px rgba(59, 130, 246, 0.64);
+    }
+
+    .btn-modal-danger {
+      color: #ffffff;
+      background: linear-gradient(140deg, #ef4444 0%, #dc2626 60%, #b91c1c 100%);
+      border-color: #991b1b;
+      box-shadow: 0 11px 20px -14px rgba(239, 68, 68, 0.6);
+    }
+
+    .btn-modal-danger:hover {
+      box-shadow: 0 14px 24px -14px rgba(239, 68, 68, 0.66);
+    }
+
+    .table-shell {
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 30%);
+      border: 1px solid #dbe7ff;
+      box-shadow: 0 18px 38px rgba(59, 130, 246, 0.08);
+      position: relative;
+      isolation: isolate;
+    }
+
+    .table-shell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.8rem;
+      pointer-events: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      z-index: 0;
+    }
+
+    .department-table-scroll {
+      position: relative;
+      z-index: 1;
+      scrollbar-width: thin;
+      scrollbar-color: #a5b4fc #edf2ff;
+    }
+
+    .department-table-scroll::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .department-table-scroll::-webkit-scrollbar-track {
+      background: #edf2ff;
+      border-radius: 999px;
+    }
+
+    .department-table-scroll::-webkit-scrollbar-thumb {
+      background: #a5b4fc;
+      border-radius: 999px;
+    }
+
+    .department-table thead th {
+      background: linear-gradient(90deg, #f8fafc 0%, #eef4ff 100%);
+      border-bottom: 1px solid #dbe5f1;
+    }
+
+    .department-table tbody tr td {
+      border-bottom: 1px solid #eef2ff;
+    }
+
+    .department-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .department-row {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .department-row:hover {
+      transform: translateY(-1px);
+    }
+
+    .department-row:hover td {
+      background: #eff6ff;
+    }
+
+    .department-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      border-radius: 999px;
+      padding: 0.38rem 0.74rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+      border: 1px solid transparent;
+      box-shadow: 0 9px 14px -12px rgba(15, 23, 42, 0.48);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+
+    .department-action-btn:hover {
+      transform: translateY(-1px);
+      filter: saturate(1.08);
+    }
+
+    .department-action-btn:active {
+      transform: translateY(0);
+    }
+
+    .department-action-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.24), 0 10px 18px -12px rgba(15, 23, 42, 0.52);
+    }
+
+    .department-action-btn.edit {
+      background: linear-gradient(140deg, #10b981 0%, #059669 60%, #047857 100%);
+      border-color: #047857;
+      color: #ffffff;
+    }
+
+    .department-action-btn.edit:hover {
+      box-shadow: 0 11px 18px -13px rgba(16, 185, 129, 0.58);
+    }
+
+    .department-action-btn.delete {
+      background: linear-gradient(140deg, #ef4444 0%, #dc2626 60%, #b91c1c 100%);
+      border-color: #991b1b;
+      color: #ffffff;
+    }
+
+    .department-action-btn.delete:hover {
+      box-shadow: 0 11px 18px -13px rgba(239, 68, 68, 0.6);
+    }
+  </style>
 </head>
-<body class="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
+<body class="flex min-h-screen text-gray-900">
 
   {% include 'sidebar.html' %}
 
@@ -17,64 +340,86 @@
  <!-- Main Content -->
     <main class="flex-1 p-6 overflow-y-auto md:ml-64 transition-all duration-300">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-xl shadow mb-6">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-          <i data-lucide="building-2" class="w-6 h-6"></i> Manage Offices/Facility
-        </h1>
-        <p class="text-sm text-blue-100">View and organize all Offices/Facility</p>
-        <button id="sidebarToggle" class="md:hidden bg-blue-600 text-white p-2 rounded-lg shadow">
-                <i data-lucide="menu"></i>
-        </button>
+      <div class="hero-panel mb-6 rounded-xl p-6 text-white">
+        <div class="relative z-10 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100/90">Department Management</p>
+            <h1 class="text-2xl font-extrabold flex items-center gap-2">
+              <i data-lucide="building-2" class="h-6 w-6"></i> Manage Offices/Facility
+            </h1>
+            <p class="mt-2 max-w-2xl text-sm text-blue-100">
+              View, organize, and maintain all offices and facilities in one clean workspace.
+            </p>
+          </div>
+          <button id="sidebarToggle" class="md:hidden bg-white/15 border border-white/30 text-white p-2 rounded-lg shadow-sm hover:bg-white/25 transition">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Table Card -->
-      <div class="bg-white rounded-xl shadow p-4">
-        <div class="flex justify-between items-center mb-4">
+      <div class="layout-card rounded-xl p-4">
+        <div class="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-blue-600 flex items-center gap-2">
+            <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <i data-lucide="list" class="w-5 h-5 text-blue-600"></i> Offices/Facility List
             </h2>
-            <p class="text-xs text-gray-500">All existing Offices/Facility</p>
+            <p class="text-xs text-slate-500">All existing Offices/Facility</p>
           </div>
-          <div class="flex gap-2">
-            <button id="testSuccessBtn"
-              class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow transition">
-              <i data-lucide="test-tube" class="w-4 h-4 inline"></i> Test Modal
-            </button>
-            <button id="openEditModal"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow transition">
-              <i data-lucide="edit-3" class="w-4 h-4 inline"></i> Edit Offices/Facility
-            </button>
-            <button id="openAddModal"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow transition">
-              <i data-lucide="plus-circle" class="w-4 h-4 inline"></i> Add Offices/Facility
-            </button>
+          <div class="flex items-center gap-2">
+            <div class="meta-pill inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs text-blue-700">
+              <i data-lucide="folder-open" class="h-3.5 w-3.5"></i>
+              <span id="departmentCount" class="font-bold">0</span>
+              <span class="text-blue-600/90">total records</span>
+            </div>
           </div>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs">
-                  Offices/Facility Name
-                </th>
-                <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs">
-                  Category
-                </th>
-                <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase text-xs">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            
-            <tbody id="departmentTable">
-              
-              <!-- Rows will be dynamically loaded here -->
-             
-            </tbody>
-            
-          </table>
+        <div class="mb-4 flex flex-wrap gap-2 sm:gap-2.5">
+            <button id="openEditModal"
+              class="action-btn btn-premium btn-premium-emerald">
+              <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Offices/Facility
+            </button>
+            <button id="openSelectDeleteModal"
+              class="action-btn btn-premium btn-premium-rose">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Offices/Facility
+            </button>
+            <button id="openAddModal"
+              class="action-btn btn-premium btn-premium-indigo"
+              aria-label="Add Office or Facility">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Add Office/Facility</span>
+            </button>
+        </div>
+
+        <div class="table-shell overflow-hidden rounded-xl">
+          <div class="department-table-scroll overflow-x-auto">
+            <table class="department-table min-w-full text-sm border-separate border-spacing-0">
+              <thead class="border-b border-gray-200 backdrop-blur-sm">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
+                    Offices/Facility Name
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
+                    Category
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
+                    PC Count
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody id="departmentTable" class="divide-y divide-gray-100 bg-white">
+
+                <!-- Rows will be dynamically loaded here -->
+
+              </tbody>
+
+            </table>
+          </div>
         </div>
       </div>
     </main>
@@ -94,15 +439,15 @@
       <label class="block font-medium text-gray-700 mb-2">Category</label>
       <select id="editDepartmentCategory" name="category" required
              class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none mb-4">
-        <option value="">Select Computer Laboratory</option>
-        <option value="ComputerLaboratorya">Computer Laboratory A</option>
-        <option value="ComputerLaboratoryb">Computer Laboratory B</option>
-        <option value="ComputerLaboratoryc">Computer Laboratory C</option>
+        <option value="">Select category</option>
+          <option value="Laboratory">Laboratory</option>
+          <option value="Office">Office</option>
+          <option value="Facility">Facility</option>          
         <option value="other">Other</option>
       </select>
       <div class="flex justify-end gap-2">
-        <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md" onclick="handleEditSubmit(event)">Save</button>
+        <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+        <button type="submit" class="btn-modal btn-modal-success">Save</button>
       </div>
     </form>
   </div>
@@ -121,66 +466,109 @@
           <option value="">Select an office/facility...</option>
         </select>
         <div class="flex justify-end gap-2">
-          <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button type="button" id="proceedToEdit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md">Edit</button>
+          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+          <button type="button" id="proceedToEdit" class="btn-modal btn-modal-success">Edit</button>
         </div>
       </div>
     </div>
   </div>
   <!-- Add Department Modal -->
-  <div id="addDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div id="addDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="addDepartmentTitle">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-      <div class="bg-blue-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
-        <i data-lucide="plus-circle" class="w-5 h-5"></i>
-      <form id="addDepartmentForm" class="p-5">
-        <label class="block font-medium text-gray-700 mb-2">Offices/Facility Name</label>
-        <input type="text" name="department_name" placeholder="Enter Offices/Facility name" required
-               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4">
+      <div class="bg-blue-600 text-white px-5 py-3 rounded-t-xl flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          <h5 id="addDepartmentTitle" class="text-lg font-semibold">Add Office/Facility</h5>
+        </div>
+        <button type="button" class="closeModal text-white p-2 rounded hover:bg-white/10" aria-label="Close add modal">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <form id="addDepartmentForm" class="p-5" autocomplete="off" novalidate>
+        <label class="block font-medium text-gray-700 mb-2">Office/Facility Name</label>
+        <input aria-label="Office or Facility name" type="text" name="department_name" placeholder="Enter office/facility name" required
+               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4" aria-required="true">
         <label class="block font-medium text-gray-700 mb-2">Category</label>
-        <select name="category" required
+        <select name="category" required aria-required="true"
                class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4">
-          <option value="">Select Computer Laboratory</option>
-          <option value="ComputerLaboratorya">Computer Laboratory A</option>
-          <option value="ComputerLaboratoryb">Computer Laboratory B</option>
-          <option value="ComputerLaboratoryc">Computer Laboratory C</option>
+          <option value="">Select category</option>
+          <option value="Laboratory">Laboratory</option>
+          <option value="Office">Office</option>
+          <option value="Facility">Facility</option>
           <option value="other">Other</option>
         </select>
         <div class="flex justify-end gap-2">
-              <button type="button" class="closeModal bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded">Cancel</button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md">Add</button>
+          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+          <button type="submit" class="btn-modal btn-modal-primary">Add</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Select Department to Delete Modal -->
+  <div id="selectDeleteModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div id="selectDeleteModalCard" class="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all duration-300 ease-out scale-95 opacity-0">
+      <div class="bg-red-600 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="trash-2" class="w-5 h-5"></i>
+          <h5 class="text-lg font-bold">Select Office/Facility to Delete</h5>
+        </div>
+        <button type="button" class="closeModal text-white/90 hover:text-white p-1 rounded" aria-label="Close">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5">
+        <label class="block font-medium text-gray-700 mb-2">Choose Office/Facility</label>
+        <select id="departmentDeleteSelect" required
+               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-red-400 focus:outline-none mb-4">
+          <option value="">Select an office/facility...</option>
+        </select>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+          <button type="button" id="proceedToDelete" class="btn-modal btn-modal-danger">
+            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Delete Department Modal -->
-  <div id="deleteDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-      <div class="bg-red-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
-        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-        <h5 class="text-lg font-bold">Confirm Deletion</h5>
-      </div>
-      <form id="deleteDepartmentForm" class="p-5">
-        <p class="text-gray-700 mb-3">Are you sure you want to delete the Offices/Facility:</p>
-        <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-4">
-          <span id="deleteDepartmentName" class="font-semibold text-gray-800"></span>
+  <div id="deleteDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDesc">
+    <div id="deleteDepartmentModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative transform transition-all duration-300 ease-out scale-95 opacity-0">
+      <div class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
+        <div class="bg-white/20 rounded-full p-2">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         </div>
-        <div class="flex justify-end gap-2">
-          <button type="button" class="closeModal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-md">Delete</button>
+        <h5 id="deleteTitle" class="text-lg font-bold">Confirm Deletion</h5>
+        <button type="button" id="deleteCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded hover:bg-white/10 transition" aria-label="Close delete confirmation">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="deleteDepartmentForm" class="p-6">
+        <input type="hidden" id="deleteDepartmentId">
+        <div class="text-center mb-6">
+          <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-8 h-8 text-red-500"></i>
+          </div>
+          <p id="deleteDesc" class="text-gray-600 mb-2">Are you sure you want to delete this Office/Facility?</p>
+          <div class="bg-red-50 rounded-lg p-3 border border-red-200">
+            <span id="deleteDepartmentName" class="font-semibold text-red-700 text-lg"></span>
+          </div>
+          <p class="text-sm text-red-500 mt-3 flex items-center justify-center gap-1">
+            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+            This action cannot be undone.
+          </p>
+        </div>
+        <div class="flex justify-center gap-3">
+          <button type="button" class="closeModal btn-modal btn-modal-neutral rounded-full px-5 py-2.5">
+            Cancel
+          </button>
+          <button type="submit" class="btn-modal btn-modal-danger rounded-full px-6 py-2.5">
+            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+          </button>
         </div>
       </form>
-    </div>
-  </div>
-
-  // Test notification modal
-  <div id="testNotification" class="hidden fixed top-4 right-4 z-[9999] transform transition-all duration-300 ease-in-out">
-    <div class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-      <i data-lucide="info" class="w-5 h-5"></i>
-      <div>
-        <p class="font-semibold">Save Button Clicked!</p>
-        <p class="text-sm opacity-90">Function is working properly</p>
-      </div>
     </div>
   </div>
 
@@ -196,273 +584,569 @@
   </div>
 
   <!-- Success Modal -->
-  <div id="successModal" class="hidden fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md relative z-[10000]">
-      <div class="bg-green-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
-        <i data-lucide="check-circle" class="w-5 h-5"></i>
-        <h5 class="text-lg font-bold">Success!</h5>
-      </div>
-      <div class="p-5 text-center">
-        <i data-lucide="check-circle-2" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
-        <p id="successMessage" class="text-gray-700 mb-4 text-lg">Operation completed successfully!</p>
-        <button type="button" id="closeSuccessModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-md">
-          OK
+  <div id="successModal" class="hidden fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="successTitle" aria-describedby="successDesc">
+    <div id="successModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">
+      <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
+        <i data-lucide="check-circle" class="w-6 h-6"></i>
+        <h5 id="successTitle" class="text-lg font-bold">Success!</h5>
+        <button type="button" id="successCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded" aria-label="Close success message">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
+      </div>
+      <div class="p-6 text-center">
+        <div class="mx-auto mb-4 w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center">
+          <i data-lucide="check-circle-2" class="w-10 h-10 text-indigo-600"></i>
+        </div>
+        <p id="successMessage" class="text-gray-700 mb-4 text-lg" role="status">Operation completed successfully!</p>
+        <div class="flex justify-center gap-3">
+          <button type="button" id="closeSuccessModal" class="btn-modal btn-modal-primary rounded-full px-6 py-2">
+            OK
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Error Modal -->
+  <div id="errorModal" class="hidden fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="errorTitle" aria-describedby="errorDesc">
+    <div id="errorModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">
+      <div class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
+        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+        <h5 id="errorTitle" class="text-lg font-bold">Error</h5>
+        <button type="button" id="errorCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded" aria-label="Close error message">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-6 text-center">
+        <div class="mx-auto mb-4 w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
+          <i data-lucide="x-circle" class="w-10 h-10 text-red-600"></i>
+        </div>
+        <p id="errorMessage" class="text-gray-700 mb-4 text-lg" role="status">Something went wrong.</p>
+        <div class="flex justify-center gap-3">
+          <button type="button" id="closeErrorModal" class="btn-modal btn-modal-danger rounded-full px-6 py-2">
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[10000] flex flex-col gap-2 pointer-events-none"></div>
+
   <script>
-          // Lucide icons
-          document.addEventListener("DOMContentLoaded", () => {
-            if (typeof lucide !== "undefined") lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      // Enhanced success modal helper: shows modal with animation, focus management, ESC to close and optional auto-hide
+      function showSuccess(message, options = {}) {
+        const { autoHide = true, duration = 2500 } = options;
+        const modal = document.getElementById('successModal');
+        const card = document.getElementById('successModalCard');
+        const msgEl = document.getElementById('successMessage');
+        const okBtn = document.getElementById('closeSuccessModal');
+        const closeIcon = document.getElementById('successCloseIcon');
+        
+        console.log('showSuccess called:', message, 'modal:', modal, 'card:', card);
+        
+        if (msgEl) msgEl.textContent = message || 'Operation completed successfully!';
+        if (!modal || !card) {
+          console.error('Modal elements not found');
+          return;
+        }
+
+        // ensure icons are rendered
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // animate in
+        setTimeout(() => {
+          card.classList.remove('scale-95', 'opacity-0');
+          card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        if (okBtn) okBtn.focus();
+
+        function close() {
+          card.classList.add('scale-95', 'opacity-0');
+          card.classList.remove('scale-100', 'opacity-100');
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          }, 180);
+          document.removeEventListener('keydown', escHandler);
+        }
+
+        function escHandler(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', escHandler);
+
+        if (okBtn) okBtn.onclick = close;
+        if (closeIcon) closeIcon.onclick = close;
+
+        if (autoHide) setTimeout(close, duration);
+      }
+
+      // Error modal helper: shows red-styled error modal with animation
+      function showError(message, options = {}) {
+        const { autoHide = true, duration = 3000 } = options;
+        const modal = document.getElementById('errorModal');
+        const card = document.getElementById('errorModalCard');
+        const msgEl = document.getElementById('errorMessage');
+        const okBtn = document.getElementById('closeErrorModal');
+        const closeIcon = document.getElementById('errorCloseIcon');
+        if (msgEl) msgEl.textContent = message || 'An error occurred.';
+        if (!modal || !card) return;
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        setTimeout(() => {
+          card.classList.remove('scale-95', 'opacity-0');
+          card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        if (okBtn) okBtn.focus();
+
+        function close() {
+          card.classList.add('scale-95', 'opacity-0');
+          card.classList.remove('scale-100', 'opacity-100');
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          }, 180);
+          document.removeEventListener('keydown', escHandler);
+        }
+
+        function escHandler(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', escHandler);
+
+        if (okBtn) okBtn.onclick = close;
+        if (closeIcon) closeIcon.onclick = close;
+
+        if (autoHide) setTimeout(close, duration);
+      }
+
+      // Toast notification helper - shows a non-blocking toast at top-right
+      function showToast(message, type = 'success', duration = 3000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        const isSuccess = type === 'success';
+        
+        // Toast styling
+        toast.className = `
+          pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg
+          transform transition-all duration-300 ease-out translate-x-full opacity-0
+          ${isSuccess 
+            ? 'bg-white border-l-4 border-green-500 text-gray-800' 
+            : 'bg-white border-l-4 border-red-500 text-gray-800'}
+        `;
+        
+        toast.innerHTML = `
+          <div class="${isSuccess ? 'text-green-500' : 'text-red-500'}">
+            <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1">
+            <p class="font-medium text-sm">${isSuccess ? 'Success' : 'Error'}</p>
+            <p class="text-sm text-gray-600">${message}</p>
+          </div>
+          <button class="text-gray-400 hover:text-gray-600 transition" onclick="this.parentElement.remove()">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        `;
+
+        container.appendChild(toast);
+        
+        // Render icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons({ nodes: [toast] });
+        }
+
+        // Animate in
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-x-full', 'opacity-0');
+        });
+
+        // Auto remove
+        setTimeout(() => {
+          toast.classList.add('translate-x-full', 'opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      // Convenience functions for toast
+      function showToastSuccess(message, duration = 3000) {
+        showToast(message, 'success', duration);
+      }
+
+      function showToastError(message, duration = 4000) {
+        showToast(message, 'error', duration);
+      }
+
+      // Delete-specific toast with trash icon and red accent
+      function showDeleteToast(message, duration = 3500) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+
+        toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl transform transition-all duration-300 ease-out translate-x-full opacity-0 bg-gradient-to-r from-red-600 to-red-700 text-white min-w-[300px] max-w-sm';
+
+        toast.innerHTML = `
+          <div class="bg-white/20 rounded-full p-2 shrink-0">
+            <i data-lucide="trash-2" class="w-5 h-5 text-white"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-white leading-tight">Deleted</p>
+            <p class="text-xs text-red-100 truncate">${message}</p>
+          </div>
+          <button class="closeToastBtn text-white/70 hover:text-white transition shrink-0 p-1 rounded hover:bg-white/10">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        `;
+
+        // Progress bar
+        const progress = document.createElement('div');
+        progress.className = 'absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-xl transition-all ease-linear';
+        progress.style.width = '100%';
+        progress.style.transitionDuration = `${duration}ms`;
+        toast.style.position = 'relative';
+        toast.style.overflow = 'hidden';
+        toast.appendChild(progress);
+
+        container.appendChild(toast);
+
+        const closeBtn = toast.querySelector('.closeToastBtn');
+        if (closeBtn) closeBtn.addEventListener('click', () => toast.remove());
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons({ nodes: [toast] });
+        }
+
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-x-full', 'opacity-0');
+          requestAnimationFrame(() => { progress.style.width = '0%'; });
+        });
+
+        setTimeout(() => {
+          toast.classList.add('translate-x-full', 'opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      // Inline function to handle edit submission
+      async function handleEditSubmit(event) {
+        event.preventDefault();
+
+        const deptIdEl = document.getElementById('editDepartmentId');
+        const nameEl = document.getElementById('editDepartmentName');
+        const categoryEl = document.getElementById('editDepartmentCategory');
+        if (!deptIdEl || !nameEl || !categoryEl) return;
+
+        const deptId = deptIdEl.value;
+        const newName = nameEl.value.trim();
+        const newCategory = categoryEl.value;
+
+        // Show loading modal
+        const loadingModal = document.getElementById('loadingModal');
+        if (loadingModal) {
+          loadingModal.classList.remove('hidden');
+          loadingModal.classList.add('flex');
+        }
+
+        if (!newName) {
+          if (loadingModal) loadingModal.classList.add('hidden');
+          alert('Please enter a department name.');
+          return;
+        }
+        if (!newCategory) {
+          if (loadingModal) loadingModal.classList.add('hidden');
+          alert('Please select a category.');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/update-department/${deptId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ department_name: newName, category: newCategory })
           });
 
-          // Inline function to handle edit submission
-          async function handleEditSubmit(event) {
-            event.preventDefault();
-            
-            const deptId = document.getElementById('editDepartmentId').value;
-            const newName = document.getElementById('editDepartmentName').value.trim();
-            const newCategory = document.getElementById('editDepartmentCategory').value;
+          if (loadingModal) loadingModal.classList.add('hidden');
 
-            // Show test notification modal
-            const testNotification = document.getElementById('testNotification');
-            testNotification.classList.remove('hidden');
-            testNotification.classList.add('translate-x-0');
-            
-            // Hide notification after 2 seconds
-            setTimeout(() => {
-              testNotification.classList.add('hidden');
-              testNotification.classList.remove('translate-x-0');
-            }, 2000);
+          if (response.ok) {
+            showSuccess('Department updated successfully!');
+            const editModal = document.getElementById('editDepartmentModal');
+            if (editModal) editModal.classList.add('hidden');
+            loadDepartments();
+          } else {
+            alert('Error updating department.');
+          }
+        } catch (error) {
+          if (loadingModal) loadingModal.classList.add('hidden');
+          console.error('Update error:', error);
+          alert('Error updating department.');
+        }
+      }
 
-            // Show loading modal
-            document.getElementById('loadingModal').classList.remove('hidden');
-            document.getElementById('loadingModal').classList.add('flex');
+      // Sidebar toggle (defensive)
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const toggle = document.getElementById('sidebarToggle');
+      if (toggle && overlay) {
+        toggle.addEventListener('click', () => {
+          if (sidebar) sidebar.classList.toggle('-translate-x-full');
+          overlay.classList.toggle('hidden');
+        });
+        overlay.addEventListener('click', () => {
+          if (sidebar) sidebar.classList.add('-translate-x-full');
+          overlay.classList.add('hidden');
+        });
+      }
 
-            // Styled console output
-            console.log('%c🔄 DEPARTMENT UPDATE INITIATED', 'color: #10b981; font-weight: bold; font-size: 14px;');
-            console.log('%c📋 Form Data:', 'color: #3b82f6; font-weight: bold;');
-            console.log('   Department ID:', deptId);
-            console.log('   New Name:', newName);
-            console.log('   Category:', newCategory);
+      // Modal controls
+      const addModal = document.getElementById('addDepartmentModal');
+      const deleteModal = document.getElementById('deleteDepartmentModal');
+      const selectModal = document.getElementById('selectDepartmentModal');
+      const selectDeleteModal = document.getElementById('selectDeleteModal');
+      const editModal = document.getElementById('editDepartmentModal');
+      const successModal = document.getElementById('successModal');
+      const loadingModal = document.getElementById('loadingModal');
+      const openAddModalBtn = document.getElementById('openAddModal');
+      const openEditModalBtn = document.getElementById('openEditModal');
+      const openSelectDeleteBtn = document.getElementById('openSelectDeleteModal');
+      const closeModalBtns = document.querySelectorAll('.closeModal');
+      const closeSuccessModalBtn = document.getElementById('closeSuccessModal');
+      const proceedToEditBtn = document.getElementById('proceedToEdit');
+      const proceedToDeleteBtn = document.getElementById('proceedToDelete');
+      const departmentSelect = document.getElementById('departmentSelect');
+      const departmentDeleteSelect = document.getElementById('departmentDeleteSelect');
+      const deleteDeptName = document.getElementById('deleteDepartmentName');
+      const successMessage = document.getElementById('successMessage');
+      const deleteCloseIcon = document.getElementById('deleteCloseIcon');
 
-            if (!newName) {
-              // Hide loading modal
-              document.getElementById('loadingModal').classList.add('hidden');
-              console.log('%c❌ Validation Error: Missing department name', 'color: #ef4444; font-weight: bold;');
-              alert("Please enter a department name.");
-              return;
+      if (deleteCloseIcon && deleteModal) {
+        deleteCloseIcon.addEventListener('click', () => {
+          const deleteCard = document.getElementById('deleteDepartmentModalCard');
+          if (deleteCard) {
+            deleteCard.classList.add('scale-95', 'opacity-0');
+            deleteCard.classList.remove('scale-100', 'opacity-100');
+          }
+          setTimeout(() => {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }, 180);
+        });
+      }
+
+      if (closeSuccessModalBtn && successModal) {
+        closeSuccessModalBtn.addEventListener('click', () => {
+          successModal.classList.add('hidden');
+          successModal.classList.remove('flex');
+          successModal.style.display = '';
+          successModal.style.zIndex = '';
+        });
+      }
+
+      if (openAddModalBtn && addModal) {
+        openAddModalBtn.addEventListener('click', () => {
+          addModal.classList.remove('hidden');
+          addModal.classList.add('flex');
+          setTimeout(() => {
+            const firstInput = addModal.querySelector('input[name="department_name"]');
+            if (firstInput) firstInput.focus();
+          }, 50);
+        });
+      }
+
+      if (openEditModalBtn && selectModal) {
+        openEditModalBtn.addEventListener('click', async () => {
+          await populateDepartmentSelect();
+          selectModal.classList.remove('hidden');
+          selectModal.classList.add('flex');
+        });
+      }
+
+      if (openSelectDeleteBtn && selectDeleteModal) {
+        openSelectDeleteBtn.addEventListener('click', async () => {
+          await populateDepartmentDeleteSelect();
+          const card = document.getElementById('selectDeleteModalCard');
+          selectDeleteModal.classList.remove('hidden');
+          selectDeleteModal.classList.add('flex');
+          // Animate in
+          setTimeout(() => {
+            if (card) {
+              card.classList.remove('scale-95', 'opacity-0');
+              card.classList.add('scale-100', 'opacity-100');
             }
-            if (!newCategory) {
-              // Hide loading modal
-              document.getElementById('loadingModal').classList.add('hidden');
-              console.log('%c❌ Validation Error: Missing category', 'color: #ef4444; font-weight: bold;');
-              alert("Please select a category.");
-              return;
+          }, 10);
+        });
+      }
+
+      if (proceedToEditBtn && departmentSelect) {
+        proceedToEditBtn.addEventListener('click', () => {
+          const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
+          if (selectedOption && selectedOption.value) {
+            const deptId = selectedOption.value;
+            const deptName = selectedOption.textContent.split(' - ')[0];
+            const deptCategory = selectedOption.dataset.category;
+
+            const editIdEl = document.getElementById('editDepartmentId');
+            const editNameEl = document.getElementById('editDepartmentName');
+            const editCategoryEl = document.getElementById('editDepartmentCategory');
+            if (editIdEl) editIdEl.value = deptId;
+            if (editNameEl) editNameEl.value = deptName;
+            if (editCategoryEl) editCategoryEl.value = deptCategory;
+
+            if (selectModal) selectModal.classList.add('hidden');
+            if (editModal) {
+              editModal.classList.remove('hidden');
+              editModal.classList.add('flex');
             }
+          }
+        });
+      }
 
-            console.log('%c🌐 Sending API Request...', 'color: #f59e0b; font-weight: bold;');
+      // Select Delete Modal - populate and open
+      async function populateDepartmentDeleteSelect() {
+        try {
+          const response = await fetch('/get-departments');
+          const departments = await response.json();
+          if (!departmentDeleteSelect) return;
+          departmentDeleteSelect.innerHTML = '<option value="">Select an office/facility...</option>';
+          departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.department_id;
+            option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
+            option.dataset.category = dept.category || '';
+            departmentDeleteSelect.appendChild(option);
+          });
+        } catch (err) {
+          console.error('Could not populate delete department select', err);
+        }
+      }
 
-            try {
-              const response = await fetch(`/update-department/${deptId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ department_name: newName, category: newCategory })
-              });
-
-              console.log('%c📡 API Response Received:', 'color: #8b5cf6; font-weight: bold;');
-              console.log('   Status:', response.status);
-              console.log('   OK:', response.ok);
-
-              // Hide loading modal
-              document.getElementById('loadingModal').classList.add('hidden');
-
-              if (response.ok) {
-                console.log('%c✅ Department Updated Successfully!', 'color: #10b981; font-weight: bold; font-size: 14px;');
-                
-                // Show success modal
-                document.getElementById('successMessage').textContent = 'Department updated successfully!';
-                const successModal = document.getElementById('successModal');
-                successModal.classList.remove('hidden');
-                successModal.classList.add('flex');
-                successModal.style.display = 'flex';
-                successModal.style.zIndex = '9999';
-                
-                // Hide edit modal and reload
-                document.getElementById('editDepartmentModal').classList.add('hidden');
-                loadDepartments();
-                
-                console.log('%c🎉 Success Modal Displayed & Table Reloaded', 'color: #10b981; font-weight: bold;');
-                
-                // Fallback alert
-                setTimeout(() => {
-                  if (successModal.classList.contains('hidden')) {
-                    console.log('%c⚠️ Modal Hidden, Using Fallback Alert', 'color: #f59e0b; font-weight: bold;');
-                    alert('Department updated successfully!');
-                  }
-                }, 500);
-              } else {
-                console.log('%c❌ Update Failed', 'color: #ef4444; font-weight: bold; font-size: 14px;');
-                console.log('   Error Status:', response.status);
-                alert('Error updating department.');
+      // Handle proceed to delete button
+      if (proceedToDeleteBtn && departmentDeleteSelect) {
+        proceedToDeleteBtn.addEventListener('click', () => {
+          const selectedOption = departmentDeleteSelect.options[departmentDeleteSelect.selectedIndex];
+          if (selectedOption && selectedOption.value) {
+            const deptId = selectedOption.value;
+            const deptName = selectedOption.textContent.split(' - ')[0];
+            const idInput = document.getElementById('deleteDepartmentId');
+            if (idInput) idInput.value = deptId;
+            if (deleteDeptName) deleteDeptName.textContent = deptName;
+            if (selectDeleteModal) {
+              const card = document.getElementById('selectDeleteModalCard');
+              if (card) {
+                card.classList.add('scale-95', 'opacity-0');
+                card.classList.remove('scale-100', 'opacity-100');
               }
-            } catch (error) {
-              // Hide loading modal
-              document.getElementById('loadingModal').classList.add('hidden');
-              console.log('%c💥 Network Error', 'color: #ef4444; font-weight: bold; font-size: 14px;');
-              console.error('   Error Details:', error);
-              alert(`Error updating department: ${error.message}`);
+              setTimeout(() => {
+                selectDeleteModal.classList.add('hidden');
+                selectDeleteModal.classList.remove('flex');
+              }, 180);
             }
-          }
-
-          // Sidebar toggle
-          const sidebar = document.getElementById('sidebar');
-          const overlay = document.getElementById('sidebarOverlay');
-          const toggle = document.getElementById('sidebarToggle');
-
-          toggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-          });
-          overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-          });
-
-          // Modal controls
-          const addModal = document.getElementById("addDepartmentModal");
-          const deleteModal = document.getElementById("deleteDepartmentModal");
-          const selectModal = document.getElementById("selectDepartmentModal");
-          const editModal = document.getElementById("editDepartmentModal");
-          const successModal = document.getElementById("successModal");
-          const loadingModal = document.getElementById("loadingModal");
-          const testNotification = document.getElementById("testNotification");
-          const openAddModalBtn = document.getElementById("openAddModal");
-          const openEditModalBtn = document.getElementById("openEditModal");
-          const closeModalBtns = document.querySelectorAll(".closeModal");
-          const closeSuccessModalBtn = document.getElementById("closeSuccessModal");
-          const deleteButtons = document.querySelectorAll(".openDeleteModal");
-          const deleteDeptName = document.getElementById("deleteDepartmentName");
-          const proceedToEditBtn = document.getElementById("proceedToEdit");
-          const departmentSelect = document.getElementById("departmentSelect");
-          const successMessage = document.getElementById("successMessage");
-
-          closeSuccessModalBtn.addEventListener("click", () => {
-            successModal.classList.add("hidden");
-          });
-
-          // Test success modal button
-          document.getElementById("testSuccessBtn").addEventListener("click", () => {
-            console.log('Test button clicked');
-            console.log('Success modal element:', successModal);
-            console.log('Success message element:', successMessage);
-            
-            successMessage.textContent = 'Test: Department updated successfully!';
-            successModal.classList.remove('hidden');
-            successModal.classList.add('flex');
-          });
-
-          openAddModalBtn.addEventListener("click", () => {
-            addModal.classList.remove("hidden");
-            addModal.classList.add("flex");
-          });
-
-          openEditModalBtn.addEventListener("click", async () => {
-            await populateDepartmentSelect();
-            selectModal.classList.remove("hidden");
-            selectModal.classList.add("flex");
-          });
-
-          proceedToEditBtn.addEventListener("click", () => {
-            const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
-            if (selectedOption.value) {
-              const deptId = selectedOption.value;
-              const deptName = selectedOption.textContent;
-              const deptCategory = selectedOption.dataset.category;
-              
-              // Fill edit form with selected department data
-              document.getElementById('editDepartmentId').value = deptId;
-              document.getElementById('editDepartmentName').value = deptName.replace(' - ' + getCategoryDisplay(deptCategory), '');
-              document.getElementById('editDepartmentCategory').value = deptCategory;
-              
-              // Close select modal and open edit modal
-              selectModal.classList.add("hidden");
-              editModal.classList.remove("hidden");
-              editModal.classList.add("flex");
+            if (deleteModal) {
+              const deleteCard = document.getElementById('deleteDepartmentModalCard');
+              deleteModal.classList.remove('hidden');
+              deleteModal.classList.add('flex');
+              // Animate in
+              setTimeout(() => {
+                if (deleteCard) {
+                  deleteCard.classList.remove('scale-95', 'opacity-0');
+                  deleteCard.classList.add('scale-100', 'opacity-100');
+                }
+              }, 10);
             }
-          });
-
-          async function populateDepartmentSelect() {
-            const response = await fetch('/get-departments');
-            const departments = await response.json();
-            
-            departmentSelect.innerHTML = '<option value="">Select an office/facility...</option>';
-            
-            departments.forEach(dept => {
-              const option = document.createElement('option');
-              option.value = dept.department_id;
-              option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
-              option.dataset.category = dept.category || '';
-              departmentSelect.appendChild(option);
-            });
+          } else {
+            alert('Please select an office/facility to delete.');
           }
+        });
+      }
 
-          deleteButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-              const deptName = btn.dataset.deptName;
-              deleteDeptName.textContent = deptName;
-              deleteModal.classList.remove("hidden");
-              deleteModal.classList.add("flex");
-            });
+      async function populateDepartmentSelect() {
+        try {
+          const response = await fetch('/get-departments');
+          const departments = await response.json();
+
+          if (!departmentSelect) return;
+          departmentSelect.innerHTML = '<option value="">Select an office/facility...</option>';
+
+          departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.department_id;
+            option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
+            option.dataset.category = dept.category || '';
+            departmentSelect.appendChild(option);
           });
+        } catch (err) {
+          console.error('Could not populate department select', err);
+        }
+      }
 
-          closeModalBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const modal = btn.closest(".fixed"); // find the closest modal container
-    if (modal) modal.classList.add("hidden");
-  });
-});
-
-          [addModal, deleteModal, selectModal, editModal, successModal, loadingModal, testNotification].forEach(modal => {
-            modal.addEventListener("click", (e) => {
-              if (e.target === modal) modal.classList.add("hidden");
-            });
-          });
-
-          async function loadDepartments() {
+      async function loadDepartments() {
         const response = await fetch('/get-departments');
         const departments = await response.json();
 
         const tableBody = document.getElementById('departmentTable');
+        if (!tableBody) return;
         tableBody.innerHTML = '';
+
+        const countEl = document.getElementById('departmentCount');
+        const totalDepartments = Array.isArray(departments) ? departments.length : 0;
+        if (countEl) countEl.textContent = String(totalDepartments);
+
+        const tableEl = tableBody.closest('table');
+        const emptyColSpan = tableEl ? tableEl.querySelectorAll('thead th').length : 4;
+
+        if (!Array.isArray(departments) || departments.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="${emptyColSpan}" class="px-4 py-10 text-center text-sm text-gray-500 bg-white">
+                No office/facility records found.
+              </td>
+            </tr>
+          `;
+          return;
+        }
 
         departments.forEach(dept => {
           const row = document.createElement('tr');
-          row.classList.add('hover:bg-blue-50', 'transition');
+          row.className = 'department-row odd:bg-white even:bg-slate-50/60';
           
           const categoryDisplay = dept.category ? getCategoryDisplay(dept.category) : 'Not specified';
+          const pcCount = (dept.pc_count ?? 0);
           
           row.innerHTML = `
-            <td class="px-4 py-3 border-t">${dept.department_name}</td>
-            <td class="px-4 py-3 border-t">
-              <span class="px-2 py-1 text-xs rounded-full ${getCategoryBadgeClass(dept.category)}">
+            <td class="px-4 py-3 align-middle">
+              <div class="font-medium text-gray-800">${dept.department_name}</div>
+            </td>
+            <td class="px-4 py-3 align-middle">
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full border ${getCategoryBadgeClass(dept.category)}">
                 ${categoryDisplay}
               </span>
             </td>
-             {% if permissions.get('dept', {}).get('edit', False) %}
-            <td class="px-4 py-3 border-t text-right space-x-2">
-             
-              <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs shadow-sm transition openEditModal"
-                data-dept-id="${dept.department_id}" data-dept-name="${dept.department_name}" data-dept-category="${dept.category || ''}">
-                <i data-lucide="edit-3" class="w-4 h-4 inline"></i> Edit
-              </button>
-              <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs shadow-sm transition openDeleteModal"
-                data-dept-name="${dept.department_name}" data-id="${dept.department_id}">
-                <i data-lucide="trash-2" class="w-4 h-4 inline"></i> Delete
-              </button>
-              
+            <td class="px-4 py-3 align-middle text-gray-700 font-semibold tabular-nums">${pcCount}</td>
+             {% if permissions.get('dept', {}).get('edit', False) or permissions.get('dept', {}).get('delete', False) %}
+            <td class="px-4 py-3 align-middle">
+              <div class="flex items-center justify-end gap-2 whitespace-nowrap">
+                <button class="department-action-btn edit openEditModal"
+                  data-dept-id="${dept.department_id}" data-dept-name="${dept.department_name}" data-dept-category="${dept.category || ''}">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
+                </button>
+                <button class="department-action-btn delete openDeleteModal"
+                  data-dept-name="${dept.department_name}" data-id="${dept.department_id}">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                </button>
+              </div>
             </td>
              {% endif %}
           `;
@@ -474,56 +1158,162 @@
         // Attach listeners AFTER rendering
         attachEditButtons();
         attachDeleteButtons();
-
-          
       }
+
+      // Close modal handlers
+      closeModalBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const modal = btn.closest(".fixed");
+          if (modal) {
+            // Handle deleteDepartmentModal animation
+            if (modal.id === 'deleteDepartmentModal') {
+              const deleteCard = document.getElementById('deleteDepartmentModalCard');
+              if (deleteCard) {
+                deleteCard.classList.add('scale-95', 'opacity-0');
+                deleteCard.classList.remove('scale-100', 'opacity-100');
+              }
+              setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                modal.style.display = '';
+                modal.style.zIndex = '';
+              }, 180);
+            } else if (modal.id === 'selectDeleteModal') {
+              const card = document.getElementById('selectDeleteModalCard');
+              if (card) {
+                card.classList.add('scale-95', 'opacity-0');
+                card.classList.remove('scale-100', 'opacity-100');
+              }
+              setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                modal.style.display = '';
+                modal.style.zIndex = '';
+              }, 180);
+            } else {
+              modal.classList.add("hidden");
+              modal.classList.remove("flex");
+              modal.style.display = '';
+              modal.style.zIndex = '';
+            }
+          }
+        });
+      });
+
+      // Click outside to close
+      [addModal, deleteModal, selectModal, selectDeleteModal, editModal, successModal, loadingModal].forEach(modal => {
+        if (modal) {
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+              // Handle deleteDepartmentModal animation
+              if (modal.id === 'deleteDepartmentModal') {
+                const deleteCard = document.getElementById('deleteDepartmentModalCard');
+                if (deleteCard) {
+                  deleteCard.classList.add('scale-95', 'opacity-0');
+                  deleteCard.classList.remove('scale-100', 'opacity-100');
+                }
+                setTimeout(() => {
+                  modal.classList.add("hidden");
+                  modal.classList.remove("flex");
+                }, 180);
+              } else if (modal.id === 'selectDeleteModal') {
+                const card = document.getElementById('selectDeleteModalCard');
+                if (card) {
+                  card.classList.add('scale-95', 'opacity-0');
+                  card.classList.remove('scale-100', 'opacity-100');
+                }
+                setTimeout(() => {
+                  modal.classList.add("hidden");
+                  modal.classList.remove("flex");
+                }, 180);
+              } else {
+                modal.classList.add("hidden");
+              }
+            }
+          });
+        }
+      });
       // Handle Add Department
       const addForm = document.getElementById('addDepartmentForm');
       addForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = addForm.department_name.value.trim();
-        const category = addForm.category.value;
-        if (!name) return alert('Please enter a department name.');
-        if (!category) return alert('Please select a category.');
+    e.preventDefault();
+    const name = addForm.department_name.value.trim();
+    const category = addForm.category.value; // ← get selected category
+    if (!name) return alert('Please enter a department name.');
+    if (!category) return alert('Please select a category.');
 
-        const response = await fetch('/add-department', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ department_name: name, category: category })
-        });
+    const response = await fetch('/add-department', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ department_name: name, category: category }) // ← send selected category
+    });
 
-        if (response.ok) {
-          alert('Department added successfully!');
-          addForm.reset();
-          document.getElementById('addDepartmentModal').classList.add('hidden');
-          loadDepartments();
-        } else {
-          alert('Error adding department.');
-        }
-      });
-
+    if (response.ok) {
+      showSuccess('Office/Facility added successfully!');
+      addForm.reset();
+      // fully hide add modal
+      if (addModal) {
+        addModal.classList.add('hidden');
+        addModal.classList.remove('flex');
+        addModal.style.display = '';
+        addModal.style.zIndex = '';
+      }
+      loadDepartments();
+    } else {
+      alert('Error adding department.');
+    }
+});
 
       // Handle Delete Department
       const deleteForm = document.getElementById('deleteDepartmentForm');
       deleteForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const deptName = document.getElementById('deleteDepartmentName').textContent;
-        const deptButton = [...document.querySelectorAll('.openDeleteModal')]
-          .find(btn => btn.dataset.deptName === deptName);
+        const idInput = document.getElementById('deleteDepartmentId');
+        let id = '';
+        if (idInput && idInput.value) {
+          id = idInput.value;
+        } else {
+          const deptName = deleteDeptName.textContent;
+          const deptButton = [...document.querySelectorAll('.openDeleteModal')]
+            .find(btn => btn.dataset.deptName === deptName);
+          id = deptButton ? deptButton.dataset.id : '';
+        }
 
-        const id = deptButton.dataset.id;
+        if (!id) return alert('Could not determine department to delete.');
 
         const response = await fetch(`/delete-department/${id}`, { method: 'DELETE' });
-
+        const contentType = response.headers.get('content-type') || '';
+        const result = contentType.includes('application/json')
+          ? await response.json().catch(() => ({}))
+          : {};
+        const responseText = !contentType.includes('application/json')
+          ? await response.text().catch(() => '')
+          : '';
+        
         if (response.ok) {
-          alert('Department deleted successfully!');
-          document.getElementById('deleteDepartmentModal').classList.add('hidden');
+          // Close the delete modal with animation
+          const deleteCard = document.getElementById('deleteDepartmentModalCard');
+          if (deleteCard) {
+            deleteCard.classList.add('scale-95', 'opacity-0');
+            deleteCard.classList.remove('scale-100', 'opacity-100');
+          }
+          setTimeout(() => {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }, 180);
+          // Show delete-specific toast notification with trash icon
+          showDeleteToast('Office/Facility deleted successfully');
+          // clear hidden id after deletion
+          if (idInput) idInput.value = '';
+          // Reload table
           loadDepartments();
         } else {
-          alert('Error deleting department.');
+          const serverMsg = (result && (result.error || result.message))
+            ? (result.error || result.message)
+            : (responseText ? responseText : 'Failed to delete office/facility. Please try again.');
+          showToastError(`(${response.status}) ${serverMsg}`);
         }
       });
-
 
       // Handle Edit Form Submit (PUT request) - moved outside to prevent multiple attachments
       const editForm = document.getElementById('editDepartmentForm');
@@ -531,60 +1321,34 @@
       const editIdInput = document.getElementById('editDepartmentId');
 
       editForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        console.log('Edit form submitted');
-        
-        const deptId = editIdInput.value;
-        const newName = editInput.value.trim();
-        const newCategory = document.getElementById('editDepartmentCategory').value;
+    e.preventDefault();
 
-        console.log('Form data:', { deptId, newName, newCategory });
+    const deptId = document.getElementById('editDepartmentId').value;
+    const newName = document.getElementById('editDepartmentName').value.trim();
+    const newCategory = document.getElementById('editDepartmentCategory').value; // ← dynamic selection
 
-        if (!newName) return alert("Please enter a department name.");
-        if (!newCategory) return alert("Please select a category.");
+    if (!newName) return alert("Please enter a department name.");
+    if (!newCategory) return alert("Please select a category.");
 
-        try {
-          console.log('Sending update request...');
-          const response = await fetch(`/update-department/${deptId}`, {
+    try {
+        const response = await fetch(`/update-department/${deptId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ department_name: newName, category: newCategory })
-          });
+            body: JSON.stringify({ department_name: newName, category: newCategory }) // ← send selected category
+        });
 
-          console.log('Response status:', response.status);
-          console.log('Response ok:', response.ok);
-
-          if (response.ok) {
-            console.log('Update successful');
-            
-            // Set message
-            successMessage.textContent = 'Department updated successfully!';
-            
-            // Show modal with multiple methods
-            successModal.classList.remove('hidden');
-            successModal.classList.add('flex');
-            successModal.style.display = 'flex';
-            successModal.style.zIndex = '9999';
-            
-            // Fallback alert
-            setTimeout(() => {
-              if (successModal.classList.contains('hidden')) {
-                alert('Department updated successfully!');
-              }
-            }, 500);
-            
-            document.getElementById('editDepartmentModal').classList.add('hidden');
-            loadDepartments();
-          } else {
-            console.log('Update failed with status:', response.status);
-            alert('Error updating department.');
-          }
-        } catch (error) {
-          console.error('Update error:', error);
+        if (response.ok) {
+          showSuccess('Department updated successfully!');
+          document.getElementById('editDepartmentModal').classList.add('hidden');
+          loadDepartments();
+        } else {
           alert('Error updating department.');
         }
-      });
-
+    } catch (error) {
+        console.error('Update error:', error);
+        alert('Error updating department.');
+    }
+});
       function attachEditButtons() {
         const editButtons = document.querySelectorAll('.openEditModal');
         const editModal = document.getElementById('editDepartmentModal');
@@ -607,49 +1371,77 @@
 
       function attachDeleteButtons() {
         const deleteButtons = document.querySelectorAll('.openDeleteModal');
-        const deleteModal = document.getElementById("deleteDepartmentModal");
-        const deleteDeptName = document.getElementById("deleteDepartmentName");
 
         deleteButtons.forEach(btn => {
           btn.addEventListener('click', () => {
+            const deptId = btn.dataset.id;
             const deptName = btn.dataset.deptName;
-            deleteDeptName.textContent = deptName;
-            deleteModal.classList.remove("hidden");
-            deleteModal.classList.add("flex");
+            // Set values and open delete modal directly
+            const idInput = document.getElementById('deleteDepartmentId');
+            if (idInput) idInput.value = deptId;
+            if (deleteDeptName) deleteDeptName.textContent = deptName;
+            if (deleteModal) {
+              const deleteCard = document.getElementById('deleteDepartmentModalCard');
+              deleteModal.classList.remove('hidden');
+              deleteModal.classList.add('flex');
+              // Animate in
+              setTimeout(() => {
+                if (deleteCard) {
+                  deleteCard.classList.remove('scale-95', 'opacity-0');
+                  deleteCard.classList.add('scale-100', 'opacity-100');
+                }
+              }, 10);
+            }
           });
         });
-
       }
 
       // Load departments on page load
-      document.addEventListener('DOMContentLoaded', loadDepartments);
+      loadDepartments();
 
       // Helper functions for category display
       function getCategoryDisplay(category) {
-        const categoryMap = {
-          'administrative': 'Administrative Office',
-          'academic': 'Academic Department',
-          'support': 'Support Services',
-          'facility': 'Facility',
-          'laboratory': 'Laboratory',
-          'other': 'Other'
-        };
-        return categoryMap[category] || 'Not specified';
+        return category || 'Not specified'; // Just display what’s in the dropdown
       }
 
       function getCategoryBadgeClass(category) {
-        const classMap = {
-          'administrative': 'bg-blue-100 text-blue-800',
-          'academic': 'bg-green-100 text-green-800',
-          'support': 'bg-yellow-100 text-yellow-800',
-          'facility': 'bg-purple-100 text-purple-800',
-          'laboratory': 'bg-red-100 text-red-800',
-          'other': 'bg-gray-100 text-gray-800'
-        };
-        return classMap[category] || 'bg-gray-100 text-gray-800';
+        if (!category) return 'bg-gray-100 text-gray-800 border-gray-200';
+
+        // Assign colors based on the category text
+        switch (category) {
+          case 'Computer Laboratory A':
+          case 'Computer Laboratory B':
+          case 'Computer Laboratory C':
+            return 'bg-blue-100 text-blue-800 border-blue-200';
+          case 'Other':
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+          case 'Administrative Office':
+            return 'bg-blue-100 text-blue-800 border-blue-200';
+          case 'Academic Department':
+            return 'bg-green-100 text-green-800 border-green-200';
+          case 'Support Services':
+            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+          case 'Facility':
+            return 'bg-purple-100 text-purple-800 border-purple-200';
+          case 'Laboratory':
+            return 'bg-red-100 text-red-800 border-red-200';
+          default:
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
       }
 
+      // Handle flashed messages from server - use toast instead of alert
+      const flashedMessages = {{ get_flashed_messages(with_categories=true) | tojson }};
+      if (Array.isArray(flashedMessages) && flashedMessages.length > 0) {
+        flashedMessages.forEach(([category, message]) => {
+          const normalized = (category === 'success') ? 'success'
+            : (category === 'danger') ? 'error'
+            : category;
+          showToast(message, normalized);
+        });
+      }
 
+    });
   </script>
 </body>
 </html>

@@ -14,7 +14,14 @@ def run_inventory_health_check():
                     health_score = GREATEST(
                         100 - (DATEDIFF(%s,
                             DATE_ADD(IFNULL(last_checked, date_acquired),
-                            INTERVAL maintenance_interval_days DAY)
+                            INTERVAL GREATEST(
+                                1,
+                                CASE
+                                    WHEN IFNULL(maintenance_interval_days, 30) < 365
+                                        THEN IFNULL(maintenance_interval_days, 30) * 365
+                                    ELSE IFNULL(maintenance_interval_days, 30)
+                                END
+                            ) DAY)
                         ) * 2),
                         0
                     ),

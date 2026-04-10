@@ -12,10 +12,18 @@
   {% include 'sidebar.html' %}
 
   <main class="flex-1 md:ml-64 p-8 space-y-10">
-    <header class="flex items-center justify-between bg-green-700 text-white shadow-lg p-4 rounded-xl border border-green-800 backdrop-blur-md">
-      <div class="flex items-center gap-2 font-medium">
-        <i data-lucide="package-check" class="w-6 h-6 text-white"></i>
-        <h1 class="text-2xl md:text-3xl font-bold">Receive Item</h1>
+    <header class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white rounded-3xl shadow-2xl p-4 sm:p-5 border border-blue-500/40">
+      <div class="pointer-events-none absolute -top-24 -right-20 h-56 w-56 rounded-full bg-white/15"></div>
+      <div class="pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-blue-200/20"></div>
+
+      <div class="relative z-10 flex min-w-0 items-center gap-3">
+        <div class="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm">
+          <i data-lucide="package-check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-bold">Receive Item</h1>
+          <p class="text-xs sm:text-sm text-blue-100">Confirm returned assets and update condition logs</p>
+        </div>
       </div>
     </header>
 
@@ -42,6 +50,21 @@
           </thead>
           <tbody id="borrowed-items-body" class="text-sm"></tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+        <div id="pagination-info" class="text-sm text-gray-600"></div>
+        <nav id="pagination-nav" class="flex items-center gap-1 flex-wrap justify-center"></nav>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Show:</label>
+          <select id="per-page-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
       </div>
     </section>
   </main>
@@ -105,19 +128,36 @@
   <script>
     lucide.createIcons();
 
+    let currentPage = 1;
+    let perPage = 10;
+    let totalPages = 1;
+
     // Load borrowed items
-    async function loadBorrowedItems() {
+    async function loadBorrowedItems(page = 1) {
       try {
-        const res = await fetch('/get-borrowed-items');
-        const items = await res.json();
+        const res = await fetch(`/get-borrowed-items?page=${page}&per_page=${perPage}`);
+        const data = await res.json();
 
         const tbody = document.getElementById("borrowed-items-body");
         tbody.innerHTML = "";
 
-        if (items.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">No borrowed items found.</td></tr>`;
+        if (data.error) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-red-500">Error loading items.</td></tr>`;
           return;
         }
+
+        const items = data.items || [];
+        currentPage = data.page || 1;
+        totalPages = data.total_pages || 1;
+        const totalItems = data.total_items || 0;
+
+        if (items.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">No borrowed items found.</td></tr>`;
+          document.getElementById('pagination-container').classList.add('hidden');
+          return;
+        }
+
+        document.getElementById('pagination-container').classList.remove('hidden');
 
         items.forEach(item => {
           tbody.innerHTML += `
@@ -136,10 +176,96 @@
               </td>
             </tr>`;
         });
+
+        // Update pagination info
+        const startItem = (currentPage - 1) * perPage + 1;
+        const endItem = Math.min(currentPage * perPage, totalItems);
+        document.getElementById('pagination-info').innerHTML = 
+          `Showing <span class="font-medium">${startItem}</span> - <span class="font-medium">${endItem}</span> of <span class="font-medium">${totalItems}</span> records`;
+
+        // Render pagination
+        renderPagination();
+        lucide.createIcons();
       } catch (error) {
         console.error('Error loading borrowed items:', error);
+        document.getElementById("borrowed-items-body").innerHTML = 
+          `<tr><td colspan="7" class="text-center py-4 text-red-500">Error loading items.</td></tr>`;
       }
     }
+
+    function renderPagination() {
+      const nav = document.getElementById('pagination-nav');
+      nav.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      // Prev button
+      if (currentPage > 1) {
+        nav.innerHTML += `
+          <button onclick="loadBorrowedItems(${currentPage - 1})" 
+                  class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors">
+            <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i>
+            Prev
+          </button>`;
+      } else {
+        nav.innerHTML += `
+          <span class="flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed">
+            <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i>
+            Prev
+          </span>`;
+      }
+
+      // Page numbers
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+
+      if (startPage > 1) {
+        nav.innerHTML += `<button onclick="loadBorrowedItems(1)" class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors">1</button>`;
+        if (startPage > 2) {
+          nav.innerHTML += `<span class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-500">...</span>`;
+        }
+      }
+
+      for (let p = startPage; p <= endPage; p++) {
+        const isActive = p === currentPage;
+        nav.innerHTML += `
+          <button onclick="loadBorrowedItems(${p})" 
+                  class="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-lg transition-colors
+                  ${isActive ? 'z-10 bg-blue-600 text-white border border-blue-600' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600'}">
+            ${p}
+          </button>`;
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          nav.innerHTML += `<span class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-500">...</span>`;
+        }
+        nav.innerHTML += `<button onclick="loadBorrowedItems(${totalPages})" class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors">${totalPages}</button>`;
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        nav.innerHTML += `
+          <button onclick="loadBorrowedItems(${currentPage + 1})" 
+                  class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors">
+            Next
+            <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+          </button>`;
+      } else {
+        nav.innerHTML += `
+          <span class="flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed">
+            Next
+            <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+          </span>`;
+      }
+    }
+
+    // Handle per page change
+    document.getElementById('per-page-select').addEventListener('change', function() {
+      perPage = parseInt(this.value);
+      currentPage = 1;
+      loadBorrowedItems(1);
+    });
 
     function openReceiveModal(borrowId, itemName, category, location, department) {
       document.getElementById('borrowId').value = borrowId;
@@ -207,7 +333,7 @@
     });
 
     // Load data on page load
-    window.addEventListener("DOMContentLoaded", loadBorrowedItems);
+    window.addEventListener("DOMContentLoaded", () => loadBorrowedItems(1));
   </script>
 </body>
 </html>

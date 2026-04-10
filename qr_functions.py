@@ -1,4 +1,4 @@
-# qrcode_bp (qr_function.py or similar)
+from PIL import Image
 import io
 import qrcode
 from flask import Blueprint, send_file, jsonify, request, render_template, url_for
@@ -16,9 +16,12 @@ def generate_qr_image(data: str, size: int = 200):
     """
     Generate a QR code image as a BytesIO object.
     """
+    if not data or data.strip() == "":
+        data = "NO_DATA"
+    
     qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        version=None,  # Auto-fit
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=10,
         border=4
     )
@@ -27,7 +30,7 @@ def generate_qr_image(data: str, size: int = 200):
 
     img = qr.make_image(fill_color="black", back_color="white")
     buf = BytesIO()
-    img = img.resize((size, size))
+    img = img.resize((size, size), Image.LANCZOS)
     img.save(buf, format='PNG')
     buf.seek(0)
     return buf
@@ -193,7 +196,9 @@ def get_all_pc_qrs():
         {
             "pcid": pc['pcid'],
             "pcname": pc['pcname'],
+            "serial_no": pc['serial_no'],
             "serial_number": pc['serial_no'],
+            "municipal_serial_no": pc['municipal_serial_no'],
             "municipal_serial": pc['municipal_serial_no'],
             "location": pc['location'],
             "status": pc['status']
@@ -203,26 +208,37 @@ def get_all_pc_qrs():
 
 @qrcode_bp.route('/pc_qr/<int:pcid>')
 def pc_qr(pcid):
-
     conn = get_db_connection()
-
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-
+            # Temporarily remove status filter for testing
             cursor.execute("""
-                SELECT pcid, pcname, serial_no, location
+                SELECT pcid, pcname, serial_no, location, status
                 FROM pcinfofull
-                WHERE pcid = %s and status == 'Active'
+                WHERE pcid = %s
             """, (pcid,))
-
             pc = cursor.fetchone()
-
+            print(f"DEBUG: Found PC: {pc}")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"Database error: {str(e)}", 500
     finally:
         conn.close()
 
     if not pc:
-        return "PC not found", 404
+        return "PC not found in database", 404
+        
+    # Check status separately
+    if pc.get('status') != 'Available':
+        return f"PC status is '{pc.get('status')}', must be 'Available'", 404
 
-    qr_data = f"PC|{pc['pcid']}|{pc['serial_no']}|{pc['pcname']}|{pc['location']}"
-
-    return send_qr(qr_data, size=200, filename=f"{pc['pcname']}_QR.png")
+    qr_data = f"PC|{pc['pcid']}|{pc['serial_no'] or 'N/A'}|{pc['pcname'] or 'N/A'}|{pc['location'] or 'N/A'}"
+    safe_filename = f"PC_{pc['pcid']}_QR.png"
+    
+    try:
+        return send_qr(qr_data, size=200, filename=safe_filename)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"QR generation error: {str(e)}", 500

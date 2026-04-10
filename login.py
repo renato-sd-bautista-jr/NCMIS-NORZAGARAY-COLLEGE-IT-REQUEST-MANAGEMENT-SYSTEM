@@ -3,6 +3,7 @@ from db import get_db_connection
 import bcrypt,json
 from datetime import datetime
 from werkzeug.security import check_password_hash
+from utils.user_activity import log_user_activity
 # Blueprint setup
 login_bp = Blueprint('login_bp', __name__, url_prefix='/login')
 
@@ -58,6 +59,13 @@ def login():
             'permissions': permissions
         }
 
+        log_user_activity(
+            user=session['user'],
+            action='Login',
+            module='Authentication',
+            details='User signed in successfully'
+        )
+
         
         return redirect(url_for('dashboard_bp.dashboard_load'))
         # ✅ Handle GET requests here
@@ -69,6 +77,14 @@ def login():
 # =============================
 @login_bp.route('/logout', methods=['POST'])
 def logout():
+    user = session.get('user')
+    if user:
+        log_user_activity(
+            user=user,
+            action='Logout',
+            module='Authentication',
+            details='User signed out'
+        )
     session.clear()
     return redirect(url_for('login_bp.login'))
 

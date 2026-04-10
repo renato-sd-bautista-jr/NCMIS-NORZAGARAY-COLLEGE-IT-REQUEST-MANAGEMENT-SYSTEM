@@ -7,29 +7,203 @@
   <title>Admin Reports</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .table-scroll {
+      max-height: calc(100vh - 350px);
+    }
+
+    .report-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #f8fafc;
+    }
+
+    .report-table tbody tr:nth-child(even) {
+      background: #fcfdff;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .status-available {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-in-use {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-surrendered {
+      background: #ffedd5;
+      color: #9a3412;
+    }
+
+    .status-damaged {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-default {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .quick-search-card {
+      border: 1px solid #d7e4f3;
+      border-radius: 0.9rem;
+      background:
+        radial-gradient(140% 120% at 100% 0%, rgba(191, 219, 254, 0.3) 0%, rgba(191, 219, 254, 0) 56%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 14px 26px -24px rgba(30, 64, 175, 0.65);
+    }
+
+    .quick-search-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.58rem;
+      color: #334155;
+      font-size: 0.72rem;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .quick-search-label-dot {
+      width: 0.52rem;
+      height: 0.52rem;
+      border-radius: 9999px;
+      flex-shrink: 0;
+      background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .quick-search-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 27rem;
+    }
+
+    .quick-search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      width: 1rem;
+      height: 1rem;
+      transform: translateY(-50%);
+      color: #64748b;
+      pointer-events: none;
+      transition: color 0.16s ease;
+    }
+
+    .quick-search-input {
+      width: 100%;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.82rem;
+      padding: 0.6rem 4.6rem 0.6rem 2.45rem;
+      font-size: 0.9rem;
+      line-height: 1.2;
+      color: #1e293b;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.05);
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+      outline: none;
+    }
+
+    .quick-search-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .quick-search-input:hover {
+      border-color: #93c5fd;
+    }
+
+    .quick-search-input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), inset 0 1px 1px rgba(15, 23, 42, 0.04);
+      background: #ffffff;
+    }
+
+    .quick-search-wrap:focus-within .quick-search-icon {
+      color: #2563eb;
+    }
+
+    .quick-search-clear {
+      position: absolute;
+      right: 0.42rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 1px solid #c7d2fe;
+      border-radius: 9999px;
+      padding: 0.2rem 0.56rem;
+      background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+      color: #334155;
+      font-size: 0.68rem;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .quick-search-clear:hover {
+      border-color: #93c5fd;
+      color: #1d4ed8;
+      background: #eff6ff;
+    }
+
+    .quick-search-clear:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .quick-search-status {
+      margin-top: 0.56rem;
+      font-size: 0.74rem;
+      color: #64748b;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex min-h-screen">
+<body class="bg-slate-100 text-slate-800 flex min-h-screen">
 
   {% include 'sidebar.html' %}
 
-  <main class="flex-1 md:ml-64 p-8 space-y-10">
-    <header class="flex items-center justify-between bg-blue-700 text-white shadow-lg p-4 rounded-xl border border-blue-800 backdrop-blur-md">
-      <div class="flex items-center gap-2 font-medium">
-        <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
-        <h1 class="text-2xl md:text-3xl font-bold">Reports Summary</h1>
+  <main class="flex-1 md:ml-64 p-3 sm:p-4 lg:p-5 xl:p-6 space-y-6">
+    <header class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white rounded-3xl shadow-2xl px-4 py-4 sm:px-5 sm:py-5 border border-blue-500/40">
+      <div class="pointer-events-none absolute -top-24 -right-20 h-56 w-56 rounded-full bg-white/15"></div>
+      <div class="pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-blue-200/20"></div>
+
+      <div class="relative z-10 flex min-w-0 items-center gap-3">
+        <div class="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm">
+          <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Reports Summary</h1>
+          <p class="text-xs sm:text-sm text-blue-100">Monitor inventory status and summary trends</p>
+        </div>
       </div>
     </header>
 
     <!-- Item Reports Section -->
-    <section class="bg-white p-8 rounded-xl shadow-md">
-      <div class="flex items-center mb-6">
+    <section class="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl shadow-lg border border-slate-200">
+      <div class="flex items-center mb-5">
         <i data-lucide="truck" class="w-7 h-7 text-green-600 mr-2"></i>
-        <h2 class="text-2xl font-semibold text-blue-700">Item Reports</h2>
+        <h2 class="text-2xl font-semibold text-blue-700 tracking-tight">Item Reports</h2>
       </div>
 
       <!-- Filter Form -->
-      <form id="filter-form" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-8">
-        <div>
+      <form id="filter-form" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 mb-5">
+        <div class="xl:col-span-2">
           <label class="block text-sm font-medium mb-1">Item / PC Name</label>
           <input id="filter-name" name="name" type="text" class="input" placeholder="Search by name">
         </div>
@@ -60,57 +234,91 @@
             <option value="Damaged">Damaged</option>
           </select>
         </div>
-        <div>
+        <div class="xl:col-span-1">
           <label class="block text-sm font-medium mb-1">Date From</label>
           <input id="filter-date-from" name="date_from" type="date" class="input">
         </div>
-        <div>
+        <div class="xl:col-span-1">
           <label class="block text-sm font-medium mb-1">Date To</label>
           <input id="filter-date-to" name="date_to" type="date" class="input">
         </div>
-        <div class="flex items-end">
-          <button id="apply-filters" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
+
+        <div class="sm:col-span-2 xl:col-span-6 flex flex-wrap items-end justify-end gap-2 pt-1">
+          <button id="apply-filters" type="submit" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2.5 rounded-xl shadow-md shadow-blue-500/30 font-semibold transition-all duration-200">
+            <i data-lucide="filter" class="w-4 h-4"></i>
             Apply Filter
           </button>
-           <button id="export-excel" type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow w-full font-semibold">
+          <button id="export-excel" type="button" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2.5 rounded-xl shadow-md shadow-green-500/30 font-semibold transition-all duration-200">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
             Export Excel
           </button>
         </div>
       </form>
 
+      <div class="mb-4">
+        <div class="quick-search-card p-3 sm:p-4">
+          <label for="reportQuickSearchInput" class="quick-search-label">
+            <span class="quick-search-label-dot"></span>
+            Quick Search
+          </label>
+          <div class="quick-search-wrap">
+            <i data-lucide="search" class="quick-search-icon"></i>
+            <input
+              id="reportQuickSearchInput"
+              type="text"
+              autocomplete="off"
+              placeholder="Search current page rows..."
+              class="quick-search-input"
+            >
+            <button
+              type="button"
+              id="reportQuickSearchClearBtn"
+              class="hidden quick-search-clear"
+            >
+              Clear
+            </button>
+          </div>
+          <p id="reportQuickSearchStatus" class="quick-search-status">Type to auto-filter current page.</p>
+        </div>
+      </div>
+
       <!-- Report Table -->
-      <div class="overflow-x-auto rounded-lg border border-gray-300">
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-gray-200 text-sm uppercase">
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="table-scroll overflow-auto">
+          <table class="report-table min-w-[1080px] w-full text-left border-collapse">
+            <thead class="text-[11px] uppercase tracking-wide text-slate-600">
             <tr>
-              <th class="p-2 border">Item / PC Name</th>
-              <th class="p-2 border">Category</th>
-              <th class="p-2 border">Facilities</th>
-              <th class="p-2 border">Location</th>
-              <th class="p-2 border">Accountable</th>
-              <th class="p-2 border">Status</th>
-              <th class="p-2 border">Acquisition Cost</th>
-              <th class="p-2 border">Date Acquired</th>
+              <th class="px-3 py-3 border-b border-slate-200">Item / PC Name</th>
+              <th class="px-3 py-3 border-b border-slate-200">Category</th>
+              <th class="px-3 py-3 border-b border-slate-200">Facilities</th>
+              <th class="px-3 py-3 border-b border-slate-200">Location</th>
+              <th class="px-3 py-3 border-b border-slate-200">Accountable</th>
+              <th class="px-3 py-3 border-b border-slate-200">Status</th>
+              <th class="px-3 py-3 border-b border-slate-200">Acquisition Cost</th>
+              <th class="px-3 py-3 border-b border-slate-200">Date Acquired</th>
             </tr>
-          </thead>
-          <tbody id="report-body" class="text-sm"></tbody>
-        </table>
+            </thead>
+            <tbody id="report-body" class="text-sm"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Pagination Controls -->
-      <div id="pagination-container" class="flex items-center justify-between mt-4">
-        <div class="text-sm text-gray-600">
+      <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-200">
+        <div class="text-sm text-slate-600">
           Showing <span id="showing-start">0</span> to <span id="showing-end">0</span> of <span id="total-records">0</span> records
         </div>
         <div class="flex items-center gap-2">
-          <button id="prev-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <button id="prev-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
             Previous
           </button>
           <div id="page-numbers" class="flex gap-1"></div>
-          <button id="next-page" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <button id="next-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
             Next
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
           </button>
-          <select id="per-page-select" class="ml-4 px-2 py-1 border rounded">
+          <select id="per-page-select" class="ml-2 px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="10">10 per page</option>
             <option value="25">25 per page</option>
             <option value="50">50 per page</option>
@@ -125,12 +333,105 @@
     lucide.createIcons();
 
     // Styling helpers
-    document.querySelectorAll('.input').forEach(el => el.classList.add('w-full', 'p-2', 'rounded', 'border', 'border-gray-300', 'bg-gray-50', 'focus:ring-2', 'focus:ring-blue-500'));
+    document.querySelectorAll('.input').forEach(el => el.classList.add(
+      'w-full',
+      'h-10',
+      'px-3',
+      'rounded-xl',
+      'border',
+      'border-slate-300',
+      'bg-white',
+      'text-sm',
+      'text-slate-700',
+      'focus:outline-none',
+      'focus:ring-2',
+      'focus:ring-blue-500',
+      'focus:border-blue-500',
+      'transition'
+    ));
 
     // Global pagination state
     let currentPage = 1;
     let perPage = 10;
     let currentFilters = {};
+    const reportQuickSearchInput = document.getElementById('reportQuickSearchInput');
+    const reportQuickSearchClearBtn = document.getElementById('reportQuickSearchClearBtn');
+    const reportQuickSearchStatus = document.getElementById('reportQuickSearchStatus');
+
+    function applyReportQuickSearchFilter() {
+      const tbody = document.getElementById('report-body');
+      if (!tbody || !reportQuickSearchInput) {
+        return;
+      }
+
+      const rawTerm = (reportQuickSearchInput.value || '').trim().toLowerCase();
+      const hasSearchTerm = rawTerm.length > 0;
+
+      if (reportQuickSearchClearBtn) {
+        reportQuickSearchClearBtn.classList.toggle('hidden', !hasSearchTerm);
+      }
+
+      const existingNoMatchRow = document.getElementById('report-quick-no-match-row');
+      if (existingNoMatchRow) {
+        existingNoMatchRow.remove();
+      }
+
+      const rows = Array.from(tbody.querySelectorAll('tr')).filter((row) => row.id !== 'report-quick-no-match-row');
+      const dataRows = rows.filter((row) => !row.querySelector('td[colspan]'));
+      const placeholderRows = rows.filter((row) => !!row.querySelector('td[colspan]'));
+
+      if (dataRows.length === 0) {
+        placeholderRows.forEach((row) => {
+          row.hidden = false;
+        });
+
+        if (reportQuickSearchStatus) {
+          reportQuickSearchStatus.textContent = hasSearchTerm
+            ? 'No loaded rows to search on this page.'
+            : 'Type to auto-filter current page.';
+        }
+
+        return;
+      }
+
+      let matchCount = dataRows.length;
+
+      if (hasSearchTerm) {
+        matchCount = 0;
+        dataRows.forEach((row) => {
+          const isMatch = (row.textContent || '').toLowerCase().includes(rawTerm);
+          row.hidden = !isMatch;
+          if (isMatch) {
+            matchCount += 1;
+          }
+        });
+      } else {
+        dataRows.forEach((row) => {
+          row.hidden = false;
+        });
+      }
+
+      placeholderRows.forEach((row) => {
+        row.hidden = true;
+      });
+
+      if (hasSearchTerm && matchCount === 0) {
+        const noMatchRow = document.createElement('tr');
+        noMatchRow.id = 'report-quick-no-match-row';
+        noMatchRow.innerHTML = '<td colspan="8" class="text-center py-4 text-gray-500">No matching report rows on this page.</td>';
+        tbody.appendChild(noMatchRow);
+      }
+
+      if (reportQuickSearchStatus) {
+        if (!hasSearchTerm) {
+          reportQuickSearchStatus.textContent = 'Type to auto-filter current page.';
+        } else if (matchCount === 0) {
+          reportQuickSearchStatus.textContent = 'No matching rows on this page.';
+        } else {
+          reportQuickSearchStatus.textContent = `Showing ${matchCount} of ${dataRows.length} rows on this page.`;
+        }
+      }
+    }
 
     // -------------------------------
     // 🧩 Load Reports with Filters and Pagination
@@ -153,26 +454,40 @@
       tbody.innerHTML = "";
 
       if (result.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">No records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No records found.</td></tr>`;
         updatePaginationControls(null);
+        applyReportQuickSearchFilter();
         return;
       }
 
       result.data.forEach(row => {
+        const statusText = (row.status || '-').toString();
+        const statusKey = statusText.trim().toLowerCase().replace(/\s+/g, '-');
+        const statusClass = statusKey === 'available'
+          ? 'status-pill status-available'
+          : statusKey === 'in-use'
+            ? 'status-pill status-in-use'
+            : statusKey === 'surrendered'
+              ? 'status-pill status-surrendered'
+              : statusKey === 'damaged'
+                ? 'status-pill status-damaged'
+                : 'status-pill status-default';
+
         tbody.innerHTML += `
-          <tr class="hover:bg-gray-100">
-            <td class="p-2 border">${row.name || '-'}</td>
-            <td class="p-2 border">${row.category || '-'}</td>
-            <td class="p-2 border">${row.department || '-'}</td>
-            <td class="p-2 border">${row.location || '-'}</td>
-            <td class="p-2 border">${row.accountable || '-'}</td>
-            <td class="p-2 border">${row.status || '-'}</td>
-            <td class="p-2 border">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-            <td class="p-2 border">${row.date_acquired || '-'}</td>
+          <tr class="hover:bg-blue-50/60 border-b border-slate-100 last:border-b-0 align-top">
+            <td class="px-3 py-2.5 font-semibold text-slate-800">${row.name || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.category || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.department || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.location || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.accountable || '-'}</td>
+            <td class="px-3 py-2.5"><span class="${statusClass}">${statusText}</span></td>
+            <td class="px-3 py-2.5 text-slate-700 whitespace-nowrap">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            <td class="px-3 py-2.5 text-slate-700 whitespace-nowrap">${row.date_acquired || '-'}</td>
           </tr>`;
       });
       
       updatePaginationControls(result.pagination);
+      applyReportQuickSearchFilter();
     }
 
     // -------------------------------
@@ -216,8 +531,8 @@
         const btn = document.createElement('button');
         btn.textContent = i;
         btn.className = i === pagination.page 
-          ? 'px-3 py-1 bg-blue-600 text-white rounded' 
-          : 'px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded';
+          ? 'min-w-9 h-9 px-3 bg-blue-600 text-white rounded-lg shadow-sm font-semibold' 
+          : 'min-w-9 h-9 px-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg shadow-sm font-semibold transition';
         btn.onclick = () => loadReports(currentFilters, i, perPage);
         pageNumbers.appendChild(btn);
       }
@@ -253,10 +568,25 @@
       loadReports(currentFilters, 1, newPerPage);
     });
 
+    if (reportQuickSearchInput) {
+      reportQuickSearchInput.addEventListener('input', applyReportQuickSearchFilter);
+    }
+
+    if (reportQuickSearchClearBtn && reportQuickSearchInput) {
+      reportQuickSearchClearBtn.addEventListener('click', () => {
+        reportQuickSearchInput.value = '';
+        applyReportQuickSearchFilter();
+        reportQuickSearchInput.focus();
+      });
+    }
+
     // -------------------------------
     // 🚀 Load Default Data
     // -------------------------------
-    window.addEventListener("DOMContentLoaded", () => loadReports());
+    window.addEventListener("DOMContentLoaded", () => {
+      loadReports();
+      applyReportQuickSearchFilter();
+    });
 
     document.getElementById("export-excel").addEventListener("click", () => {
   const form = document.getElementById("filter-form");
@@ -265,7 +595,6 @@
   // Trigger download
   window.location.href = `/export-reports?${params}`;
 });
-loadReports();
   </script>
 </body>
 </html>

@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Mar 21, 2026 at 04:50 PM
+-- Host: localhost
+-- Generation Time: Mar 25, 2026 at 03:31 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -172,9 +172,9 @@ CREATE TABLE `consumables` (
 INSERT INTO `consumables` (`accession_id`, `item_name`, `category`, `brand`, `quantity`, `unit`, `department_id`, `location`, `status`, `description`, `date_added`, `last_updated`, `added_by`) VALUES
 (9, 'Bond Paper A4', 'Office Supplies', 'Double A', 50, 'Reams', 1, 'Stock Room', 'Available', 'For printing documents', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
 (10, 'Printer Ink Black', 'Printer Supplies', 'HP', 20, 'Cartridges', 1, 'IT Office', 'Available', 'HP 678 Black Ink', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
-(11, 'Ballpen Blue', 'Office Supplies', 'Pilot', 100, 'Pieces', 1, 'Stock Room', 'Available', 'For general writing', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff1'),
+(11, 'Ballpen Blue', 'Office Supplies', 'Pilot', 90, 'Pieces', 1, 'Stock Room', 'Available', 'For general writing', '2026-03-03 11:32:50', '2026-03-25 19:33:47', 'staff1'),
 (12, 'Stapler Wire', 'Office Supplies', 'Dong-A', 30, 'Boxes', 1, 'Admin Office', 'Available', 'Standard size stapler wire', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'staff2'),
-(13, 'Alcohol 70%', 'Cleaning Supplies', 'Green Cross', 105, 'Bottles', 1, 'Clinic', 'Low Stock', 'For sanitation', '2026-03-03 11:32:50', '2026-03-14 23:29:14', 'nurse1'),
+(13, 'Alcohol 70%', 'Cleaning Supplies', 'Green Cross', 118, 'Bottles', 1, 'Clinic', 'Low Stock', 'For sanitation', '2026-03-03 11:32:50', '2026-03-25 22:26:39', 'nurse1'),
 (14, 'Face Mask', 'Medical Supplies', 'Generic', 200, 'Pieces', 1, 'Clinic', 'Available', 'Disposable masks', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'nurse1'),
 (15, 'Whiteboard Marker', 'Office Supplies', 'Pilot', 40, 'Pieces', 1, 'Classroom A', 'Available', 'Black markers', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'teacher1'),
 (16, 'USB Flash Drive 16GB', 'IT Supplies', 'SanDisk', 15, 'Pieces', 1, 'IT Office', 'Available', 'For file storage', '2026-03-03 11:32:50', '2026-03-03 11:32:50', 'admin'),
@@ -208,7 +208,17 @@ CREATE TABLE `consumable_transactions` (
 INSERT INTO `consumable_transactions` (`transaction_id`, `accession_id`, `item_name`, `action`, `quantity`, `previous_stock`, `new_stock`, `reference_no`, `reason`, `notes`, `performed_by`, `created_at`) VALUES
 (1, 13, 'Alcohol 70%', 'RECEIVE', 50, 75, 125, NULL, NULL, '', NULL, '2026-03-14 15:22:47'),
 (2, 13, 'Alcohol 70%', 'RETURN', 10, 125, 115, NULL, 'Defective', NULL, NULL, '2026-03-14 15:28:56'),
-(3, 13, 'Alcohol 70%', 'RETURN', 10, 115, 105, NULL, '', NULL, NULL, '2026-03-14 15:29:14');
+(3, 13, 'Alcohol 70%', 'RETURN', 10, 115, 105, NULL, '', NULL, NULL, '2026-03-14 15:29:14'),
+(4, 13, 'Alcohol 70%', 'RETURN', 5, 105, 100, NULL, 'Customer Return', NULL, NULL, '2026-03-25 11:07:13'),
+(5, 13, 'Alcohol 70%', 'RETURN', 3, 100, 97, NULL, 'Customer Return', NULL, NULL, '2026-03-25 11:09:16'),
+(6, 13, 'Alcohol 70%', 'RETURN', 3, 97, 94, NULL, 'Customer Return', NULL, NULL, '2026-03-25 11:11:10'),
+(7, 13, 'Alcohol 70%', 'RETURN', 2, 94, 92, NULL, 'Expired', NULL, NULL, '2026-03-25 11:15:23'),
+(8, 13, 'Alcohol 70%', 'RETURN', 2, 92, 90, NULL, 'Expired', NULL, NULL, '2026-03-25 11:16:57'),
+(9, 13, 'Alcohol 70%', 'RETURN', 2, 90, 88, NULL, 'Other', NULL, NULL, '2026-03-25 11:17:27'),
+(10, 11, 'Ballpen Blue', 'RETURN', 10, 100, 90, NULL, 'Customer Return', NULL, NULL, '2026-03-25 11:33:47'),
+(11, 13, 'Alcohol 70%', 'RECEIVE', 50, 88, 138, NULL, NULL, 'ewr', 9, '2026-03-25 14:26:11'),
+(12, 13, 'Alcohol 70%', 'RETURN', 10, 138, 128, NULL, 'Overstock', NULL, 9, '2026-03-25 14:26:27'),
+(13, 13, 'Alcohol 70%', 'RETURN', 10, 128, 118, NULL, 'Defective', NULL, 11, '2026-03-25 14:26:39');
 
 -- --------------------------------------------------------
 
@@ -260,15 +270,18 @@ CREATE TABLE `damage_types` (
 CREATE TABLE `departments` (
   `department_id` int(11) NOT NULL,
   `department_name` varchar(100) NOT NULL,
-  `department_code` varchar(10) DEFAULT NULL
+  `department_code` varchar(10) DEFAULT NULL,
+  `category` varchar(50) NOT NULL DEFAULT 'other',
+  `max_pc_allowed` int(10) unsigned NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `departments`
 --
 
-INSERT INTO `departments` (`department_id`, `department_name`, `department_code`) VALUES
-(1, 'Dean\'s Office', 'DO');
+INSERT INTO `departments` (`department_id`, `department_name`, `department_code`, `category`, `max_pc_allowed`) VALUES
+(1, 'Dean\'s Office', 'DO', 'Computer Laboratory A', 0),
+(3, 'MIS OFFICE', NULL, 'Computer Laboratory A', 0);
 
 -- --------------------------------------------------------
 
@@ -358,7 +371,7 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (37, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84336013', 'MSN84336085', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
 (38, NULL, 'samsung', 'j710f', 1, 37373.00, '2026-01-08', 'John Doe', 'SN84336064', 'MSN84336071', 'Computer accessory', 1, 'Available', '2026-01-08 12:54:03', '2026-01-08 12:54:03', NULL, 30, 100, 'Low'),
 (39, NULL, 'xiaomi', 'redmi', 1, 24242.00, '2026-01-08', 'John Doe', 'SN89003666', 'MSN89003624', '4', 1, 'Available', '2026-01-08 12:54:50', '2026-01-08 12:54:50', NULL, 30, 100, 'Low'),
-(40, NULL, 'xiaomi', 'redmiew', 1, 24242.00, '2026-01-08', 'John Doe', 'SN89003858', 'MSN89003858', '4', 1, 'Damaged', '2026-01-08 12:54:50', '2026-03-20 19:02:34', '2026-03-21', 30, 100, 'Low');
+(40, NULL, 'xiaomi', 'redmiew', 1, 24242.00, '2026-01-08', 'John Doe', 'SN89003858', 'MSN89003858', '4', 1, 'Available', '2026-01-08 12:54:50', '2026-03-22 21:39:38', '2026-03-23', 30, 100, 'Low');
 
 -- --------------------------------------------------------
 
@@ -435,7 +448,8 @@ CREATE TABLE `device_damage_reports` (
 
 INSERT INTO `device_damage_reports` (`id`, `accession_id`, `reported_by`, `damage_type`, `description`, `date_reported`) VALUES
 (1, 40, 'System', 'General Damage', 'Bulk marked as damaged', '2026-03-20 16:05:59'),
-(2, 40, 'System', 'General Damage', 'Bulk marked as damaged', '2026-03-21 03:02:34');
+(2, 40, 'System', 'General Damage', 'Bulk marked as damaged', '2026-03-21 03:02:34'),
+(3, 40, 'System', 'General Damage', 'Bulk marked as damaged', '2026-03-23 05:37:54');
 
 -- --------------------------------------------------------
 
@@ -463,7 +477,11 @@ CREATE TABLE `inventory_audit_log` (
 
 INSERT INTO `inventory_audit_log` (`audit_id`, `entity_type`, `entity_id`, `action`, `field_name`, `old_value`, `new_value`, `performed_by`, `performed_at`, `ip_address`, `user_agent`) VALUES
 (1, 'PC', 83, 'UPDATE', 'pcname', 'pc300', 'pc3001', 9, '2026-01-08 21:23:32', NULL, NULL),
-(2, 'PC', 83, 'UPDATE', 'pcname', 'pc3001', 'pc30014', 9, '2026-01-08 21:25:21', NULL, NULL);
+(2, 'PC', 83, 'UPDATE', 'pcname', 'pc3001', 'pc30014', 9, '2026-01-08 21:25:21', NULL, NULL),
+(3, 'PC', 84, 'UPDATE', 'maintenance_interval_days', '30', '1', 9, '2026-03-23 06:07:34', NULL, NULL),
+(4, 'PC', 84, 'UPDATE', 'maintenance_interval_days', '1', '2', 9, '2026-03-23 06:07:42', NULL, NULL),
+(5, 'PC', 84, 'UPDATE', 'maintenance_interval_days', '2', '3', 9, '2026-03-23 06:07:51', NULL, NULL),
+(6, 'PC', 86, 'UPDATE', 'maintenance_interval_days', '1', '2', 9, '2026-03-25 22:28:19', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -544,7 +562,9 @@ INSERT INTO `maintenance_history` (`id`, `pcid`, `asset_type`, `asset_id`, `acti
 (33, 71, 'PC', 71, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Available', 'Available', 'Low', 100, '2026-03-20 18:43:49'),
 (34, 70, 'PC', 70, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Available', 'Available', 'Low', 100, '2026-03-20 18:43:49'),
 (35, 69, 'PC', 69, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Available', 'Available', 'Low', 100, '2026-03-20 18:43:49'),
-(37, NULL, 'Device', 40, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-20 19:02:27');
+(37, NULL, 'Device', 40, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-20 19:02:27'),
+(38, NULL, 'Device', 40, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-22 21:37:47'),
+(39, NULL, 'Device', 40, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-03-22 21:39:38');
 
 -- --------------------------------------------------------
 
@@ -612,7 +632,9 @@ INSERT INTO `maintenance_logs` (`id`, `asset_type`, `asset_id`, `previous_status
 (43, 'PC', 71, 'Available', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-20 18:43:49'),
 (44, 'PC', 70, 'Available', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-20 18:43:49'),
 (45, 'PC', 69, 'Available', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-20 18:43:49'),
-(55, 'DEVICE', 40, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-20 19:02:27');
+(55, 'DEVICE', 40, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-20 19:02:27'),
+(56, 'DEVICE', 40, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-22 21:37:47'),
+(57, 'DEVICE', 40, 'Damaged', 'Available', 'Low', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-03-22 21:39:38');
 
 -- --------------------------------------------------------
 
@@ -683,7 +705,9 @@ INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quanti
 (72, 'pc-do-04', 1, 'Computer Lab A', 1, 30000.00, '0000-00-00', '4', 'SN-1761440694335-768370', 'MSN-1761440694335-395613', 'Surrendered', '2', '2', '2', '2', '2', '213', '2', '2', '2', '2025-10-26 01:04:54', '2026-03-17 12:26:18', '2025-12-28', 30, 100, 'Low'),
 (76, 'pc-do-06', 1, '3', 4, 3.00, '0000-00-00', '3', 'SN-1761583172156-922706', 'MSN-1761583172156-573704', 'Surrendered', '123', NULL, '312', '123', '123', '123', '123', '213', '123', '2025-10-27 16:39:32', '2026-03-17 12:26:18', '2025-12-28', 30, 100, 'Low'),
 (83, 'pc30014', 1, 'Computer Lab A', 1, 33333.00, '2025-06-08', 'John Doe', 'SN-300005', 'MUN-301252', 'Surrendered', '5', NULL, 'qwe', 'ramsta 8gb', 'ramsta 500gb', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', '214', '2026-01-08 02:39:55', '2026-02-22 15:06:05', NULL, 30, 80, 'Low'),
-(84, 'pc100', 1, 'Computer Lab A', 1, 50000.00, '2026-01-08', 'John Doe', 'SN-0000053477', 'MUN-041252', 'Available', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-17 13:01:37', '2026-03-20 18:43:49', '2026-03-21', 30, 100, 'Low');
+(84, 'pc100', 1, 'Computer Lab A', 1, 50000.00, '2026-01-08', 'John Doe', 'SN-0000053477', 'MUN-041252', 'Available', '', NULL, '', '', '', '', '', '', '', '2026-03-17 13:01:37', '2026-03-22 22:07:51', '2026-03-21', 3, 100, 'Low'),
+(85, 'pc new1', 1, '454325', 1, 2342325.00, '2024-03-03', 'doe john', 'SN-000085', '', 'Available', 'as', NULL, 'as', 'sa', 'sa', 'as', 'sa', 'as', 'sa', '2026-03-22 21:56:22', '2026-03-22 21:56:22', NULL, 4, 100, 'Low'),
+(86, 'pc new134', 1, 'as', 1, 4524542.00, '2025-03-02', '34', 'wqeqw342', 'qweqe234', 'Available', '324', NULL, '234', '234', '234', '234', '234', '234', '234', '2026-03-22 22:03:00', '2026-03-25 14:28:19', NULL, 2, 100, 'Low');
 
 --
 -- Triggers `pcinfofull`
@@ -797,7 +821,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`user_id`, `username`, `faculty_name`, `email`, `password`, `is_admin`, `is_active`, `created_at`, `updated_at`, `permissions`, `first_name`, `middle_name`, `last_name`) VALUES
 (9, 'admin', 'santos, matthew S.', 'matthewjohnsantos2004@gmail.com', 'scrypt:32768:8:1$ryLUIe9RsrDae4ph$d62414102427f2911938fc93a342514c4064c148112be99a3aa808a83bf62eca63b5ab43f9b0cc8341e01f21f8968882b1eb26c91b737a8872e9950ff25befd0', 1, 1, '2025-03-24 02:34:16', '2025-10-27 04:03:59', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
 (10, 'user', 'me', 'matthewjohnsantos143@gmail.com', 'scrypt:32768:8:1$LQ4mixntjhzilHyY$7e9f133cb8da3b06625ac3ee3164c9d8fb97983226c64ddfecddad0fa9fd76a5821f391e3d1595c4029544ae4a3f253a0952f1496174f3b46093503766ff5fcb', 0, 1, '2025-03-24 09:25:58', '2025-10-27 14:31:08', '{\"dashboard\": {\"view\": true, \"edit\": false}, \"inventory\": {\"view\": true, \"edit\": false}, \"qrlist\": {\"view\": true, \"edit\": false}, \"report\": {\"view\": true, \"edit\": false}, \"dept\": {\"view\": true, \"edit\": false}}', 'matthew', 's', 'santos'),
-(11, 'rbautista', '', 'renatobautista17@gmail.com', 'scrypt:32768:8:1$Gc5JBZzptDeAvn9b$cf555f0d8ead0898962845e3fba4f6ef99fc3ab7e7c0a4f86f09d766054ed4dcfdc99174d15db62bad4701f583feb1fea555bcd14f9593675ee30e3b7891a037', 1, 1, '2025-10-26 15:24:49', '2025-10-27 16:44:03', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'Renato', 'sd', 'Bautista');
+(11, 'rbautista', 'BA, Re', 'renatobautista17@gmail.com', 'scrypt:32768:8:1$Gc5JBZzptDeAvn9b$cf555f0d8ead0898962845e3fba4f6ef99fc3ab7e7c0a4f86f09d766054ed4dcfdc99174d15db62bad4701f583feb1fea555bcd14f9593675ee30e3b7891a037', 1, 1, '2025-10-26 15:24:49', '2026-03-25 14:19:15', '{\"dashboard\": {\"view\": true, \"edit\": true}, \"inventory\": {\"view\": true, \"edit\": true}, \"qrlist\": {\"view\": true, \"edit\": true}, \"report\": {\"view\": true, \"edit\": true}, \"dept\": {\"view\": true, \"edit\": true}}', 'Renato', 'sd', 'Bautista');
 
 --
 -- Indexes for dumped tables
@@ -1014,7 +1038,7 @@ ALTER TABLE `consumables`
 -- AUTO_INCREMENT for table `consumable_transactions`
 --
 ALTER TABLE `consumable_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `damage_reports`
@@ -1032,7 +1056,7 @@ ALTER TABLE `damage_types`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `devices`
@@ -1056,13 +1080,13 @@ ALTER TABLE `devices_units`
 -- AUTO_INCREMENT for table `device_damage_reports`
 --
 ALTER TABLE `device_damage_reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `inventory_audit_log`
 --
 ALTER TABLE `inventory_audit_log`
-  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `inventory_settings`
@@ -1080,13 +1104,13 @@ ALTER TABLE `inventory_status_logs`
 -- AUTO_INCREMENT for table `maintenance_history`
 --
 ALTER TABLE `maintenance_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `maintenance_logs`
 --
 ALTER TABLE `maintenance_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1098,7 +1122,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `pcinfofull`
 --
 ALTER TABLE `pcinfofull`
-  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `pcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `pcparts`

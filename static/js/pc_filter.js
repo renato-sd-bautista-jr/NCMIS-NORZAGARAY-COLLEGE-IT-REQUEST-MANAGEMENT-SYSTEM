@@ -22,7 +22,7 @@ async function openPcFilterModal() {
   }
 
   // Load departments once
-  const deptSelect = document.getElementById('filter_department');
+  const deptSelect = document.querySelector('#pcFilterForm select[name="department_id"]');
   if (deptSelect && deptSelect.options.length <= 1) {
     try {
       const res = await fetch('/get-departments');
@@ -53,22 +53,33 @@ document.addEventListener("submit", async (e) => {
   if (e.target.id === "pcFilterForm") {
     e.preventDefault();
     const form = e.target;
-    const params = new URLSearchParams(new FormData(form)).toString();
+    const formData = new FormData(form);
+    const url = new URL(window.location.href);
+    const nextParams = new URLSearchParams();
 
-    try {
-      const res = await fetch(`/filter-pcs?${params}`);
-      const data = await res.json();
-
-      if (Array.isArray(data)) {
-        renderPcTable(data);
-        closePcFilterModal();
-      } else {
-        alert("⚠️ Error filtering PCs");
+    for (const [key, value] of formData.entries()) {
+      if (value !== null && String(value).trim() !== "") {
+        nextParams.append(key, String(value).trim());
       }
-    } catch (err) {
-      console.error("❌ Filter error:", err);
-      alert("Server error while filtering PCs.");
     }
+
+    const perPageSelect = document.getElementById("pcPerPageSelect");
+    const nav = document.getElementById("pcPaginationNav");
+    const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
+
+    nextParams.set("section", "pc");
+    nextParams.set("page", "1");
+    nextParams.set("per_page", String(perPage));
+
+    window.history.replaceState({}, "", `${url.pathname}?${nextParams.toString()}`);
+
+    if (typeof loadPcPageAjax === "function") {
+      await loadPcPageAjax(1, perPage, true);
+      closePcFilterModal();
+      return;
+    }
+
+    window.location.href = `${url.pathname}?${nextParams.toString()}`;
   }
 });
 
@@ -92,9 +103,13 @@ function renderPcTable(pcs) {
       pc.risk_level === "Medium" ? "text-yellow-600" :
       "text-green-600";
 
+    const statusValue = String(pc.status || "").toLowerCase();
     const statusClass =
-      pc.status === "Needs Checking" ? "text-yellow-600" :
-      pc.status === "Critical" ? "text-red-700 font-bold" :
+      statusValue === "damaged" ? "text-red-600" :
+      statusValue === "critical" ? "text-red-700 font-bold" :
+      statusValue === "needs checking" ? "text-yellow-600" :
+      statusValue === "in used" ? "text-blue-600" :
+      statusValue === "inactive" ? "text-gray-500" :
       "text-green-600";
 
     tbody.insertAdjacentHTML("beforeend", `

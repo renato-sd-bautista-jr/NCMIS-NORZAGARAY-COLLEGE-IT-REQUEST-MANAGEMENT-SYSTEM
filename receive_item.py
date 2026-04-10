@@ -20,10 +20,30 @@ def get_borrowed_items():
     if 'user' not in session or not session['user'].get('user_id'):
         return jsonify({'error': 'Unauthorized'}), 401
     
+    # Pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    if per_page not in [5, 10, 25, 50]:
+        per_page = 10
+    
+    offset = (page - 1) * per_page
+    
     try:
         conn = get_db_connection()
         
-        # Get items that are currently borrowed by the user
+        # Get total count
+        count_query = """
+        SELECT COUNT(*) as total
+        FROM borrowed_items bi
+        WHERE bi.user_id = %s AND bi.status = 'Borrowed'
+        """
+        
+        with conn.cursor() as cursor:
+            cursor.execute(count_query, (session['user']['user_id'],))
+            total_items = cursor.fetchone()['total']
+        
+        # Get items that are currently borrowed by the user (paginated)
         query = """
         SELECT 
             bi.borrow_id,
@@ -44,13 +64,16 @@ def get_borrowed_items():
         LEFT JOIN pc d ON bi.item_id = d.pc_id AND bi.item_type = 'PC'
         WHERE bi.user_id = %s AND bi.status = 'Borrowed'
         ORDER BY bi.borrow_date DESC
+        LIMIT %s OFFSET %s
         """
         
         with conn.cursor() as cursor:
-            cursor.execute(query, (session['user']['user_id'],))
+            cursor.execute(query, (session['user']['user_id'], per_page, offset))
             items = cursor.fetchall()
         
         conn.close()
+        
+        total_pages = (total_items + per_page - 1) // per_page
         
         result = []
         for item in items:
@@ -79,7 +102,13 @@ def get_borrowed_items():
                     'expected_return_date': item['expected_return_date'].strftime('%Y-%m-%d') if item['expected_return_date'] else ''
                 })
         
-        return jsonify(result)
+        return jsonify({
+            'items': result,
+            'page': page,
+            'per_page': per_page,
+            'total_items': total_items,
+            'total_pages': total_pages
+        })
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500

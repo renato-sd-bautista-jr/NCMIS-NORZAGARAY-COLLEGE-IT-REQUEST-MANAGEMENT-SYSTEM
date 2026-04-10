@@ -2,16 +2,16 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <!-- PC Modal -->
-<div id="pcModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+<div id="pcModal" class="hidden fixed inset-0 inventory-modal-backdrop flex items-center justify-center z-50 transition-all duration-300 p-4">
   <div id="pcModalContent" class="bg-white p-8 rounded-2xl w-full max-w-5xl shadow-2xl overflow-y-auto max-h-[90vh] transform scale-95 transition-transform duration-300">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6 border-b pb-3">
+    <div class="pc-modal-header flex items-center justify-between mb-6 border-b pb-3">
       <div class="flex items-center gap-3">
         <i data-lucide="computer" class="w-6 h-6 text-blue-600"></i>
         <h3 id="modalTitle" class="text-2xl font-semibold text-blue-600">Add PC</h3>
       </div>
-      <button type="button" onclick="closePcModal()" class="text-gray-500 hover:text-gray-700 transition">
+      <button type="button" onclick="closePcModal()" class="pc-modal-close text-gray-500 hover:text-gray-700 transition">
         <i data-lucide="x" class="w-6 h-6"></i>
       </button>
     </div>
@@ -58,18 +58,30 @@
         </div>
 
         <div>
+          <label class="label">Duration (Years)</label>
+          <input 
+            type="number" 
+            id="modalMaintenanceInterval" 
+            name="maintenance_interval_days" 
+            min="1"
+            step="1"
+            class="input"
+            placeholder="e.g., 5">
+        </div>
+
+        <div>
           <label class="label">Accountable</label>
           <input type="text" id="modalAccountable" name="accountable" class="input" placeholder="e.g., John Doe">
         </div>
 
         <div>
           <label class="label">Serial No</label>
-          <input type="text" id="modalSerialNo" name="serial_no" class="input" placeholder="e.g., SN-123456">
+          <input type="text" id="modalSerialNo" name="serial_no" class="input" placeholder="e.g., SN-123456" readonly required>
         </div>
 
         <div>
           <label class="label">Municipal Serial No</label>
-          <input type="text" id="modalMunicipalSerialNo" name="municipal_serial_no" class="input" placeholder="e.g., MSN-987654">
+          <input type="text" id="modalMunicipalSerialNo" name="municipal_serial_no" class="input" placeholder="e.g., MSN-987654" readonly required>
         </div>
 
         <div>
@@ -196,6 +208,44 @@
 .btn-gray:hover {
   background-color: #6b7280;
 }
+
+.pc-modal-header {
+  margin: -2rem -2rem 1.5rem;
+  padding: 1rem 1.35rem;
+  border-bottom: 0;
+  border-radius: 0.85rem 0.85rem 0 0;
+  background: linear-gradient(112deg, #2563eb 0%, #4f46e5 58%, #4338ca 100%);
+  color: #ffffff;
+}
+
+.pc-modal-header i,
+.pc-modal-header h3 {
+  color: #ffffff !important;
+}
+
+.pc-modal-close {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+.pc-modal-close:hover {
+  transform: rotate(90deg);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-open-pc #pcPaginationNav,
+.modal-open-pc #pcPaginationSummary,
+.modal-open-pc #pcPerPageForm {
+  display: none !important;
+}
 </style>
 
 
@@ -221,6 +271,22 @@ function updateBatchUI() {
     batchInput.disabled = false;
   }
 }
+
+function convertStoredDaysToDisplayYears(rawValue) {
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return "";
+  if (numericValue >= 365) {
+    return String(Math.max(1, Math.round(numericValue / 365)));
+  }
+  return String(Math.round(numericValue));
+}
+
+function convertDisplayYearsToStoredDays(rawValue) {
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return "";
+  return String(Math.round(numericValue * 365));
+}
+
 async function openPcModal(pcData = null) {
   const modal = document.getElementById('pcModal');
   const modalTitle = document.getElementById('modalTitle');
@@ -270,6 +336,8 @@ async function openPcModal(pcData = null) {
       municipal_serial_no: 'modalMunicipalSerialNo',
       status: 'modalStatus',
       note: 'modalNote',
+      maintenance_interval_days: 'modalMaintenanceInterval', // ⭐ ADD THIS
+
       motherboard: 'motherboard',
       ram: 'ram',
       storage: 'storage',
@@ -286,6 +354,8 @@ async function openPcModal(pcData = null) {
         if (key === 'date_acquired' && value) {
           const dateObj = new Date(value);
           value = dateObj.toISOString().split('T')[0];
+        } else if (key === 'maintenance_interval_days' && value) {
+          value = convertStoredDaysToDisplayYears(value);
         }
         element.value = value;
       }
@@ -300,10 +370,22 @@ async function openPcModal(pcData = null) {
     // 🟩 ADD MODE
     
     modalTitle.textContent = "Add PC";
-    let isEditMode = false;
+    isEditMode = false;
     form.action = "{{ url_for('manage_pc_bp.add_pcinfofull') }}";
     submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Add PC';
+
+    const serialField = document.getElementById('modalSerialNo');
+    if (serialField && (!serialField.value || serialField.value.trim() === '')) {
+      serialField.value = generateSerial("SN");
+    }
+
+    const municipalField = document.getElementById('modalMunicipalSerialNo');
+    if (municipalField && (!municipalField.value || municipalField.value.trim() === '')) {
+      municipalField.value = generateSerial("MSN");
+    }
   }
+
+  updateBatchUI();
 
   // 🪟 Show modal
   modal.classList.remove('hidden');
@@ -312,13 +394,31 @@ async function openPcModal(pcData = null) {
   
 }
 function closePcModal() {
-  document.getElementById('pcModal').classList.add('hidden');
+  const modal = document.getElementById('pcModal');
+  const content = document.getElementById('pcModalContent');
+  if (content) {
+    content.classList.remove('scale-100');
+  }
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+function refreshPcListAfterSubmit() {
+  if (typeof window.refreshPcTableWithoutReload === "function") {
+    window.refreshPcTableWithoutReload();
+  }
 }
 document.getElementById("pcForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const form = e.target;
   const formData = new FormData(form);
+  const durationYears = formData.get("maintenance_interval_days");
+  const durationDays = convertDisplayYearsToStoredDays(durationYears);
+  if (durationDays) {
+    formData.set("maintenance_interval_days", durationDays);
+  }
 
   if (!validatePcForm(formData)) {
     return;
@@ -335,7 +435,8 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
       });
       if (res.ok) {
         showPopup("success", "PC updated successfully!");
-        setTimeout(() => window.location.reload(), 1500);
+        closePcModal();
+        refreshPcListAfterSubmit();
       } else {
         const data = await res.json();
         showPopup("error", data.error || "Failed to update PC.");
@@ -371,7 +472,8 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
 
       if (data.success) {
         showPopup("success", `${batchCount} PCs added successfully!`);
-        setTimeout(() => window.location.reload(), 1500);
+        closePcModal();
+        refreshPcListAfterSubmit();
       } else {
         showPopup("error", data.error || "Batch add failed.");
       }
@@ -396,7 +498,8 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
       }
 
       showPopup("success", data.message);
-      setTimeout(() => window.location.reload(), 1500);
+      closePcModal();
+      refreshPcListAfterSubmit();
     } catch (err) {
       console.error("❌ Submission error:", err);
       showPopup("error", "Something went wrong while adding PC.");
@@ -406,6 +509,11 @@ document.getElementById("pcForm").addEventListener("submit", async function (e) 
 
 
 function showPopup(type, message) {
+  if (typeof showToast === "function") {
+    showToast(message, type === "error" ? "error" : "success");
+    return;
+  }
+
   const popup = document.createElement("div");
   popup.className = `fixed top-5 right-5 px-4 py-3 rounded-lg shadow-lg text-white z-50 ${
     type === "error" ? "bg-red-600" : "bg-green-600"
@@ -430,6 +538,8 @@ function validatePcForm(formData) {
     { name: "pcname", label: "PC Name" },
     { name: "department_id", label: "Department" },
     { name: "date_acquired", label: "Date Acquired" },
+    { name: "serial_no", label: "Serial No" },
+    { name: "municipal_serial_no", label: "Municipal Serial No" },
     { name: "status", label: "Status" }
   ];
 
@@ -459,4 +569,3 @@ function validatePcForm(formData) {
 }
 </script>
 
- 

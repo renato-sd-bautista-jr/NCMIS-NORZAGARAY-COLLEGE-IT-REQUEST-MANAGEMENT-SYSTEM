@@ -1,8 +1,11 @@
 from db import get_db_connection
 import pymysql
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file
+from io import BytesIO
+import pandas as pd
 import qrcode, os
 import time,random
+import re
 
 manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
@@ -178,17 +181,23 @@ def update_device():
         conn.close()
 
 # ✅ Delete Device
+
 @manage_item_bp.route('/delete-item/<int:id>', methods=['POST'])
 def delete_item(id):
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM devices_full WHERE accession_id = %s", (id,))
+            cur.execute("UPDATE devices_full SET is_archived = 1, deleted_at = NOW() WHERE accession_id = %s", (id,))
             conn.commit()
-        flash("Device deleted successfully!", "success")
+        if is_ajax:
+            return jsonify(success=True, message='Device archived successfully!')
+        flash("Device archived successfully!", "success")
     except Exception as e:
         conn.rollback()
-        flash(f"Error deleting device: {e}", "danger")
+        if is_ajax:
+            return jsonify(success=False, error=f"Error archiving device: {e}"), 500
+        flash(f"Error archiving device: {e}", "danger")
     finally:
         conn.close()
     return redirect(url_for('manage_inventory.inventory_load'))
@@ -305,7 +314,7 @@ def filter_devices():
                 dep.department_name
             FROM devices_full df
             LEFT JOIN departments dep ON df.department_id = dep.department_id
-            WHERE 1=1
+            WHERE df.is_archived = 0
         """
         params = []
 
@@ -364,3 +373,290 @@ def filter_devices():
 def device_filter_modal():
     departments = get_departments()
     return render_template('partials/filter_device_modal.html', departments=departments)
+
+
+@manage_item_bp.route('/export-selected-devices', methods=['POST'])
+def export_selected_devices():
+    data = request.get_json(silent=True) or {}
+    device_ids = data.get("device_ids") or []
+
+    try:
+        device_ids = [int(device_id) for device_id in device_ids]
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid device selection"}), 400
+
+    if not device_ids:
+        return jsonify({"error": "No devices selected"}), 400
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            placeholders = ','.join(['%s'] * len(device_ids))
+            cur.execute(
+                f"""
+                SELECT
+                    df.accession_id,
+                    df.item_name,
+                    df.brand_model,
+                    df.serial_no,
+                    df.municipal_serial_no,
+                    df.device_type,
+                    df.quantity,
+                    df.acquisition_cost,
+                    df.date_acquired,
+                    df.accountable,
+                    COALESCE(dep.department_name, '') AS department,
+                    df.status
+                FROM devices_full df
+                LEFT JOIN departments dep ON dep.department_id = df.department_id
+                WHERE df.accession_id IN ({placeholders})
+                ORDER BY df.accession_id
+                """,
+                tuple(device_ids)
+            )
+            rows = cur.fetchall()
+
+        if not rows:
+            return jsonify({"error": "No matching devices found for export"}), 404
+
+        df = pd.DataFrame(rows).rename(columns={
+            "accession_id": "ID",
+            "item_name": "Device Name",
+            "brand_model": "Brand / Model",
+            "serial_no": "Serial No",
+            "municipal_serial_no": "Municipal Serial No",
+            "device_type": "Device Type",
+            "quantity": "Quantity",
+            "acquisition_cost": "Acquisition Cost",
+            "date_acquired": "Date Acquired",
+            "accountable": "Accountable",
+            "department": "Department",
+            "status": "Status",
+        })
+
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Selected Devices')
+
+        output.seek(0)
+
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="selected_devices.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    except Exception as e:
+        print(f"❌ Device export error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        conn.close()
+
+
+@manage_item_bp.route('/import-devices-excel', methods=['POST'])
+def import_devices_excel():
+    file = request.files.get("file")
+    duplicate_option = request.form.get("duplicate_option", "skip")
+
+    if not file:
+        return jsonify({"success": False, "error": "No file uploaded"})
+
+    if duplicate_option not in {"skip", "ignore", "overwrite"}:
+        duplicate_option = "skip"
+
+    conn = None
+
+    try:
+        df = pd.read_excel(file)
+
+        def normalize_header(name):
+            text = str(name).strip().lower()
+            text = re.sub(r"[^a-z0-9]+", "_", text)
+            return text.strip("_")
+
+        df = df.rename(columns={col: normalize_header(col) for col in df.columns})
+
+        alias_map = {
+            "device_name": "item_name",
+            "department_name": "department",
+        }
+        for old_name, new_name in alias_map.items():
+            if old_name in df.columns and new_name not in df.columns:
+                df[new_name] = df[old_name]
+
+        conn = get_db_connection()
+        cur = conn.cursor(pymysql.cursors.DictCursor)
+
+        added = 0
+        updated = 0
+        skipped = 0
+
+        department_cache = {}
+
+        def clean_value(value):
+            if pd.isna(value):
+                return None
+            if isinstance(value, str):
+                value = value.strip()
+                return value or None
+            if isinstance(value, pd.Timestamp):
+                return value.date()
+            return value
+
+        for _, row in df.iterrows():
+            item_name = clean_value(row.get("item_name"))
+            brand_model = clean_value(row.get("brand_model"))
+            serial = clean_value(row.get("serial_no"))
+            municipal = clean_value(row.get("municipal_serial_no"))
+            device_type = clean_value(row.get("device_type"))
+            acquisition_cost = clean_value(row.get("acquisition_cost"))
+            date_acquired = clean_value(row.get("date_acquired"))
+            accountable = clean_value(row.get("accountable"))
+            status = clean_value(row.get("status")) or "Available"
+
+            quantity = clean_value(row.get("quantity"))
+            try:
+                quantity = max(1, int(quantity)) if quantity is not None else 1
+            except (TypeError, ValueError):
+                quantity = 1
+
+            maintenance_interval_days = clean_value(row.get("maintenance_interval_days"))
+            try:
+                maintenance_interval_days = int(maintenance_interval_days) if maintenance_interval_days is not None else 30
+            except (TypeError, ValueError):
+                maintenance_interval_days = 30
+            maintenance_interval_days = max(1, maintenance_interval_days)
+
+            department_id = clean_value(row.get("department_id"))
+            department_name = clean_value(row.get("department"))
+
+            if not department_id and department_name:
+                if department_name not in department_cache:
+                    cur.execute(
+                        "SELECT department_id FROM departments WHERE department_name = %s LIMIT 1",
+                        (department_name,)
+                    )
+                    dept_row = cur.fetchone()
+                    department_cache[department_name] = dept_row["department_id"] if dept_row else None
+                department_id = department_cache.get(department_name)
+
+            if not item_name:
+                skipped += 1
+                continue
+
+            if not serial and not municipal:
+                skipped += 1
+                continue
+
+            existing = None
+            if serial and municipal:
+                cur.execute(
+                    "SELECT accession_id FROM devices_full WHERE serial_no = %s OR municipal_serial_no = %s LIMIT 1",
+                    (serial, municipal)
+                )
+                existing = cur.fetchone()
+            elif serial:
+                cur.execute(
+                    "SELECT accession_id FROM devices_full WHERE serial_no = %s LIMIT 1",
+                    (serial,)
+                )
+                existing = cur.fetchone()
+            elif municipal:
+                cur.execute(
+                    "SELECT accession_id FROM devices_full WHERE municipal_serial_no = %s LIMIT 1",
+                    (municipal,)
+                )
+                existing = cur.fetchone()
+
+            normalized_status = str(status).strip().lower()
+            imported_risk = "High" if normalized_status in {"damaged", "damage", "unusable"} else "Low"
+
+            if existing:
+                if duplicate_option in {"skip", "ignore"}:
+                    skipped += 1
+                    continue
+
+                if duplicate_option == "overwrite":
+                    cur.execute(
+                        """
+                        UPDATE devices_full SET
+                            item_name = COALESCE(%s, item_name),
+                            brand_model = COALESCE(%s, brand_model),
+                            quantity = COALESCE(%s, quantity),
+                            device_type = COALESCE(%s, device_type),
+                            acquisition_cost = COALESCE(%s, acquisition_cost),
+                            date_acquired = COALESCE(%s, date_acquired),
+                            accountable = COALESCE(%s, accountable),
+                            department_id = COALESCE(%s, department_id),
+                            status = COALESCE(%s, status),
+                            maintenance_interval_days = COALESCE(%s, maintenance_interval_days),
+                            risk_level = CASE
+                                WHEN LOWER(TRIM(COALESCE(%s, status))) IN ('damaged', 'damage', 'unusable') THEN 'High'
+                                ELSE risk_level
+                            END
+                        WHERE accession_id = %s
+                        """,
+                        (
+                            item_name,
+                            brand_model,
+                            quantity,
+                            device_type,
+                            acquisition_cost,
+                            date_acquired,
+                            accountable,
+                            department_id,
+                            status,
+                            maintenance_interval_days,
+                            status,
+                            existing["accession_id"],
+                        ),
+                    )
+                    updated += 1
+                    continue
+
+            cur.execute(
+                """
+                INSERT INTO devices_full
+                (item_name, brand_model, serial_no, municipal_serial_no, quantity,
+                 device_type, acquisition_cost, date_acquired, accountable,
+                 department_id, status, maintenance_interval_days,
+                 last_checked, health_score, risk_level)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURDATE(), 100, %s)
+                """,
+                (
+                    item_name,
+                    brand_model,
+                    serial,
+                    municipal,
+                    quantity,
+                    device_type,
+                    acquisition_cost,
+                    date_acquired,
+                    accountable,
+                    department_id,
+                    status,
+                    maintenance_interval_days,
+                    imported_risk,
+                ),
+            )
+            added += 1
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "added": added,
+            "updated": updated,
+            "skipped": skipped,
+        })
+
+    except Exception as e:
+        print(f"❌ Device import error: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+    finally:
+        if conn:
+            conn.close()
