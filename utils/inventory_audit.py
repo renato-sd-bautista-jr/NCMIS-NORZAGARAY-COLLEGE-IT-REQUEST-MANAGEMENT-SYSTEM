@@ -16,6 +16,7 @@ def log_inventory_action(
     Supports CREATE, UPDATE, DELETE, BULK actions.
     """
 
+
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:

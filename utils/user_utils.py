@@ -21,3 +21,4 @@ def get_faculty_name(user_id):
 
     finally:
         conn.close()
+        

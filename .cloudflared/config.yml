@@ -1,0 +1,7 @@
+tunnel: 65d7e423-4edb-4c98-9216-caa0ec588160
+credentials-file: C:\Users\user\.cloudflared\65d7e423-4edb-4c98-9216-caa0ec588160.json
+
+ingress:
+  - hostname: app.norzagaraycollegemanagementinformationsystem.xyz
+    service: http://localhost:5000
+  - service: http_status:404

@@ -62,6 +62,7 @@ def _sync_user_activity_log_schema(conn):
                 cursor.execute(f"ALTER TABLE user_activity_log {alter_sql}")
 
 
+
 def humanize_activity_action(action, http_method=None, route=None):
     """Return a readable activity label based on stored action and route metadata."""
     raw_action = (action or '').strip()

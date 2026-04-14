@@ -2,6 +2,7 @@ from functools import wraps
 from flask import session, redirect, url_for, abort
 
 
+
 def check_permission(feature, action):
     """
     Decorator to check if the current user has permission for a specific feature and action.
