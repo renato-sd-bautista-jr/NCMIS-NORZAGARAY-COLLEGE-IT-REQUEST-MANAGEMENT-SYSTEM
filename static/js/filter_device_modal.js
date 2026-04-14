@@ -24,7 +24,14 @@ async function openDeviceFilterModalFromFile() {
 
   modal.classList.remove("hidden");
 
+  if (content) {
+    content.classList.remove("scale-100");
+    content.classList.add("scale-95");
+  }
+
   setTimeout(() => {
+    if (!content) return;
+    content.classList.remove("scale-95");
     content.classList.add("scale-100");
   }, 50);
 
@@ -42,7 +49,20 @@ async function openDeviceFilterModalFromFile() {
 
 function closeDeviceFilterModal() {
   const modal = document.getElementById("filterDeviceModal");
-  if (modal) modal.classList.add("hidden");
+  const content = document.getElementById("deviceFilterModalContent");
+
+  if (!modal) return;
+
+  if (content) {
+    content.classList.remove("scale-100");
+    content.classList.add("scale-95");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 130);
+    return;
+  }
+
+  modal.classList.add("hidden");
 }
 
 

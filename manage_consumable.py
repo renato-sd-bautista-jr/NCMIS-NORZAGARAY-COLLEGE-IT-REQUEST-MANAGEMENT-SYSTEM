@@ -54,6 +54,7 @@ def filter_consumables():
             FROM devices_full df
             LEFT JOIN departments dep ON df.department_id = dep.department_id
             WHERE df.device_type = 'Consumable'
+                AND COALESCE(df.is_archived, 0) = 0
         """
         params = []
 
@@ -105,7 +106,19 @@ def get_consumables():
     conn = get_db_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Only filter on `is_archived` when the column exists to avoid
+            # SQL errors on schemas that don't have that column.
             cur.execute("""
+                SELECT COUNT(*) AS cnt
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'consumables'
+                  AND COLUMN_NAME = 'is_archived'
+            """)
+            row = cur.fetchone()
+            has_is_archived = bool(row and int(row.get('cnt', 0)) > 0)
+
+            sql = """
                 SELECT 
                     c.accession_id,
                     c.item_name,
@@ -122,77 +135,90 @@ def get_consumables():
                     c.added_by,
                     d.department_name
                 FROM consumables c
-                LEFT JOIN devices_full df ON df.accession_id = c.accession_id
                 LEFT JOIN departments d ON c.department_id = d.department_id
-                WHERE (
-                    df.accession_id IS NULL
-                    OR TRIM(LOWER(df.device_type)) = 'consumable'
-                )
-                ORDER BY c.accession_id DESC
-            """)
+            """
+
+            if has_is_archived:
+                sql += " WHERE COALESCE(c.is_archived, 0) = 0"
+
+            sql += " ORDER BY c.accession_id DESC"
+
+            cur.execute(sql)
             consumables = cur.fetchall()
         return jsonify(consumables)
     finally:
         conn.close()
 
-@manage_consumable_bp.route('/manage_consumable')
-def manage_consumable_page():
-    """Load Manage Consumables page."""
-    conn = get_db_connection()
-    try:
-        # Get filter parameters
-        department_id = request.args.get('department_id')
-        status = request.args.get('status')
-        
-        # Build query with filters
-        query = """
-            SELECT 
-                df.accession_id,
-                df.item_name,
-                df.brand_model,
-                df.quantity,
-                df.acquisition_cost,
-                df.date_acquired,
-                df.accountable,
-                df.status,
-                df.risk_level,
-                df.health_score,
-                df.last_checked,
-                df.maintenance_interval_days,
-                dep.department_id,
-                dep.department_name
-            FROM devices_full df
-            LEFT JOIN departments dep ON df.department_id = dep.department_id
-            WHERE df.device_type = 'Consumable'
-        """
-        params = []
-        
-        if department_id:
-            query += " AND df.department_id = %s"
-            params.append(department_id)
-        
-        if status:
-            query += " AND df.status = %s"
-            params.append(status)
-            
-        query += " ORDER BY df.accession_id DESC"
 
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute(query, params)
-            consumables = cur.fetchall()
-            
-        # Get departments for filter dropdown
-        cur.execute("SELECT department_id, department_name FROM departments ORDER BY department_name")
-        departments = cur.fetchall()
-            
+@manage_consumable_bp.route('/archive-consumable/<int:id>', methods=['POST'])
+def archive_consumable(id):
+    """Mark a consumable as archived (is_archived=1, deleted_at=NOW()).
+    This is a non-destructive archive and will not remove rows.
+    """
+    conn = get_db_connection()
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    try:
+        with conn.cursor() as cur:
+            # Ensure archive columns exist. If they don't, try to add them
+            cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'consumables' AND COLUMN_NAME = 'is_archived'")
+            row = cur.fetchone()
+            has_is_archived = bool(row and int(row.get('cnt', 0)) > 0) if isinstance(row, dict) else bool(row and row[0] > 0)
+
+            if not has_is_archived:
+                try:
+                    cur.execute("ALTER TABLE consumables ADD COLUMN is_archived TINYINT(1) DEFAULT 0, ADD COLUMN deleted_at DATETIME NULL")
+                    conn.commit()
+                except Exception:
+                    # If we cannot alter table, rollback and continue - we'll fallback to setting status
+                    conn.rollback()
+
+            # Try to mark archived (non-destructive)
+            try:
+                # Mark as archived and set status explicitly to ARCHIVED
+                cur.execute("UPDATE consumables SET is_archived = 1, deleted_at = NOW(), status = %s WHERE accession_id = %s", ('ARCHIVED', id))
+                if cur.rowcount == 0:
+                    # No rows updated - maybe accession_id type mismatch, attempt update by casting to string
+                    cur.execute("UPDATE consumables SET is_archived = 1, deleted_at = NOW(), status = %s WHERE CAST(accession_id AS CHAR) = %s", ('ARCHIVED', str(id)))
+
+                conn.commit()
+                if is_ajax:
+                    return jsonify(success=True, message='Consumable archived')
+                flash('Consumable archived', 'success')
+                return redirect(url_for('manage_inventory.inventory_load', section='consumable'))
+
+            except Exception:
+                conn.rollback()
+                # Final fallback: set status to ARCHIVED so it no longer shows as active
+                try:
+                    cur.execute("UPDATE consumables SET status = %s WHERE accession_id = %s", ('ARCHIVED', id))
+                    conn.commit()
+                    if is_ajax:
+                        return jsonify(success=True, message='Consumable set to ARCHIVED')
+                    flash('Consumable set to ARCHIVED', 'success')
+                    return redirect(url_for('manage_inventory.inventory_load', section='consumable'))
+                except Exception as e2:
+                    conn.rollback()
+                    raise e2
+
     except Exception as e:
-        print(f"Error loading consumables: {e}")
-        consumables = []
-        departments = []
+        conn.rollback()
+        if is_ajax:
+            return jsonify(success=False, error=str(e)), 500
+        flash(f'Error archiving consumable: {e}', 'danger')
     finally:
         conn.close()
 
-    return render_template('manage_consumable.html', consumables=consumables, departments=departments)
+
+@manage_consumable_bp.route('/manage_consumable')
+def manage_consumable_page():
+    """Redirect to the central inventory page for consumables.
+
+    The project uses a unified `manage_inventory` page which already
+    renders consumables with pagination and filtering. Redirecting
+    here avoids duplicating templates and ensures consumables display
+    consistently.
+    """
+    return redirect(url_for('manage_inventory.inventory_load', section='consumable'))
 
 @manage_consumable_bp.route('/add-consumable', methods=['POST'])
 def add_consumable():

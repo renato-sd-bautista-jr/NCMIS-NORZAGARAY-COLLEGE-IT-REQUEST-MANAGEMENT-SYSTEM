@@ -73,6 +73,127 @@ function markChecked(type, id) {
     });
 }
 
+function exportSingleDevice(deviceId) {
+  const id = deviceId;
+  if (!id && id !== 0) {
+    if (typeof showToast === 'function') {
+      showToast('Invalid device selected for export', 'error');
+    } else {
+      alert('Invalid device selected for export');
+    }
+    return;
+  }
+
+  const toastId = typeof showToast === 'function'
+    ? showToast('Exporting item...', 'loading')
+    : null;
+
+  fetch('/manage_inventory/export-selected-devices', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ device_ids: [id] })
+  })
+  .then(async (res) => {
+    if (!res.ok) {
+      let message = 'Export failed';
+      try {
+        const data = await res.json();
+        if (data && data.error) {
+          message = data.error;
+        }
+      } catch (_) {
+      }
+      throw new Error(message);
+    }
+    return res.blob();
+  })
+  .then((blob) => {
+    if (toastId) hideToast(toastId);
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `device_${id}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    if (typeof showExportToast === 'function') {
+      showExportToast({
+        count: 1,
+        type: 'Device',
+        filename: `device_${id}.xlsx`
+      });
+    } else if (typeof showToast === 'function') {
+      showToast('Item exported successfully', 'success');
+    }
+  })
+  .catch((err) => {
+    if (toastId) hideToast(toastId);
+    console.error(err);
+    if (typeof showToast === 'function') {
+      showToast(err?.message || 'Export failed. Please try again.', 'error');
+    } else {
+      alert(err?.message || 'Export failed');
+    }
+  });
+}
+
+window.exportSingleDevice = exportSingleDevice;
+
+window.archiveDevice = function (id, itemName) {
+  if (typeof showConfirmationModal === 'function') {
+    showConfirmationModal(
+      'Archive Device',
+      `Are you sure you want to archive "${itemName}"? This action cannot be undone.`,
+      'Archive',
+      function () {
+        const toastId = typeof showToast === 'function' ? showToast('Archiving device...', 'loading') : null;
+        fetch(`/delete-item/${id}`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(async (res) => {
+            const contentType = (res.headers.get('content-type') || '').toLowerCase();
+            const payload = contentType.includes('application/json') ? await res.json() : { success: res.ok };
+            return { res, payload };
+          })
+          .then(({ payload }) => {
+            if (toastId) hideToast(toastId);
+            if (payload && payload.success) {
+              if (typeof showToast === 'function') {
+                showToast('Device archived successfully', 'success');
+              }
+              if (typeof refreshItemTableWithoutReload === 'function') {
+                refreshItemTableWithoutReload();
+              } else {
+                location.reload();
+              }
+            } else if (typeof showToast === 'function') {
+              showToast(payload?.error || 'Failed to archive device', 'error');
+            }
+          })
+          .catch(() => {
+            if (toastId) hideToast(toastId);
+            if (typeof showToast === 'function') {
+              showToast('Server error during archive', 'error');
+            }
+          });
+      }
+    );
+    return;
+  }
+
+  if (!confirm(`Archive "${itemName}"?`)) return;
+  fetch(`/delete-item/${id}`, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  }).then(() => location.reload());
+};
+
 window.openItemModalById = async function (id) {
   try {
     const res = await fetch(`/manage_inventory/get-item-by-id/${id}`);
@@ -124,15 +245,22 @@ function bulkMarkDamagedSelectedDevices() {
   if (checked.length === 0) {
     if (typeof showToast === 'function') {
       showToast('Please select at least one device to mark as damaged', 'warning');
+    } else if (typeof showConfirmationModal === 'function') {
+      showConfirmationModal(
+        'Selection Required',
+        'Please select at least one device to mark as damaged.',
+        'OK',
+        null
+      );
     } else {
-      alert('No Devices selected');
+      alert('No devices selected');
     }
     return;
   }
 
   const executeMarkDamaged = () => {
     const toastId = typeof showToast === 'function'
-      ? showToast(`Marking ${checked.length} device(s) as damaged...`, 'loading')
+      ? showToast(`Marking ${checked.length} device(s) as damaged...`, 'loading', { showProgress: false })
       : null;
 
     fetch('/inventory/device-bulk-damaged', {
@@ -158,22 +286,16 @@ function bulkMarkDamagedSelectedDevices() {
             severity: 'High'
           });
         } else if (typeof showToast === 'function') {
-          showToast(`${checked.length} device(s) marked as damaged`, 'warning');
+          showToast(`${checked.length} device(s) marked as damaged`, 'warning', { showProgress: false });
         }
         setTimeout(() => {
-          const nav = document.getElementById("itemPaginationNav");
-          const perPageSelect = document.getElementById("itemPerPageSelect");
-          const pageInput = document.getElementById("itemPageInput");
-          const page = Number(nav?.dataset.page) || Number(pageInput?.value) || 1;
-          const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
-
-          if (typeof loadItemPageAjax === "function") {
-            loadItemPageAjax(page, perPage, false);
+          if (typeof refreshItemTableWithoutReload === 'function') {
+            refreshItemTableWithoutReload();
           }
         }, 2000);
       } else {
         if (typeof showToast === 'function') {
-          showToast(d.error || 'Failed to mark devices as damaged', 'error');
+          showToast(d.error || 'Failed to mark devices as damaged', 'error', { showProgress: false });
         } else {
           alert('Failed: ' + (d.error || 'unknown'));
         }
@@ -183,7 +305,7 @@ function bulkMarkDamagedSelectedDevices() {
       if (toastId) hideToast(toastId);
       console.error(err);
       if (typeof showToast === 'function') {
-        showToast('Server error during operation', 'error');
+        showToast('Server error during operation', 'error', { showProgress: false });
       } else {
         alert('Operation failed');
       }
@@ -218,19 +340,20 @@ function bulkMarkCheckedSelectedDevices() {
       showToast('Please select at least one device to mark as checked', 'warning');
     } else if (typeof showConfirmationModal === 'function') {
       showConfirmationModal(
-        "Selection Required",
-        "Please select at least one device to mark as checked.",
-        "OK"
+        'Selection Required',
+        'Please select at least one device to mark as checked.',
+        'OK',
+        null
       );
     } else {
-      alert("Select at least one device.");
+      alert('Select at least one device.');
     }
     return;
   }
 
   const executeBulkCheck = () => {
     const toastId = typeof showToast === 'function'
-      ? showToast(`Marking ${selected.length} device(s) as checked...`, 'loading')
+      ? showToast(`Marking ${selected.length} device(s) as checked...`, 'loading', { showProgress: false })
       : null;
     
     fetch("/inventory/device/bulk-check", {
@@ -253,22 +376,16 @@ function bulkMarkCheckedSelectedDevices() {
             riskLevel: 'Low'
           });
         } else if (typeof showToast === 'function') {
-          showToast(`${selected.length} device(s) marked as checked successfully`, 'success');
+          showToast(`${selected.length} device(s) marked as checked successfully`, 'success', { showProgress: false });
         }
         setTimeout(() => {
-          const nav = document.getElementById("itemPaginationNav");
-          const perPageSelect = document.getElementById("itemPerPageSelect");
-          const pageInput = document.getElementById("itemPageInput");
-          const page = Number(nav?.dataset.page) || Number(pageInput?.value) || 1;
-          const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
-
-          if (typeof loadItemPageAjax === "function") {
-            loadItemPageAjax(page, perPage, false);
+          if (typeof refreshItemTableWithoutReload === 'function') {
+            refreshItemTableWithoutReload();
           }
         }, 2000);
       } else {
         if (typeof showToast === 'function') {
-          showToast(data.error || 'Failed to mark devices as checked', 'error');
+          showToast(data.error || 'Failed to mark devices as checked', 'error', { showProgress: false });
         } else {
           alert(data.error || "Bulk update failed");
         }
@@ -278,7 +395,7 @@ function bulkMarkCheckedSelectedDevices() {
       if (toastId) hideToast(toastId);
       console.error(err);
       if (typeof showToast === 'function') {
-        showToast('Server error during bulk check', 'error');
+        showToast('Server error during bulk check', 'error', { showProgress: false });
       } else {
         alert("Server error during bulk update.");
       }
@@ -498,11 +615,24 @@ function bulkSurrenderSelectedDevices() {
       },
       body: JSON.stringify({ device_ids: checked })
     })
-    .then(r => r.json())
-    .then(d => {
+    .then(async (r) => {
+      const contentType = (r.headers.get('content-type') || '').toLowerCase();
+      let data = null;
+      if (contentType.includes('application/json')) {
+        data = await r.json();
+      } else {
+        const text = await r.text();
+        data = {
+          success: r.ok,
+          error: text && text.trim() ? text.slice(0, 250) : `Unexpected server response (${r.status})`
+        };
+      }
+      return { res: r, data };
+    })
+    .then(({ res, data }) => {
       if (toastId) hideToast(toastId);
       
-      if (d && d.success) {
+      if (data && data.success) {
         if (typeof showSurrenderToast === 'function') {
           showSurrenderToast({
             count: checked.length,
@@ -524,7 +654,10 @@ function bulkSurrenderSelectedDevices() {
         }, 2000);
       } else {
         if (typeof showToast === 'function') {
-          showToast(d.error || 'Surrender failed', 'error');
+          const errorMessage = (data && (data.error || data.message))
+            ? (data.error || data.message)
+            : `Surrender failed (${res?.status || 'unknown'})`;
+          showToast(errorMessage, 'error');
         } else {
           alert('Surrender failed');
         }
@@ -721,18 +854,9 @@ function renderDeviceMaintenanceHealthCell(healthScore, maintenanceIntervalDays,
       durationLabel = `${durationYears} year${durationYears === 1 ? "" : "s"}`;
     }
   }
-  const healthTextClass = healthPercent >= 80 ? "text-green-600" : healthPercent >= 50 ? "text-yellow-600" : "text-red-600";
-  const healthBarClass = getDeviceHealthBarClass(healthPercent);
-
   return `
     <div class="min-w-[140px]">
-      <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
-        <span>Duration: ${escapeDeviceHtml(durationLabel)}</span>
-        <span class="font-semibold ${healthTextClass}">${escapeDeviceHtml(healthPercent.toFixed(2))}%</span>
-      </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="h-2 rounded-full ${healthBarClass}" style="width: ${healthPercent}%"></div>
-      </div>
+      <span class="text-xs text-gray-600">${escapeDeviceHtml(durationLabel)}</span>
     </div>
   `;
 }
@@ -843,8 +967,8 @@ function renderItemDesktopRows(items, canEdit) {
           <button onclick="openItemModalById(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
             <i data-lucide="pencil" class="w-3 h-3"></i> Edit
           </button>
-          <button type="button" onclick="openDeleteModal('/delete-item/${encodeURIComponent(item.accession_id)}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
-            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+          <button type="button" onclick="archiveDevice(${itemId}, '${escapeDeviceHtml(item.item_name)}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3 h-3"></i> Archive
           </button>
           ${markCheckedButton}
           <button onclick="openMaintenanceLog(${itemId}, 'DEVICE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
@@ -946,8 +1070,8 @@ function renderItemMobileCards(items, canEdit) {
         <button onclick="openItemModalById(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
           <i data-lucide="pencil" class="w-3 h-3"></i> Edit
         </button>
-        <button type="button" onclick="openDeleteModal('/delete-item/${encodeURIComponent(item.accession_id)}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
-          <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+        <button type="button" onclick="archiveDevice(${itemId}, '${escapeDeviceHtml(item.item_name)}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+          <i data-lucide="trash-2" class="w-3 h-3"></i> Archive
         </button>
         ${markCheckedButton}
         <button onclick="openMaintenanceLog(${itemId}, 'DEVICE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">

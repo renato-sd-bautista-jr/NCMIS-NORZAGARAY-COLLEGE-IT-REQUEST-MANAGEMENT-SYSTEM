@@ -217,116 +217,590 @@
       box-shadow: 0 14px 24px -14px rgba(239, 68, 68, 0.66);
     }
 
-    .table-shell {
-      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 30%);
+    .modal-premium-backdrop {
+      background:
+        radial-gradient(980px 360px at 50% -18%, rgba(59, 130, 246, 0.24), transparent 56%),
+        rgba(15, 23, 42, 0.54);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-premium-card {
+      border: 1px solid #dce4f5;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 26px 56px -28px rgba(15, 23, 42, 0.66), 0 18px 32px -26px rgba(59, 130, 246, 0.6);
+    }
+
+    .modal-premium-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.92rem 1.2rem;
+      color: #ffffff;
+    }
+
+    .modal-premium-header-emerald {
+      background: linear-gradient(112deg, #059669 0%, #047857 58%, #065f46 100%);
+    }
+
+    .modal-premium-header-indigo {
+      background: linear-gradient(112deg, #2563eb 0%, #4f46e5 58%, #4338ca 100%);
+    }
+
+    .modal-premium-header-danger {
+      background: linear-gradient(112deg, #dc2626 0%, #b91c1c 58%, #991b1b 100%);
+    }
+
+    .modal-premium-icon {
+      width: 2.05rem;
+      height: 2.05rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      background: rgba(255, 255, 255, 0.18);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .modal-premium-close {
+      margin-left: auto;
+      width: 1.95rem;
+      height: 1.95rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      transition: transform 0.16s ease, background-color 0.16s ease;
+    }
+
+    .modal-premium-close:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: rotate(90deg);
+    }
+
+    .modal-premium-body {
+      padding: 1.2rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .modal-premium-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.01em;
+    }
+
+    .modal-premium-control {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.72rem;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.84rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      color: #0f172a;
+    }
+
+    .modal-premium-control:focus {
+      outline: none;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    }
+
+    .modal-premium-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.55rem;
+      margin-top: 0.25rem;
+    }
+
+    .modal-premium-note {
+      font-size: 0.74rem;
+      color: #64748b;
+    }
+
+    .department-browser-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.7fr);
+      min-height: 520px;
+    }
+
+    .department-browser-pane,
+    .department-device-pane {
       border: 1px solid #dbe7ff;
-      box-shadow: 0 18px 38px rgba(59, 130, 246, 0.08);
-      position: relative;
-      isolation: isolate;
+      border-radius: 0.9rem;
+      overflow: hidden;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 16px 30px -24px rgba(37, 99, 235, 0.42);
     }
 
-    .table-shell::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 0.8rem;
-      pointer-events: none;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      z-index: 0;
+    .department-browser-pane-head,
+    .department-device-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+      padding: 0.72rem 0.8rem;
+      color: #ffffff;
+      background: #2563eb;
     }
 
-    .department-table-scroll {
-      position: relative;
-      z-index: 1;
-      scrollbar-width: thin;
-      scrollbar-color: #a5b4fc #edf2ff;
+    .department-browser-list {
+      max-height: 470px;
+      overflow: auto;
+      background: #f8fbff;
+      border-top: 1px solid #dbe7ff;
     }
 
-    .department-table-scroll::-webkit-scrollbar {
-      height: 10px;
+    .facility-list-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+      text-align: left;
+      border-left: 3px solid transparent;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.72rem 0.75rem;
+      background: #ffffff;
+      color: #0f172a;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
     }
 
-    .department-table-scroll::-webkit-scrollbar-track {
-      background: #edf2ff;
-      border-radius: 999px;
-    }
-
-    .department-table-scroll::-webkit-scrollbar-thumb {
-      background: #a5b4fc;
-      border-radius: 999px;
-    }
-
-    .department-table thead th {
-      background: linear-gradient(90deg, #f8fafc 0%, #eef4ff 100%);
-      border-bottom: 1px solid #dbe5f1;
-    }
-
-    .department-table tbody tr td {
-      border-bottom: 1px solid #eef2ff;
-    }
-
-    .department-table tbody tr:last-child td {
+    .facility-list-item:last-child {
       border-bottom: none;
     }
 
-    .department-row {
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-    }
-
-    .department-row:hover {
-      transform: translateY(-1px);
-    }
-
-    .department-row:hover td {
+    .facility-list-item:hover {
       background: #eff6ff;
+      transform: translateX(1px);
     }
 
-    .department-action-btn {
+    .facility-list-item.active {
+      background: linear-gradient(90deg, #dbeafe 0%, #eff6ff 100%);
+      border-left-color: #2563eb;
+    }
+
+    .facility-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.25;
+    }
+
+    .facility-sub {
+      font-size: 0.77rem;
+      color: #64748b;
+      margin-top: 0.18rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .department-device-head {
+      align-items: flex-start;
+      gap: 0.9rem;
+    }
+
+    .department-device-toolbar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .department-device-toolbar .btn-modal:disabled {
+      cursor: not-allowed;
+      filter: grayscale(0.3);
+      opacity: 0.62;
+      transform: none;
+    }
+
+    .department-device-content {
+      padding: 0.78rem;
+    }
+
+    .department-device-grid {
+      display: grid;
+      gap: 0.68rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: flex-start;
+      min-height: 420px;
+    }
+
+    .device-pagination {
+      margin-top: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .device-page-status {
+      margin: 0;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .device-pagination-controls {
       display: inline-flex;
       align-items: center;
       gap: 0.38rem;
-      border-radius: 999px;
-      padding: 0.38rem 0.74rem;
+    }
+
+    .device-page-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      border-radius: 0.55rem;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
       font-size: 0.72rem;
       font-weight: 700;
-      line-height: 1;
-      border: 1px solid transparent;
-      box-shadow: 0 9px 14px -12px rgba(15, 23, 42, 0.48);
-      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+      padding: 0.38rem 0.62rem;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
     }
 
-    .department-action-btn:hover {
+    .device-page-btn:hover:not(:disabled) {
+      background: #eff6ff;
+      border-color: #93c5fd;
       transform: translateY(-1px);
-      filter: saturate(1.08);
     }
 
-    .department-action-btn:active {
-      transform: translateY(0);
+    .device-page-btn:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+      transform: none;
     }
 
-    .department-action-btn:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.24), 0 10px 18px -12px rgba(15, 23, 42, 0.52);
+    .device-card {
+      border: 1px solid #d7deeb;
+      border-radius: 0.74rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      padding: 0.68rem;
+      box-shadow: 0 10px 18px -18px rgba(15, 23, 42, 0.62);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
     }
 
-    .department-action-btn.edit {
-      background: linear-gradient(140deg, #10b981 0%, #059669 60%, #047857 100%);
-      border-color: #047857;
-      color: #ffffff;
+    .device-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 24px -20px rgba(15, 23, 42, 0.72);
     }
 
-    .department-action-btn.edit:hover {
-      box-shadow: 0 11px 18px -13px rgba(16, 185, 129, 0.58);
+    .device-card-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.58rem;
     }
 
-    .department-action-btn.delete {
-      background: linear-gradient(140deg, #ef4444 0%, #dc2626 60%, #b91c1c 100%);
-      border-color: #991b1b;
-      color: #ffffff;
+    .device-card-icon {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #7c3aed;
+      border: 1px solid #ddd6fe;
+      background: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%);
+      flex-shrink: 0;
     }
 
-    .department-action-btn.delete:hover {
-      box-shadow: 0 11px 18px -13px rgba(239, 68, 68, 0.6);
+    .device-card-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .device-card-meta {
+      margin: 0.08rem 0 0;
+      color: #64748b;
+      font-size: 0.74rem;
+      line-height: 1.25;
+    }
+
+    .device-card-foot {
+      margin-top: 0.52rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem;
+    }
+
+    .device-health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.22rem;
+      border-radius: 9999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      line-height: 1;
+    }
+
+    .device-health-pill.ok {
+      color: #047857;
+      border-color: rgba(16, 185, 129, 0.32);
+      background: linear-gradient(145deg, rgba(209, 250, 229, 0.96) 0%, rgba(167, 243, 208, 0.85) 100%);
+    }
+
+    .device-health-pill.warn {
+      color: #b91c1c;
+      border-color: rgba(239, 68, 68, 0.34);
+      background: linear-gradient(145deg, rgba(254, 226, 226, 0.96) 0%, rgba(254, 202, 202, 0.86) 100%);
+    }
+
+    .device-health-pill.info {
+      color: #1d4ed8;
+      border-color: rgba(59, 130, 246, 0.34);
+      background: linear-gradient(145deg, rgba(219, 234, 254, 0.96) 0%, rgba(191, 219, 254, 0.84) 100%);
+    }
+
+    .department-browser-empty {
+      width: 100%;
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.82rem;
+      padding: 1rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px dashed #dbe7ff;
+      border-radius: 0.75rem;
+    }
+
+    .status-alert-backdrop {
+      background:
+        radial-gradient(1200px 420px at 50% -20%, rgba(59, 130, 246, 0.2), transparent 55%),
+        rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(4px);
+    }
+
+    .status-alert-card {
+      border: 1px solid #dbe3f4;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 26px 65px -30px rgba(15, 23, 42, 0.65), 0 22px 42px -34px rgba(37, 99, 235, 0.72);
+    }
+
+    .status-alert-success .status-alert-header {
+      background: linear-gradient(114deg, #2563eb 0%, #4f46e5 62%, #4338ca 100%);
+      color: #fff;
+    }
+
+    .status-alert-error .status-alert-header {
+      background: linear-gradient(114deg, #dc2626 0%, #b91c1c 62%, #991b1b 100%);
+      color: #fff;
+    }
+
+    .status-alert-loading {
+      border-color: #c7d2fe;
+      background:
+        radial-gradient(500px 220px at 50% -18%, rgba(99, 102, 241, 0.12), transparent 65%),
+        linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+    }
+
+    .status-alert-orb {
+      width: 3.8rem;
+      height: 3.8rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, rgba(219, 234, 254, 0.9) 0%, rgba(199, 210, 254, 0.95) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 24px -18px rgba(79, 70, 229, 0.66);
+    }
+
+    .status-alert-spinner {
+      width: 1.95rem;
+      height: 1.95rem;
+      border-radius: 9999px;
+      border: 3px solid #818cf8;
+      border-top-color: transparent;
+      animation: spin 0.9s linear infinite;
+    }
+
+    #toastContainer {
+      width: min(92vw, 420px);
+      max-height: calc(100vh - 2rem);
+      overflow: visible;
+      padding-bottom: 0.25rem;
+    }
+
+    .toast-card {
+      pointer-events: auto;
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.95rem;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: linear-gradient(132deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.98) 58%, rgba(241, 245, 249, 1) 100%);
+      box-shadow: 0 18px 40px -22px rgba(15, 23, 42, 0.62), 0 16px 30px -24px rgba(59, 130, 246, 0.62);
+      transform: translateX(22px) scale(0.97);
+      opacity: 0;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+    }
+
+    .toast-card.show {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+
+    .toast-card.hide {
+      opacity: 0;
+      transform: translateX(34px) scale(0.95);
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 0.76rem;
+      padding: 0.82rem 0.9rem;
+    }
+
+    .toast-icon-wrap {
+      flex-shrink: 0;
+      width: 2.05rem;
+      height: 2.05rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+    }
+
+    .toast-icon-wrap.success {
+      color: #047857;
+      border-color: rgba(16, 185, 129, 0.32);
+      background: linear-gradient(145deg, rgba(209, 250, 229, 0.96) 0%, rgba(167, 243, 208, 0.85) 100%);
+    }
+
+    .toast-icon-wrap.info {
+      color: #1d4ed8;
+      border-color: rgba(59, 130, 246, 0.34);
+      background: linear-gradient(145deg, rgba(219, 234, 254, 0.95) 0%, rgba(191, 219, 254, 0.84) 100%);
+    }
+
+    .toast-icon-wrap.warning {
+      color: #a16207;
+      border-color: rgba(234, 179, 8, 0.34);
+      background: linear-gradient(145deg, rgba(254, 249, 195, 0.95) 0%, rgba(253, 230, 138, 0.84) 100%);
+    }
+
+    .toast-icon-wrap.error,
+    .toast-icon-wrap.danger {
+      color: #b91c1c;
+      border-color: rgba(239, 68, 68, 0.34);
+      background: linear-gradient(145deg, rgba(254, 226, 226, 0.95) 0%, rgba(254, 202, 202, 0.86) 100%);
+    }
+
+    .toast-text-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .toast-title {
+      margin: 0;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .toast-message {
+      margin-top: 0.15rem;
+      color: #475569;
+      font-size: 0.74rem;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .toast-close-btn {
+      flex-shrink: 0;
+      width: 1.85rem;
+      height: 1.85rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      color: #64748b;
+      background: rgba(255, 255, 255, 0.72);
+      transition: transform 0.16s ease;
+    }
+
+    .toast-close-btn:hover {
+      transform: rotate(90deg);
+    }
+
+    .toast-progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform var(--toast-duration, 3000ms) linear;
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.7) 0%, rgba(79, 70, 229, 0.9) 100%);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1100px) {
+      .department-browser-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .department-browser-list {
+        max-height: 290px;
+      }
+
+      .department-device-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      #toastContainer {
+        width: auto;
+      }
+
+      .device-pagination {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .device-pagination-controls {
+        width: 100%;
+      }
+
+      .device-page-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .toast-content {
+        padding: 0.76rem 0.78rem;
+        gap: 0.6rem;
+      }
     }
   </style>
 </head>
@@ -334,170 +808,186 @@
 
   {% include 'sidebar.html' %}
 
-  <!-- Overlay -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
-  
- <!-- Main Content -->
-    <main class="flex-1 p-6 overflow-y-auto md:ml-64 transition-all duration-300">
-      <!-- Header -->
-      <div class="hero-panel mb-6 rounded-xl p-6 text-white">
-        <div class="relative z-10 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100/90">Department Management</p>
-            <h1 class="text-2xl font-extrabold flex items-center gap-2">
-              <i data-lucide="building-2" class="h-6 w-6"></i> Manage Offices/Facility
-            </h1>
-            <p class="mt-2 max-w-2xl text-sm text-blue-100">
-              View, organize, and maintain all offices and facilities in one clean workspace.
-            </p>
-          </div>
-          <button id="sidebarToggle" class="md:hidden bg-white/15 border border-white/30 text-white p-2 rounded-lg shadow-sm hover:bg-white/25 transition">
-            <i data-lucide="menu" class="w-5 h-5"></i>
-          </button>
+
+  <main class="flex-1 p-6 overflow-y-auto md:ml-64 transition-all duration-300">
+    <div class="hero-panel mb-6 rounded-xl p-6 text-white">
+      <div class="relative z-10 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100/90">Department Management</p>
+          <h1 class="text-2xl font-extrabold flex items-center gap-2">
+            <i data-lucide="building-2" class="h-6 w-6"></i> Manage Offices/Facility
+          </h1>
+          <p class="mt-2 max-w-2xl text-sm text-blue-100">
+            View, organize, and maintain all offices and facilities in one clean workspace.
+          </p>
         </div>
-      </div>
-
-      <!-- Table Card -->
-      <div class="layout-card rounded-xl p-4">
-        <div class="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <i data-lucide="list" class="w-5 h-5 text-blue-600"></i> Offices/Facility List
-            </h2>
-            <p class="text-xs text-slate-500">All existing Offices/Facility</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="meta-pill inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs text-blue-700">
-              <i data-lucide="folder-open" class="h-3.5 w-3.5"></i>
-              <span id="departmentCount" class="font-bold">0</span>
-              <span class="text-blue-600/90">total records</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mb-4 flex flex-wrap gap-2 sm:gap-2.5">
-            <button id="openEditModal"
-              class="action-btn btn-premium btn-premium-emerald">
-              <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Offices/Facility
-            </button>
-            <button id="openSelectDeleteModal"
-              class="action-btn btn-premium btn-premium-rose">
-              <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Offices/Facility
-            </button>
-            <button id="openAddModal"
-              class="action-btn btn-premium btn-premium-indigo"
-              aria-label="Add Office or Facility">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i>
-              <span>Add Office/Facility</span>
-            </button>
-        </div>
-
-        <div class="table-shell overflow-hidden rounded-xl">
-          <div class="department-table-scroll overflow-x-auto">
-            <table class="department-table min-w-full text-sm border-separate border-spacing-0">
-              <thead class="border-b border-gray-200 backdrop-blur-sm">
-                <tr>
-                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
-                    Offices/Facility Name
-                  </th>
-                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
-                    Category
-                  </th>
-                  <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
-                    PC Count
-                  </th>
-                  <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase text-xs whitespace-nowrap sticky top-0">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody id="departmentTable" class="divide-y divide-gray-100 bg-white">
-
-                <!-- Rows will be dynamically loaded here -->
-
-              </tbody>
-
-            </table>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-<!-- Edit Department Modal -->
-<div id="editDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-    <div class="bg-green-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
-      <i data-lucide="edit-3" class="w-5 h-5"></i>
-      <h5 class="text-lg font-bold">Edit Offices/Facility</h5>
-    </div>
-    <form id="editDepartmentForm" class="p-5">
-      <input type="hidden" id="editDepartmentId">
-      <label class="block font-medium text-gray-700 mb-2">Offices/Facility Name</label>
-      <input type="text" id="editDepartmentName" name="department_name" required
-             class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none mb-4">
-      <label class="block font-medium text-gray-700 mb-2">Category</label>
-      <select id="editDepartmentCategory" name="category" required
-             class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none mb-4">
-        <option value="">Select category</option>
-          <option value="Laboratory">Laboratory</option>
-          <option value="Office">Office</option>
-          <option value="Facility">Facility</option>          
-        <option value="other">Other</option>
-      </select>
-      <div class="flex justify-end gap-2">
-        <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
-        <button type="submit" class="btn-modal btn-modal-success">Save</button>
-      </div>
-    </form>
-  </div>
-</div>
-<!-- Select Department to Edit Modal -->
-  <div id="selectDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-      <div class="bg-green-600 text-white px-5 py-3 rounded-t-xl flex items-center gap-2">
-        <i data-lucide="edit-3" class="w-5 h-5"></i>
-        <h5 class="text-lg font-bold">Select Office/Facility to Edit</h5>
-      </div>
-      <div class="p-5">
-        <label class="block font-medium text-gray-700 mb-2">Choose Office/Facility</label>
-        <select id="departmentSelect" required
-               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none mb-4">
-          <option value="">Select an office/facility...</option>
-        </select>
-        <div class="flex justify-end gap-2">
-          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
-          <button type="button" id="proceedToEdit" class="btn-modal btn-modal-success">Edit</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Add Department Modal -->
-  <div id="addDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="addDepartmentTitle">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-      <div class="bg-blue-600 text-white px-5 py-3 rounded-t-xl flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-5 h-5"></i>
-          <h5 id="addDepartmentTitle" class="text-lg font-semibold">Add Office/Facility</h5>
-        </div>
-        <button type="button" class="closeModal text-white p-2 rounded hover:bg-white/10" aria-label="Close add modal">
-          <i data-lucide="x" class="w-4 h-4"></i>
+        <button id="sidebarToggle" class="md:hidden bg-white/15 border border-white/30 text-white p-2 rounded-lg shadow-sm hover:bg-white/25 transition">
+          <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
       </div>
-      <form id="addDepartmentForm" class="p-5" autocomplete="off" novalidate>
-        <label class="block font-medium text-gray-700 mb-2">Office/Facility Name</label>
-        <input aria-label="Office or Facility name" type="text" name="department_name" placeholder="Enter office/facility name" required
-               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4" aria-required="true">
-        <label class="block font-medium text-gray-700 mb-2">Category</label>
-        <select name="category" required aria-required="true"
-               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none mb-4">
+    </div>
+
+    <div class="layout-card rounded-xl p-4">
+      <div class="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <i data-lucide="list" class="w-5 h-5 text-blue-600"></i> Offices/Facility List
+          </h2>
+          <p class="text-xs text-slate-500">All existing Offices/Facility</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="meta-pill inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs text-blue-700">
+            <i data-lucide="folder-open" class="h-3.5 w-3.5"></i>
+            <span id="departmentCount" class="font-bold">0</span>
+            <span class="text-blue-600/90">total records</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4 flex flex-wrap gap-2 sm:gap-2.5">
+        <button id="openEditModal" class="action-btn btn-premium btn-premium-emerald">
+          <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Offices/Facility
+        </button>
+        <button id="openSelectDeleteModal" class="action-btn btn-premium btn-premium-rose">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Offices/Facility
+        </button>
+        <button id="openAddModal" class="action-btn btn-premium btn-premium-indigo" aria-label="Add Office or Facility">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Add Office/Facility</span>
+        </button>
+      </div>
+
+      <div class="department-browser-grid">
+        <section class="department-browser-pane">
+          <div class="department-browser-pane-head">
+            <div class="flex items-center gap-2">
+              <i data-lucide="building-2" class="w-4 h-4"></i>
+              <h3 class="text-sm font-bold tracking-tight">Office / Facility</h3>
+            </div>
+          </div>
+          <div id="departmentList" class="department-browser-list" role="listbox" aria-label="Office / Facility list">
+            <div class="department-browser-empty">Loading office/facility records...</div>
+          </div>
+        </section>
+
+        <section class="department-device-pane">
+          <div class="department-device-head">
+            <div>
+              <h3 id="departmentDevicesTitle" class="text-base font-bold tracking-tight">Devices</h3>
+              <p id="departmentPcSummary" class="text-xs text-blue-100/90 mt-0.5">Select a facility to view its PCs.</p>
+            </div>
+            <div class="department-device-toolbar">
+              {% if permissions.get('dept', {}).get('edit', False) %}
+              <button id="panelEditDepartmentBtn" type="button" class="btn-modal btn-modal-primary text-xs px-3 py-2" disabled>
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                <span>Edit</span>
+              </button>
+              {% endif %}
+              {% if permissions.get('dept', {}).get('delete', False) %}
+              <button id="panelDeleteDepartmentBtn" type="button" class="btn-modal btn-modal-danger text-xs px-3 py-2" disabled>
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Delete</span>
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          <div class="department-device-content">
+            <div id="departmentPcCards" class="department-device-grid">
+              <div class="department-browser-empty">No facility selected.</div>
+            </div>
+            <div id="departmentPcPagination" class="device-pagination hidden" aria-label="Device pagination controls">
+              <p id="devicePageStatus" class="device-page-status">Showing 0 of 0 devices</p>
+              <div class="device-pagination-controls">
+                <button id="devicePrevPageBtn" type="button" class="device-page-btn" disabled>
+                  <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                  <span>Previous</span>
+                </button>
+                <button id="deviceNextPageBtn" type="button" class="device-page-btn" disabled>
+                  <span>Next</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="editDepartmentModal" class="hidden fixed inset-0 modal-premium-backdrop z-50 flex items-center justify-center p-4">
+    <div class="modal-premium-card w-full max-w-md">
+      <div class="modal-premium-header modal-premium-header-emerald rounded-t-2xl">
+        <span class="modal-premium-icon"><i data-lucide="edit-3" class="w-4 h-4"></i></span>
+        <h5 class="text-lg font-bold tracking-tight">Edit Offices/Facility</h5>
+        <button type="button" class="closeModal modal-premium-close" aria-label="Close edit modal"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="editDepartmentForm" class="modal-premium-body">
+        <input type="hidden" id="editDepartmentId">
+        <label class="modal-premium-label">Offices/Facility Name</label>
+        <input type="text" id="editDepartmentName" name="department_name" required class="modal-premium-control mb-4">
+        <label class="modal-premium-label">Category</label>
+        <select id="editDepartmentCategory" name="category" required class="modal-premium-control mb-4">
           <option value="">Select category</option>
           <option value="Laboratory">Laboratory</option>
           <option value="Office">Office</option>
           <option value="Facility">Facility</option>
           <option value="other">Other</option>
         </select>
-        <div class="flex justify-end gap-2">
+        <label class="modal-premium-label">Maximum Allowed PCs</label>
+        <input type="number" id="editDepartmentMaxPcAllowed" name="max_pc_allowed" min="0" step="1" required class="modal-premium-control mb-4">
+        <div class="modal-premium-actions">
+          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+          <button type="submit" class="btn-modal btn-modal-success">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="selectDepartmentModal" class="hidden fixed inset-0 modal-premium-backdrop z-50 flex items-center justify-center p-4">
+    <div class="modal-premium-card w-full max-w-md">
+      <div class="modal-premium-header modal-premium-header-emerald rounded-t-2xl">
+        <span class="modal-premium-icon"><i data-lucide="list-checks" class="w-4 h-4"></i></span>
+        <h5 class="text-lg font-bold tracking-tight">Select Office/Facility to Edit</h5>
+        <button type="button" class="closeModal modal-premium-close" aria-label="Close office selector"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="modal-premium-body">
+        <label class="modal-premium-label">Choose Office/Facility</label>
+        <select id="departmentSelect" required class="modal-premium-control mb-3">
+          <option value="">Select an office/facility...</option>
+        </select>
+        <p class="modal-premium-note mb-4">Select a record to continue to the edit form.</p>
+        <div class="modal-premium-actions">
+          <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
+          <button type="button" id="proceedToEdit" class="btn-modal btn-modal-success">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addDepartmentModal" class="hidden fixed inset-0 modal-premium-backdrop z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="addDepartmentTitle">
+    <div class="modal-premium-card w-full max-w-md">
+      <div class="modal-premium-header modal-premium-header-indigo rounded-t-2xl justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="modal-premium-icon"><i data-lucide="plus-circle" class="w-4 h-4"></i></span>
+          <h5 id="addDepartmentTitle" class="text-lg font-semibold">Add Office/Facility</h5>
+        </div>
+        <button type="button" class="closeModal modal-premium-close" aria-label="Close add modal"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="addDepartmentForm" class="modal-premium-body" autocomplete="off" novalidate>
+        <label class="modal-premium-label">Office/Facility Name</label>
+        <input type="text" name="department_name" placeholder="Enter office/facility name" required class="modal-premium-control mb-4" aria-required="true">
+        <label class="modal-premium-label">Category</label>
+        <select name="category" required aria-required="true" class="modal-premium-control mb-4">
+          <option value="">Select category</option>
+          <option value="Laboratory">Laboratory</option>
+          <option value="Office">Office</option>
+          <option value="Facility">Facility</option>
+          <option value="other">Other</option>
+        </select>
+        <label class="modal-premium-label">Maximum Allowed PCs</label>
+        <input type="number" name="max_pc_allowed" min="0" step="1" required aria-required="true" placeholder="Enter allowed number of PCs" class="modal-premium-control mb-4">
+        <div class="modal-premium-actions">
           <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
           <button type="submit" class="btn-modal btn-modal-primary">Add</button>
         </div>
@@ -505,398 +995,221 @@
     </div>
   </div>
 
-  <!-- Select Department to Delete Modal -->
-  <div id="selectDeleteModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div id="selectDeleteModalCard" class="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all duration-300 ease-out scale-95 opacity-0">
-      <div class="bg-red-600 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i data-lucide="trash-2" class="w-5 h-5"></i>
+  <div id="selectDeleteModal" class="hidden fixed inset-0 modal-premium-backdrop z-50 flex items-center justify-center p-4">
+    <div class="modal-premium-card w-full max-w-md">
+      <div class="modal-premium-header modal-premium-header-danger rounded-t-2xl justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="modal-premium-icon"><i data-lucide="trash-2" class="w-4 h-4"></i></span>
           <h5 class="text-lg font-bold">Select Office/Facility to Delete</h5>
         </div>
-        <button type="button" class="closeModal text-white/90 hover:text-white p-1 rounded" aria-label="Close">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <button type="button" class="closeModal modal-premium-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div class="p-5">
-        <label class="block font-medium text-gray-700 mb-2">Choose Office/Facility</label>
-        <select id="departmentDeleteSelect" required
-               class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-red-400 focus:outline-none mb-4">
+      <div class="modal-premium-body">
+        <label class="modal-premium-label">Choose Office/Facility</label>
+        <select id="departmentDeleteSelect" required class="modal-premium-control mb-3">
           <option value="">Select an office/facility...</option>
         </select>
-        <div class="flex justify-end gap-2">
+        <p class="modal-premium-note mb-4">This will take you to the final confirmation dialog.</p>
+        <div class="modal-premium-actions">
           <button type="button" class="closeModal btn-modal btn-modal-neutral">Cancel</button>
-          <button type="button" id="proceedToDelete" class="btn-modal btn-modal-danger">
-            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-          </button>
+          <button type="button" id="proceedToDelete" class="btn-modal btn-modal-danger"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Delete Department Modal -->
-  <div id="deleteDepartmentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDesc">
-    <div id="deleteDepartmentModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative transform transition-all duration-300 ease-out scale-95 opacity-0">
-      <div class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
-        <div class="bg-white/20 rounded-full p-2">
-          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-        </div>
+  <div id="deleteDepartmentModal" class="hidden fixed inset-0 modal-premium-backdrop z-50 flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDesc">
+    <div class="modal-premium-card w-full max-w-md">
+      <div class="modal-premium-header modal-premium-header-danger rounded-t-2xl">
+        <div class="modal-premium-icon"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
         <h5 id="deleteTitle" class="text-lg font-bold">Confirm Deletion</h5>
-        <button type="button" id="deleteCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded hover:bg-white/10 transition" aria-label="Close delete confirmation">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <button type="button" id="deleteCloseIcon" class="modal-premium-close" aria-label="Close delete confirmation"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <form id="deleteDepartmentForm" class="p-6">
+      <form id="deleteDepartmentForm" class="modal-premium-body p-6">
         <input type="hidden" id="deleteDepartmentId">
         <div class="text-center mb-6">
-          <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+          <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-red-50 border border-red-100 flex items-center justify-center">
             <i data-lucide="trash-2" class="w-8 h-8 text-red-500"></i>
           </div>
           <p id="deleteDesc" class="text-gray-600 mb-2">Are you sure you want to delete this Office/Facility?</p>
-          <div class="bg-red-50 rounded-lg p-3 border border-red-200">
-            <span id="deleteDepartmentName" class="font-semibold text-red-700 text-lg"></span>
-          </div>
-          <p class="text-sm text-red-500 mt-3 flex items-center justify-center gap-1">
-            <i data-lucide="alert-circle" class="w-4 h-4"></i>
-            This action cannot be undone.
-          </p>
+          <div class="bg-red-50 rounded-lg p-3 border border-red-200"><span id="deleteDepartmentName" class="font-semibold text-red-700 text-lg"></span></div>
+          <p class="text-sm text-red-500 mt-3">This action cannot be undone.</p>
         </div>
         <div class="flex justify-center gap-3">
-          <button type="button" class="closeModal btn-modal btn-modal-neutral rounded-full px-5 py-2.5">
-            Cancel
-          </button>
-          <button type="submit" class="btn-modal btn-modal-danger rounded-full px-6 py-2.5">
-            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-          </button>
+          <button type="button" class="closeModal btn-modal btn-modal-neutral rounded-full px-5 py-2.5">Cancel</button>
+          <button type="submit" class="btn-modal btn-modal-danger rounded-full px-6 py-2.5"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Loading Modal -->
-  <div id="loadingModal" class="hidden fixed inset-0 bg-black/70 z-[9998] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
-      <div class="mb-4">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Updating Department...</h3>
-      <p class="text-gray-600 text-sm">Please wait while we save your changes.</p>
+  <div id="loadingModal" class="hidden fixed inset-0 status-alert-backdrop z-[9998] flex items-center justify-center p-4">
+    <div class="status-alert-card status-alert-loading rounded-2xl w-full max-w-sm p-6 text-center">
+      <div class="status-alert-orb mx-auto mb-4"><div class="status-alert-spinner" aria-hidden="true"></div></div>
+      <h3 class="text-lg font-semibold text-slate-800 mb-2">Updating Office/Facility...</h3>
+      <p class="text-slate-600 text-sm">Please wait while we save your changes securely.</p>
     </div>
   </div>
 
-  <!-- Success Modal -->
-  <div id="successModal" class="hidden fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="successTitle" aria-describedby="successDesc">
-    <div id="successModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">
-      <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
-        <i data-lucide="check-circle" class="w-6 h-6"></i>
-        <h5 id="successTitle" class="text-lg font-bold">Success!</h5>
-        <button type="button" id="successCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded" aria-label="Close success message">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
+  <div id="successModal" class="hidden fixed inset-0 status-alert-backdrop z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true">
+    <div class="status-alert-card status-alert-success rounded-2xl w-full max-w-lg">
+      <div class="status-alert-header text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
+        <div class="status-alert-icon-wrap"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
+        <h5 class="text-lg font-bold tracking-tight">Success!</h5>
+        <button type="button" id="successCloseIcon" class="ml-auto text-white/85 hover:text-white p-1.5 rounded-full hover:bg-white/15 transition" aria-label="Close success message"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div class="p-6 text-center">
-        <div class="mx-auto mb-4 w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center">
-          <i data-lucide="check-circle-2" class="w-10 h-10 text-indigo-600"></i>
-        </div>
-        <p id="successMessage" class="text-gray-700 mb-4 text-lg" role="status">Operation completed successfully!</p>
-        <div class="flex justify-center gap-3">
-          <button type="button" id="closeSuccessModal" class="btn-modal btn-modal-primary rounded-full px-6 py-2">
-            OK
-          </button>
-        </div>
+      <div class="status-alert-body p-6 text-center">
+        <p id="successMessage" class="text-slate-700 mb-4 text-lg">Operation completed successfully!</p>
+        <div class="flex justify-center gap-3"><button type="button" id="closeSuccessModal" class="btn-modal btn-modal-primary rounded-full px-6 py-2">OK</button></div>
       </div>
     </div>
   </div>
 
-  <!-- Error Modal -->
-  <div id="errorModal" class="hidden fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="errorTitle" aria-describedby="errorDesc">
-    <div id="errorModalCard" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">
-      <div class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
-        <i data-lucide="alert-circle" class="w-6 h-6"></i>
-        <h5 id="errorTitle" class="text-lg font-bold">Error</h5>
-        <button type="button" id="errorCloseIcon" class="ml-auto text-white/90 hover:text-white p-1 rounded" aria-label="Close error message">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
+  <div id="errorModal" class="hidden fixed inset-0 status-alert-backdrop z-[9999] flex items-center justify-center p-4" role="alertdialog" aria-modal="true">
+    <div class="status-alert-card status-alert-error rounded-2xl w-full max-w-lg">
+      <div class="status-alert-header text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
+        <div class="status-alert-icon-wrap"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+        <h5 class="text-lg font-bold tracking-tight">Action Needed</h5>
+        <button type="button" id="errorCloseIcon" class="ml-auto text-white/85 hover:text-white p-1.5 rounded-full hover:bg-white/15 transition" aria-label="Close error message"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div class="p-6 text-center">
-        <div class="mx-auto mb-4 w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
-          <i data-lucide="x-circle" class="w-10 h-10 text-red-600"></i>
-        </div>
-        <p id="errorMessage" class="text-gray-700 mb-4 text-lg" role="status">Something went wrong.</p>
-        <div class="flex justify-center gap-3">
-          <button type="button" id="closeErrorModal" class="btn-modal btn-modal-danger rounded-full px-6 py-2">
-            OK
-          </button>
-        </div>
+      <div class="status-alert-body p-6 text-center">
+        <p id="errorMessage" class="text-slate-700 mb-4 text-lg">Something went wrong.</p>
+        <div class="flex justify-center gap-3"><button type="button" id="closeErrorModal" class="btn-modal btn-modal-danger rounded-full px-6 py-2">OK</button></div>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notifications Container -->
-  <div id="toastContainer" class="fixed top-4 right-4 z-[10000] flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toastContainer" class="fixed top-4 right-4 z-[10000] flex flex-col gap-2.5 pointer-events-none"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof lucide !== 'undefined') lucide.createIcons();
 
-      // Enhanced success modal helper: shows modal with animation, focus management, ESC to close and optional auto-hide
-      function showSuccess(message, options = {}) {
-        const { autoHide = true, duration = 2500 } = options;
-        const modal = document.getElementById('successModal');
-        const card = document.getElementById('successModalCard');
-        const msgEl = document.getElementById('successMessage');
-        const okBtn = document.getElementById('closeSuccessModal');
-        const closeIcon = document.getElementById('successCloseIcon');
-        
-        console.log('showSuccess called:', message, 'modal:', modal, 'card:', card);
-        
-        if (msgEl) msgEl.textContent = message || 'Operation completed successfully!';
-        if (!modal || !card) {
-          console.error('Modal elements not found');
-          return;
-        }
+      const statusModalCleanups = {};
 
-        // ensure icons are rendered
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-          lucide.createIcons();
-        }
-
+      function openModal(modal) {
+        if (!modal) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
-        // animate in
-        setTimeout(() => {
-          card.classList.remove('scale-95', 'opacity-0');
-          card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-
-        if (okBtn) okBtn.focus();
-
-        function close() {
-          card.classList.add('scale-95', 'opacity-0');
-          card.classList.remove('scale-100', 'opacity-100');
-          setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-          }, 180);
-          document.removeEventListener('keydown', escHandler);
-        }
-
-        function escHandler(e) { if (e.key === 'Escape') close(); }
-        document.addEventListener('keydown', escHandler);
-
-        if (okBtn) okBtn.onclick = close;
-        if (closeIcon) closeIcon.onclick = close;
-
-        if (autoHide) setTimeout(close, duration);
       }
 
-      // Error modal helper: shows red-styled error modal with animation
-      function showError(message, options = {}) {
-        const { autoHide = true, duration = 3000 } = options;
-        const modal = document.getElementById('errorModal');
-        const card = document.getElementById('errorModalCard');
-        const msgEl = document.getElementById('errorMessage');
-        const okBtn = document.getElementById('closeErrorModal');
-        const closeIcon = document.getElementById('errorCloseIcon');
-        if (msgEl) msgEl.textContent = message || 'An error occurred.';
-        if (!modal || !card) return;
-
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-
-        setTimeout(() => {
-          card.classList.remove('scale-95', 'opacity-0');
-          card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-
-        if (okBtn) okBtn.focus();
-
-        function close() {
-          card.classList.add('scale-95', 'opacity-0');
-          card.classList.remove('scale-100', 'opacity-100');
-          setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-          }, 180);
-          document.removeEventListener('keydown', escHandler);
-        }
-
-        function escHandler(e) { if (e.key === 'Escape') close(); }
-        document.addEventListener('keydown', escHandler);
-
-        if (okBtn) okBtn.onclick = close;
-        if (closeIcon) closeIcon.onclick = close;
-
-        if (autoHide) setTimeout(close, duration);
+      function closeModal(modal) {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
       }
 
-      // Toast notification helper - shows a non-blocking toast at top-right
-      function showToast(message, type = 'success', duration = 3000) {
+      function createStatusModalController({ modalId, messageId, closeButtonId, closeIconId, defaultMessage, defaultDuration }) {
+        const modal = document.getElementById(modalId);
+        const messageNode = document.getElementById(messageId);
+        const closeButton = document.getElementById(closeButtonId);
+        const closeIcon = document.getElementById(closeIconId);
+
+        return function openStatusModal(message, options = {}) {
+          const { autoHide = true, duration = defaultDuration } = options;
+          if (!modal) return;
+
+          if (typeof statusModalCleanups[modalId] === 'function') {
+            statusModalCleanups[modalId]();
+          }
+
+          if (messageNode) messageNode.textContent = message || defaultMessage;
+          openModal(modal);
+
+          let hideTimer = null;
+          const escHandler = (event) => {
+            if (event.key === 'Escape') close();
+          };
+
+          const close = () => {
+            closeModal(modal);
+            if (hideTimer) clearTimeout(hideTimer);
+            document.removeEventListener('keydown', escHandler);
+            if (closeButton) closeButton.removeEventListener('click', close);
+            if (closeIcon) closeIcon.removeEventListener('click', close);
+            statusModalCleanups[modalId] = null;
+          };
+
+          document.addEventListener('keydown', escHandler);
+          if (closeButton) closeButton.addEventListener('click', close);
+          if (closeIcon) closeIcon.addEventListener('click', close);
+
+          if (autoHide) hideTimer = setTimeout(close, duration);
+          statusModalCleanups[modalId] = close;
+        };
+      }
+
+      const showSuccess = createStatusModalController({
+        modalId: 'successModal',
+        messageId: 'successMessage',
+        closeButtonId: 'closeSuccessModal',
+        closeIconId: 'successCloseIcon',
+        defaultMessage: 'Operation completed successfully!',
+        defaultDuration: 2500
+      });
+
+      const showError = createStatusModalController({
+        modalId: 'errorModal',
+        messageId: 'errorMessage',
+        closeButtonId: 'closeErrorModal',
+        closeIconId: 'errorCloseIcon',
+        defaultMessage: 'An error occurred.',
+        defaultDuration: 3600
+      });
+
+      function getToastConfig(type = 'success') {
+        switch (type) {
+          case 'success': return { tone: 'success', title: 'Success', icon: 'check-circle-2' };
+          case 'info': return { tone: 'info', title: 'Update', icon: 'info' };
+          case 'warning': return { tone: 'warning', title: 'Notice', icon: 'alert-triangle' };
+          case 'delete': return { tone: 'danger', title: 'Deleted', icon: 'trash-2' };
+          default: return { tone: 'error', title: 'Error', icon: 'alert-octagon' };
+        }
+      }
+
+      function showToast(message, type = 'success', duration = 3200) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
 
+        const config = getToastConfig(type);
         const toast = document.createElement('div');
-        const isSuccess = type === 'success';
-        
-        // Toast styling
-        toast.className = `
-          pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg
-          transform transition-all duration-300 ease-out translate-x-full opacity-0
-          ${isSuccess 
-            ? 'bg-white border-l-4 border-green-500 text-gray-800' 
-            : 'bg-white border-l-4 border-red-500 text-gray-800'}
-        `;
-        
+        toast.className = `toast-card toast-card-${config.tone}`;
+        toast.style.setProperty('--toast-duration', `${duration}ms`);
+
         toast.innerHTML = `
-          <div class="${isSuccess ? 'text-green-500' : 'text-red-500'}">
-            <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+          <div class="toast-content">
+            <div class="toast-icon-wrap ${config.tone}"><i data-lucide="${config.icon}" class="w-4 h-4"></i></div>
+            <div class="toast-text-wrap">
+              <p class="toast-title">${config.title}</p>
+              <p class="toast-message">${message}</p>
+            </div>
+            <button type="button" class="toast-close-btn" aria-label="Dismiss notification"><i data-lucide="x" class="w-4 h-4"></i></button>
           </div>
-          <div class="flex-1">
-            <p class="font-medium text-sm">${isSuccess ? 'Success' : 'Error'}</p>
-            <p class="text-sm text-gray-600">${message}</p>
-          </div>
-          <button class="text-gray-400 hover:text-gray-600 transition" onclick="this.parentElement.remove()">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          <div class="toast-progress"></div>
         `;
 
         container.appendChild(toast);
-        
-        // Render icons
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-          lucide.createIcons({ nodes: [toast] });
-        }
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons({ nodes: [toast] });
 
-        // Animate in
-        requestAnimationFrame(() => {
-          toast.classList.remove('translate-x-full', 'opacity-0');
-        });
+        const removeToast = () => {
+          toast.classList.add('hide');
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 260);
+        };
 
-        // Auto remove
-        setTimeout(() => {
-          toast.classList.add('translate-x-full', 'opacity-0');
-          setTimeout(() => toast.remove(), 300);
-        }, duration);
-      }
-
-      // Convenience functions for toast
-      function showToastSuccess(message, duration = 3000) {
-        showToast(message, 'success', duration);
+        toast.querySelector('.toast-close-btn')?.addEventListener('click', removeToast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(removeToast, duration);
       }
 
       function showToastError(message, duration = 4000) {
         showToast(message, 'error', duration);
       }
 
-      // Delete-specific toast with trash icon and red accent
       function showDeleteToast(message, duration = 3500) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-
-        toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl transform transition-all duration-300 ease-out translate-x-full opacity-0 bg-gradient-to-r from-red-600 to-red-700 text-white min-w-[300px] max-w-sm';
-
-        toast.innerHTML = `
-          <div class="bg-white/20 rounded-full p-2 shrink-0">
-            <i data-lucide="trash-2" class="w-5 h-5 text-white"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-sm text-white leading-tight">Deleted</p>
-            <p class="text-xs text-red-100 truncate">${message}</p>
-          </div>
-          <button class="closeToastBtn text-white/70 hover:text-white transition shrink-0 p-1 rounded hover:bg-white/10">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        `;
-
-        // Progress bar
-        const progress = document.createElement('div');
-        progress.className = 'absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-xl transition-all ease-linear';
-        progress.style.width = '100%';
-        progress.style.transitionDuration = `${duration}ms`;
-        toast.style.position = 'relative';
-        toast.style.overflow = 'hidden';
-        toast.appendChild(progress);
-
-        container.appendChild(toast);
-
-        const closeBtn = toast.querySelector('.closeToastBtn');
-        if (closeBtn) closeBtn.addEventListener('click', () => toast.remove());
-
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-          lucide.createIcons({ nodes: [toast] });
-        }
-
-        requestAnimationFrame(() => {
-          toast.classList.remove('translate-x-full', 'opacity-0');
-          requestAnimationFrame(() => { progress.style.width = '0%'; });
-        });
-
-        setTimeout(() => {
-          toast.classList.add('translate-x-full', 'opacity-0');
-          setTimeout(() => toast.remove(), 300);
-        }, duration);
+        showToast(message, 'delete', duration);
       }
 
-      // Inline function to handle edit submission
-      async function handleEditSubmit(event) {
-        event.preventDefault();
-
-        const deptIdEl = document.getElementById('editDepartmentId');
-        const nameEl = document.getElementById('editDepartmentName');
-        const categoryEl = document.getElementById('editDepartmentCategory');
-        if (!deptIdEl || !nameEl || !categoryEl) return;
-
-        const deptId = deptIdEl.value;
-        const newName = nameEl.value.trim();
-        const newCategory = categoryEl.value;
-
-        // Show loading modal
-        const loadingModal = document.getElementById('loadingModal');
-        if (loadingModal) {
-          loadingModal.classList.remove('hidden');
-          loadingModal.classList.add('flex');
-        }
-
-        if (!newName) {
-          if (loadingModal) loadingModal.classList.add('hidden');
-          alert('Please enter a department name.');
-          return;
-        }
-        if (!newCategory) {
-          if (loadingModal) loadingModal.classList.add('hidden');
-          alert('Please select a category.');
-          return;
-        }
-
-        try {
-          const response = await fetch(`/update-department/${deptId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ department_name: newName, category: newCategory })
-          });
-
-          if (loadingModal) loadingModal.classList.add('hidden');
-
-          if (response.ok) {
-            showSuccess('Department updated successfully!');
-            const editModal = document.getElementById('editDepartmentModal');
-            if (editModal) editModal.classList.add('hidden');
-            loadDepartments();
-          } else {
-            alert('Error updating department.');
-          }
-        } catch (error) {
-          if (loadingModal) loadingModal.classList.add('hidden');
-          console.error('Update error:', error);
-          alert('Error updating department.');
-        }
-      }
-
-      // Sidebar toggle (defensive)
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebarOverlay');
       const toggle = document.getElementById('sidebarToggle');
@@ -911,110 +1224,176 @@
         });
       }
 
-      // Modal controls
       const addModal = document.getElementById('addDepartmentModal');
       const deleteModal = document.getElementById('deleteDepartmentModal');
       const selectModal = document.getElementById('selectDepartmentModal');
       const selectDeleteModal = document.getElementById('selectDeleteModal');
       const editModal = document.getElementById('editDepartmentModal');
       const successModal = document.getElementById('successModal');
+      const errorModal = document.getElementById('errorModal');
       const loadingModal = document.getElementById('loadingModal');
+
+      const departmentListEl = document.getElementById('departmentList');
+      const departmentDevicesTitle = document.getElementById('departmentDevicesTitle');
+      const departmentPcSummary = document.getElementById('departmentPcSummary');
+      const departmentPcCards = document.getElementById('departmentPcCards');
+      const departmentPcPagination = document.getElementById('departmentPcPagination');
+      const devicePageStatus = document.getElementById('devicePageStatus');
+      const devicePrevPageBtn = document.getElementById('devicePrevPageBtn');
+      const deviceNextPageBtn = document.getElementById('deviceNextPageBtn');
+
       const openAddModalBtn = document.getElementById('openAddModal');
       const openEditModalBtn = document.getElementById('openEditModal');
       const openSelectDeleteBtn = document.getElementById('openSelectDeleteModal');
+      const panelEditDepartmentBtn = document.getElementById('panelEditDepartmentBtn');
+      const panelDeleteDepartmentBtn = document.getElementById('panelDeleteDepartmentBtn');
+
       const closeModalBtns = document.querySelectorAll('.closeModal');
-      const closeSuccessModalBtn = document.getElementById('closeSuccessModal');
       const proceedToEditBtn = document.getElementById('proceedToEdit');
       const proceedToDeleteBtn = document.getElementById('proceedToDelete');
       const departmentSelect = document.getElementById('departmentSelect');
       const departmentDeleteSelect = document.getElementById('departmentDeleteSelect');
       const deleteDeptName = document.getElementById('deleteDepartmentName');
-      const successMessage = document.getElementById('successMessage');
       const deleteCloseIcon = document.getElementById('deleteCloseIcon');
 
-      if (deleteCloseIcon && deleteModal) {
-        deleteCloseIcon.addEventListener('click', () => {
-          const deleteCard = document.getElementById('deleteDepartmentModalCard');
-          if (deleteCard) {
-            deleteCard.classList.add('scale-95', 'opacity-0');
-            deleteCard.classList.remove('scale-100', 'opacity-100');
-          }
-          setTimeout(() => {
-            deleteModal.classList.add('hidden');
-            deleteModal.classList.remove('flex');
-          }, 180);
+      let activeDepartmentId = null;
+      let cachedDepartments = [];
+      let currentDeviceRows = [];
+      let currentDevicePage = 1;
+      const devicePageSize = 8;
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getCategoryDisplay(category) {
+        return category || 'Not specified';
+      }
+
+      function getDeviceHealthState(status) {
+        const normalized = String(status || '').trim().toLowerCase();
+        if (!normalized || normalized === 'available' || normalized === 'in use' || normalized === 'in used') {
+          return { label: 'No Issues', tone: 'ok', icon: 'check-circle-2' };
+        }
+        if (normalized.includes('damaged') || normalized.includes('unusable') || normalized.includes('needs checking')) {
+          return { label: 'Needs Attention', tone: 'warn', icon: 'alert-triangle' };
+        }
+        return { label: status || 'Status Recorded', tone: 'info', icon: 'info' };
+      }
+
+      function openAddDepartmentModal() {
+        openModal(addModal);
+        setTimeout(() => {
+          const firstInput = addModal?.querySelector('input[name="department_name"]');
+          if (firstInput) firstInput.focus();
+        }, 50);
+      }
+
+      function getActiveDepartmentRecord() {
+        return cachedDepartments.find((dept) => String(dept.department_id) === String(activeDepartmentId)) || null;
+      }
+
+      function syncPanelActionButtons() {
+        const hasActiveDepartment = Boolean(getActiveDepartmentRecord());
+        if (panelEditDepartmentBtn) panelEditDepartmentBtn.disabled = !hasActiveDepartment;
+        if (panelDeleteDepartmentBtn) panelDeleteDepartmentBtn.disabled = !hasActiveDepartment;
+      }
+
+      function syncFacilityListSelection() {
+        document.querySelectorAll('.facility-list-item').forEach((item) => {
+          const isActive = String(item.dataset.deptId) === String(activeDepartmentId);
+          item.classList.toggle('active', isActive);
+          item.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
       }
 
-      if (closeSuccessModalBtn && successModal) {
-        closeSuccessModalBtn.addEventListener('click', () => {
-          successModal.classList.add('hidden');
-          successModal.classList.remove('flex');
-          successModal.style.display = '';
-          successModal.style.zIndex = '';
-        });
+      function renderEmptyDeviceCards(message) {
+        if (!departmentPcCards) return;
+        departmentPcCards.innerHTML = `<div class="department-browser-empty">${escapeHtml(message)}</div>`;
+        if (departmentPcPagination) departmentPcPagination.classList.add('hidden');
+        if (devicePageStatus) devicePageStatus.textContent = 'Showing 0 of 0 devices';
+        if (devicePrevPageBtn) devicePrevPageBtn.disabled = true;
+        if (deviceNextPageBtn) deviceNextPageBtn.disabled = true;
       }
 
-      if (openAddModalBtn && addModal) {
-        openAddModalBtn.addEventListener('click', () => {
-          addModal.classList.remove('hidden');
-          addModal.classList.add('flex');
-          setTimeout(() => {
-            const firstInput = addModal.querySelector('input[name="department_name"]');
-            if (firstInput) firstInput.focus();
-          }, 50);
-        });
+      function renderCurrentDevicePage() {
+        if (!departmentPcCards) return;
+
+        if (currentDeviceRows.length === 0) {
+          renderEmptyDeviceCards('No devices assigned to this facility yet.');
+          return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(currentDeviceRows.length / devicePageSize));
+        if (currentDevicePage > totalPages) currentDevicePage = totalPages;
+        if (currentDevicePage < 1) currentDevicePage = 1;
+
+        const startIndex = (currentDevicePage - 1) * devicePageSize;
+        const visibleRows = currentDeviceRows.slice(startIndex, startIndex + devicePageSize);
+
+        departmentPcCards.innerHTML = visibleRows.map((pc) => {
+          const health = getDeviceHealthState(pc.status);
+          return `
+            <article class="device-card">
+              <div class="device-card-main">
+                <span class="device-card-icon">
+                  <i data-lucide="monitor" class="w-4 h-4"></i>
+                </span>
+                <div class="min-w-0">
+                  <h4 class="device-card-name truncate">${escapeHtml(pc.pcname || 'Unnamed PC')}</h4>
+                  <p class="device-card-meta">PC Number: ${escapeHtml(pc.pcid || 'N/A')}</p>
+                  <p class="device-card-meta truncate">${escapeHtml(pc.location || 'No location')}</p>
+                </div>
+              </div>
+              <div class="device-card-foot">
+                <span class="device-health-pill ${health.tone}">
+                  <i data-lucide="${health.icon}" class="w-3 h-3"></i>
+                  ${escapeHtml(health.label)}
+                </span>
+                
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        if (departmentPcPagination) departmentPcPagination.classList.remove('hidden');
+        if (devicePageStatus) {
+          const startLabel = startIndex + 1;
+          const endLabel = startIndex + visibleRows.length;
+          devicePageStatus.textContent = `Showing ${startLabel}-${endLabel} of ${currentDeviceRows.length} devices (Page ${currentDevicePage} of ${totalPages})`;
+        }
+        if (devicePrevPageBtn) devicePrevPageBtn.disabled = currentDevicePage <= 1;
+        if (deviceNextPageBtn) deviceNextPageBtn.disabled = currentDevicePage >= totalPages;
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+        }
       }
 
-      if (openEditModalBtn && selectModal) {
-        openEditModalBtn.addEventListener('click', async () => {
-          await populateDepartmentSelect();
-          selectModal.classList.remove('hidden');
-          selectModal.classList.add('flex');
-        });
+      async function populateDepartmentSelect() {
+        try {
+          const response = await fetch('/get-departments');
+          const departments = await response.json();
+          if (!departmentSelect) return;
+          departmentSelect.innerHTML = '<option value="">Select an office/facility...</option>';
+          departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.department_id;
+            option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
+            option.dataset.category = dept.category || '';
+            option.dataset.maxPcAllowed = dept.max_pc_allowed ?? 0;
+            departmentSelect.appendChild(option);
+          });
+        } catch (err) {
+          console.error('Could not populate department select', err);
+        }
       }
 
-      if (openSelectDeleteBtn && selectDeleteModal) {
-        openSelectDeleteBtn.addEventListener('click', async () => {
-          await populateDepartmentDeleteSelect();
-          const card = document.getElementById('selectDeleteModalCard');
-          selectDeleteModal.classList.remove('hidden');
-          selectDeleteModal.classList.add('flex');
-          // Animate in
-          setTimeout(() => {
-            if (card) {
-              card.classList.remove('scale-95', 'opacity-0');
-              card.classList.add('scale-100', 'opacity-100');
-            }
-          }, 10);
-        });
-      }
-
-      if (proceedToEditBtn && departmentSelect) {
-        proceedToEditBtn.addEventListener('click', () => {
-          const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
-          if (selectedOption && selectedOption.value) {
-            const deptId = selectedOption.value;
-            const deptName = selectedOption.textContent.split(' - ')[0];
-            const deptCategory = selectedOption.dataset.category;
-
-            const editIdEl = document.getElementById('editDepartmentId');
-            const editNameEl = document.getElementById('editDepartmentName');
-            const editCategoryEl = document.getElementById('editDepartmentCategory');
-            if (editIdEl) editIdEl.value = deptId;
-            if (editNameEl) editNameEl.value = deptName;
-            if (editCategoryEl) editCategoryEl.value = deptCategory;
-
-            if (selectModal) selectModal.classList.add('hidden');
-            if (editModal) {
-              editModal.classList.remove('hidden');
-              editModal.classList.add('flex');
-            }
-          }
-        });
-      }
-
-      // Select Delete Modal - populate and open
       async function populateDepartmentDeleteSelect() {
         try {
           const response = await fetch('/get-departments');
@@ -1033,414 +1412,391 @@
         }
       }
 
-      // Handle proceed to delete button
-      if (proceedToDeleteBtn && departmentDeleteSelect) {
-        proceedToDeleteBtn.addEventListener('click', () => {
-          const selectedOption = departmentDeleteSelect.options[departmentDeleteSelect.selectedIndex];
-          if (selectedOption && selectedOption.value) {
-            const deptId = selectedOption.value;
-            const deptName = selectedOption.textContent.split(' - ')[0];
-            const idInput = document.getElementById('deleteDepartmentId');
-            if (idInput) idInput.value = deptId;
-            if (deleteDeptName) deleteDeptName.textContent = deptName;
-            if (selectDeleteModal) {
-              const card = document.getElementById('selectDeleteModalCard');
-              if (card) {
-                card.classList.add('scale-95', 'opacity-0');
-                card.classList.remove('scale-100', 'opacity-100');
-              }
-              setTimeout(() => {
-                selectDeleteModal.classList.add('hidden');
-                selectDeleteModal.classList.remove('flex');
-              }, 180);
+      async function fetchDepartmentPcRows(departmentId) {
+        const endpoints = [
+          `/get-department-pcs/${departmentId}`,
+          `/filter-pcs?department_id=${encodeURIComponent(String(departmentId))}`
+        ];
+
+        let lastError = null;
+
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, {
+              headers: { Accept: 'application/json' }
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed request (${response.status})`);
             }
-            if (deleteModal) {
-              const deleteCard = document.getElementById('deleteDepartmentModalCard');
-              deleteModal.classList.remove('hidden');
-              deleteModal.classList.add('flex');
-              // Animate in
-              setTimeout(() => {
-                if (deleteCard) {
-                  deleteCard.classList.remove('scale-95', 'opacity-0');
-                  deleteCard.classList.add('scale-100', 'opacity-100');
-                }
-              }, 10);
+
+            const contentType = (response.headers.get('content-type') || '').toLowerCase();
+            if (!contentType.includes('application/json')) {
+              throw new Error('Non-JSON response');
             }
-          } else {
-            alert('Please select an office/facility to delete.');
+
+            const payload = await response.json();
+            return Array.isArray(payload) ? payload : [];
+          } catch (error) {
+            lastError = error;
+            console.warn(`PC fetch failed for ${endpoint}:`, error);
           }
-        });
+        }
+
+        throw lastError || new Error('Unable to load department PCs');
       }
 
-      async function populateDepartmentSelect() {
+      async function openDepartmentPcPanel(departmentId, departmentName) {
+        if (!departmentPcCards) return;
+
+        activeDepartmentId = String(departmentId);
+        syncFacilityListSelection();
+        syncPanelActionButtons();
+
+        if (departmentDevicesTitle) {
+          departmentDevicesTitle.textContent = `Devices in ${departmentName || 'Selected Facility'}`;
+        }
+        if (departmentPcSummary) {
+          departmentPcSummary.textContent = 'Loading device records...';
+        }
+
+        renderEmptyDeviceCards('Loading device records...');
+
         try {
-          const response = await fetch('/get-departments');
-          const departments = await response.json();
+          const deviceRows = await fetchDepartmentPcRows(departmentId);
+          currentDeviceRows = Array.isArray(deviceRows) ? deviceRows : [];
+          currentDevicePage = 1;
+          const totalQuantity = deviceRows.length;
+          const quantityWord = totalQuantity === 1 ? 'device' : 'devices';
 
-          if (!departmentSelect) return;
-          departmentSelect.innerHTML = '<option value="">Select an office/facility...</option>';
+          if (departmentPcSummary) {
+            departmentPcSummary.textContent = deviceRows.length > 0
+              ? `${totalQuantity} ${quantityWord} registered`
+              : 'No devices assigned to this office/facility.';
+          }
 
-          departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.department_id;
-            option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
-            option.dataset.category = dept.category || '';
-            departmentSelect.appendChild(option);
-          });
-        } catch (err) {
-          console.error('Could not populate department select', err);
+          if (deviceRows.length === 0) {
+            renderEmptyDeviceCards('No devices assigned to this facility yet.');
+            return;
+          }
+
+          renderCurrentDevicePage();
+        } catch (error) {
+          console.error('Error loading department PCs:', error);
+          currentDeviceRows = [];
+          currentDevicePage = 1;
+          if (departmentPcSummary) departmentPcSummary.textContent = 'Unable to load device records.';
+          renderEmptyDeviceCards('Could not load devices. Please try again.');
+          showToastError('Could not load PCs for this office/facility.');
         }
       }
 
       async function loadDepartments() {
         const response = await fetch('/get-departments');
         const departments = await response.json();
-
-        const tableBody = document.getElementById('departmentTable');
-        if (!tableBody) return;
-        tableBody.innerHTML = '';
+        cachedDepartments = Array.isArray(departments) ? departments : [];
 
         const countEl = document.getElementById('departmentCount');
-        const totalDepartments = Array.isArray(departments) ? departments.length : 0;
-        if (countEl) countEl.textContent = String(totalDepartments);
+        if (countEl) countEl.textContent = String(cachedDepartments.length);
 
-        const tableEl = tableBody.closest('table');
-        const emptyColSpan = tableEl ? tableEl.querySelectorAll('thead th').length : 4;
+        if (!departmentListEl) return;
 
-        if (!Array.isArray(departments) || departments.length === 0) {
-          tableBody.innerHTML = `
-            <tr>
-              <td colspan="${emptyColSpan}" class="px-4 py-10 text-center text-sm text-gray-500 bg-white">
-                No office/facility records found.
-              </td>
-            </tr>
-          `;
+        if (cachedDepartments.length === 0) {
+          activeDepartmentId = null;
+          departmentListEl.innerHTML = '<div class="department-browser-empty">No office/facility records found.</div>';
+          if (departmentDevicesTitle) departmentDevicesTitle.textContent = 'Devices';
+          if (departmentPcSummary) departmentPcSummary.textContent = 'No facility selected.';
+          renderEmptyDeviceCards('No devices to display.');
+          syncPanelActionButtons();
           return;
         }
 
-        departments.forEach(dept => {
-          const row = document.createElement('tr');
-          row.className = 'department-row odd:bg-white even:bg-slate-50/60';
-          
-          const categoryDisplay = dept.category ? getCategoryDisplay(dept.category) : 'Not specified';
-          const pcCount = (dept.pc_count ?? 0);
-          
-          row.innerHTML = `
-            <td class="px-4 py-3 align-middle">
-              <div class="font-medium text-gray-800">${dept.department_name}</div>
-            </td>
-            <td class="px-4 py-3 align-middle">
-              <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full border ${getCategoryBadgeClass(dept.category)}">
-                ${categoryDisplay}
-              </span>
-            </td>
-            <td class="px-4 py-3 align-middle text-gray-700 font-semibold tabular-nums">${pcCount}</td>
-             {% if permissions.get('dept', {}).get('edit', False) or permissions.get('dept', {}).get('delete', False) %}
-            <td class="px-4 py-3 align-middle">
-              <div class="flex items-center justify-end gap-2 whitespace-nowrap">
-                <button class="department-action-btn edit openEditModal"
-                  data-dept-id="${dept.department_id}" data-dept-name="${dept.department_name}" data-dept-category="${dept.category || ''}">
-                  <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
-                </button>
-                <button class="department-action-btn delete openDeleteModal"
-                  data-dept-name="${dept.department_name}" data-id="${dept.department_id}">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-                </button>
+        departmentListEl.innerHTML = cachedDepartments.map((dept) => {
+          const deptId = String(dept.department_id);
+          const isActive = String(activeDepartmentId) === deptId;
+          const pcCount = Number(dept.pc_count || 0);
+          const totalPcs = pcCount;
+          const pcWord = totalPcs === 1 ? 'pc' : 'pcs';
+          const categoryText = dept.category ? getCategoryDisplay(dept.category) : 'Uncategorized';
+
+          return `
+            <button type="button" class="facility-list-item${isActive ? ' active' : ''}" data-dept-id="${deptId}" data-dept-name="${escapeHtml(dept.department_name || '')}" role="option" aria-selected="${isActive ? 'true' : 'false'}">
+              <div class="min-w-0">
+                <p class="facility-title truncate">${escapeHtml(dept.department_name || 'Unnamed Facility')}</p>
+                <p class="facility-sub">
+                  <i data-lucide="monitor" class="w-3 h-3"></i>
+                  <span>${totalPcs} ${pcWord}</span>
+                  <span>- ${escapeHtml(categoryText)}</span>
+                </p>
               </div>
-            </td>
-             {% endif %}
+              <i data-lucide="chevron-right" class="w-4 h-4 text-blue-500/80"></i>
+            </button>
           `;
-          tableBody.appendChild(row);
-        });
+        }).join('');
 
-        lucide.createIcons();
+        if (!activeDepartmentId || !cachedDepartments.some((dept) => String(dept.department_id) === String(activeDepartmentId))) {
+          activeDepartmentId = String(cachedDepartments[0].department_id);
+        }
 
-        // Attach listeners AFTER rendering
-        attachEditButtons();
-        attachDeleteButtons();
+        syncFacilityListSelection();
+        syncPanelActionButtons();
+
+        const selectedDepartment = getActiveDepartmentRecord();
+        if (selectedDepartment) {
+          await openDepartmentPcPanel(selectedDepartment.department_id, selectedDepartment.department_name);
+        }
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+        }
       }
 
-      // Close modal handlers
-      closeModalBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-          const modal = btn.closest(".fixed");
-          if (modal) {
-            // Handle deleteDepartmentModal animation
-            if (modal.id === 'deleteDepartmentModal') {
-              const deleteCard = document.getElementById('deleteDepartmentModalCard');
-              if (deleteCard) {
-                deleteCard.classList.add('scale-95', 'opacity-0');
-                deleteCard.classList.remove('scale-100', 'opacity-100');
-              }
-              setTimeout(() => {
-                modal.classList.add("hidden");
-                modal.classList.remove("flex");
-                modal.style.display = '';
-                modal.style.zIndex = '';
-              }, 180);
-            } else if (modal.id === 'selectDeleteModal') {
-              const card = document.getElementById('selectDeleteModalCard');
-              if (card) {
-                card.classList.add('scale-95', 'opacity-0');
-                card.classList.remove('scale-100', 'opacity-100');
-              }
-              setTimeout(() => {
-                modal.classList.add("hidden");
-                modal.classList.remove("flex");
-                modal.style.display = '';
-                modal.style.zIndex = '';
-              }, 180);
-            } else {
-              modal.classList.add("hidden");
-              modal.classList.remove("flex");
-              modal.style.display = '';
-              modal.style.zIndex = '';
-            }
+      function attachDepartmentRowClickHandlers() {
+        if (!departmentListEl || departmentListEl.dataset.pcViewerBound === '1') return;
+
+        departmentListEl.dataset.pcViewerBound = '1';
+        departmentListEl.addEventListener('click', (event) => {
+          const row = event.target.closest('.facility-list-item');
+          if (!row) return;
+          openDepartmentPcPanel(row.dataset.deptId, row.dataset.deptName);
+        });
+      }
+
+      if (devicePrevPageBtn) {
+        devicePrevPageBtn.addEventListener('click', () => {
+          if (currentDevicePage <= 1) return;
+          currentDevicePage -= 1;
+          renderCurrentDevicePage();
+        });
+      }
+
+      if (deviceNextPageBtn) {
+        deviceNextPageBtn.addEventListener('click', () => {
+          const totalPages = Math.max(1, Math.ceil(currentDeviceRows.length / devicePageSize));
+          if (currentDevicePage >= totalPages) return;
+          currentDevicePage += 1;
+          renderCurrentDevicePage();
+        });
+      }
+
+      if (openAddModalBtn) openAddModalBtn.addEventListener('click', openAddDepartmentModal);
+
+      if (openEditModalBtn && selectModal) {
+        openEditModalBtn.addEventListener('click', async () => {
+          await populateDepartmentSelect();
+          openModal(selectModal);
+        });
+      }
+
+      if (openSelectDeleteBtn && selectDeleteModal) {
+        openSelectDeleteBtn.addEventListener('click', async () => {
+          await populateDepartmentDeleteSelect();
+          openModal(selectDeleteModal);
+        });
+      }
+
+      if (proceedToEditBtn && departmentSelect) {
+        proceedToEditBtn.addEventListener('click', () => {
+          const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
+          if (!selectedOption || !selectedOption.value) {
+            showToastError('Please select an office/facility first.');
+            return;
           }
+
+          const editIdEl = document.getElementById('editDepartmentId');
+          const editNameEl = document.getElementById('editDepartmentName');
+          const editCategoryEl = document.getElementById('editDepartmentCategory');
+          const editMaxPcAllowedEl = document.getElementById('editDepartmentMaxPcAllowed');
+
+          if (editIdEl) editIdEl.value = selectedOption.value;
+          if (editNameEl) editNameEl.value = selectedOption.textContent.split(' - ')[0];
+          if (editCategoryEl) editCategoryEl.value = selectedOption.dataset.category || '';
+          if (editMaxPcAllowedEl) editMaxPcAllowedEl.value = selectedOption.dataset.maxPcAllowed || '0';
+
+          closeModal(selectModal);
+          openModal(editModal);
+        });
+      }
+
+      if (proceedToDeleteBtn && departmentDeleteSelect) {
+        proceedToDeleteBtn.addEventListener('click', () => {
+          const selectedOption = departmentDeleteSelect.options[departmentDeleteSelect.selectedIndex];
+          if (!selectedOption || !selectedOption.value) {
+            showToastError('Please select an office/facility to delete.');
+            return;
+          }
+
+          const idInput = document.getElementById('deleteDepartmentId');
+          if (idInput) idInput.value = selectedOption.value;
+          if (deleteDeptName) deleteDeptName.textContent = selectedOption.textContent.split(' - ')[0];
+
+          closeModal(selectDeleteModal);
+          openModal(deleteModal);
+        });
+      }
+
+      if (panelEditDepartmentBtn) {
+        panelEditDepartmentBtn.addEventListener('click', () => {
+          const selectedDepartment = getActiveDepartmentRecord();
+          if (!selectedDepartment) {
+            showToastError('Please select an office/facility to edit.');
+            return;
+          }
+
+          const editIdEl = document.getElementById('editDepartmentId');
+          const editNameEl = document.getElementById('editDepartmentName');
+          const editCategoryEl = document.getElementById('editDepartmentCategory');
+          const editMaxPcAllowedEl = document.getElementById('editDepartmentMaxPcAllowed');
+
+          if (editIdEl) editIdEl.value = selectedDepartment.department_id;
+          if (editNameEl) editNameEl.value = selectedDepartment.department_name || '';
+          if (editCategoryEl) editCategoryEl.value = selectedDepartment.category || '';
+          if (editMaxPcAllowedEl) editMaxPcAllowedEl.value = selectedDepartment.max_pc_allowed ?? 0;
+
+          openModal(editModal);
+        });
+      }
+
+      if (panelDeleteDepartmentBtn) {
+        panelDeleteDepartmentBtn.addEventListener('click', () => {
+          const selectedDepartment = getActiveDepartmentRecord();
+          if (!selectedDepartment) {
+            showToastError('Please select an office/facility to delete.');
+            return;
+          }
+
+          const idInput = document.getElementById('deleteDepartmentId');
+          if (idInput) idInput.value = selectedDepartment.department_id;
+          if (deleteDeptName) deleteDeptName.textContent = selectedDepartment.department_name || '';
+
+          openModal(deleteModal);
+        });
+      }
+
+      if (deleteCloseIcon && deleteModal) {
+        deleteCloseIcon.addEventListener('click', () => closeModal(deleteModal));
+      }
+
+      closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modal = btn.closest('.fixed');
+          closeModal(modal);
         });
       });
 
-      // Click outside to close
-      [addModal, deleteModal, selectModal, selectDeleteModal, editModal, successModal, loadingModal].forEach(modal => {
-        if (modal) {
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) {
-              // Handle deleteDepartmentModal animation
-              if (modal.id === 'deleteDepartmentModal') {
-                const deleteCard = document.getElementById('deleteDepartmentModalCard');
-                if (deleteCard) {
-                  deleteCard.classList.add('scale-95', 'opacity-0');
-                  deleteCard.classList.remove('scale-100', 'opacity-100');
-                }
-                setTimeout(() => {
-                  modal.classList.add("hidden");
-                  modal.classList.remove("flex");
-                }, 180);
-              } else if (modal.id === 'selectDeleteModal') {
-                const card = document.getElementById('selectDeleteModalCard');
-                if (card) {
-                  card.classList.add('scale-95', 'opacity-0');
-                  card.classList.remove('scale-100', 'opacity-100');
-                }
-                setTimeout(() => {
-                  modal.classList.add("hidden");
-                  modal.classList.remove("flex");
-                }, 180);
-              } else {
-                modal.classList.add("hidden");
-              }
-            }
-          });
+      [addModal, deleteModal, selectModal, selectDeleteModal, editModal, successModal, errorModal].forEach(modal => {
+        if (!modal) return;
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal(modal);
+        });
+      });
+
+      const addForm = document.getElementById('addDepartmentForm');
+      addForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = addForm.department_name.value.trim();
+        const category = addForm.category.value;
+        const maxPcAllowed = Number.parseInt(addForm.max_pc_allowed.value, 10);
+
+        if (!name) return showToastError('Please enter an office/facility name.');
+        if (!category) return showToastError('Please select a category.');
+        if (!Number.isInteger(maxPcAllowed) || maxPcAllowed < 0) {
+          return showToastError('Please enter a valid PC limit (0 or higher).');
+        }
+
+        const response = await fetch('/add-department', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ department_name: name, category, max_pc_allowed: maxPcAllowed })
+        });
+
+        if (response.ok) {
+          addForm.reset();
+          closeModal(addModal);
+          showSuccess('Office/Facility added successfully!');
+          loadDepartments();
+        } else {
+          showError('Error adding office/facility. Please try again.', { autoHide: false });
         }
       });
-      // Handle Add Department
-      const addForm = document.getElementById('addDepartmentForm');
-      addForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = addForm.department_name.value.trim();
-    const category = addForm.category.value; // ← get selected category
-    if (!name) return alert('Please enter a department name.');
-    if (!category) return alert('Please select a category.');
 
-    const response = await fetch('/add-department', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ department_name: name, category: category }) // ← send selected category
-    });
-
-    if (response.ok) {
-      showSuccess('Office/Facility added successfully!');
-      addForm.reset();
-      // fully hide add modal
-      if (addModal) {
-        addModal.classList.add('hidden');
-        addModal.classList.remove('flex');
-        addModal.style.display = '';
-        addModal.style.zIndex = '';
-      }
-      loadDepartments();
-    } else {
-      alert('Error adding department.');
-    }
-});
-
-      // Handle Delete Department
-      const deleteForm = document.getElementById('deleteDepartmentForm');
-      deleteForm.addEventListener('submit', async (e) => {
+      const editForm = document.getElementById('editDepartmentForm');
+      editForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const idInput = document.getElementById('deleteDepartmentId');
-        let id = '';
-        if (idInput && idInput.value) {
-          id = idInput.value;
-        } else {
-          const deptName = deleteDeptName.textContent;
-          const deptButton = [...document.querySelectorAll('.openDeleteModal')]
-            .find(btn => btn.dataset.deptName === deptName);
-          id = deptButton ? deptButton.dataset.id : '';
+
+        const deptId = document.getElementById('editDepartmentId')?.value;
+        const newName = document.getElementById('editDepartmentName')?.value.trim();
+        const newCategory = document.getElementById('editDepartmentCategory')?.value;
+        const newMaxPcAllowed = Number.parseInt(document.getElementById('editDepartmentMaxPcAllowed')?.value || '', 10);
+
+        if (!newName) return showToastError('Please enter an office/facility name.');
+        if (!newCategory) return showToastError('Please select a category.');
+        if (!Number.isInteger(newMaxPcAllowed) || newMaxPcAllowed < 0) {
+          return showToastError('Please enter a valid PC limit (0 or higher).');
         }
 
-        if (!id) return alert('Could not determine department to delete.');
+        openModal(loadingModal);
+        try {
+          const response = await fetch(`/update-department/${deptId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ department_name: newName, category: newCategory, max_pc_allowed: newMaxPcAllowed })
+          });
+
+          closeModal(loadingModal);
+
+          if (response.ok) {
+            closeModal(editModal);
+            showSuccess('Department updated successfully!');
+            loadDepartments();
+          } else {
+            showError('Error updating office/facility. Please try again.', { autoHide: false });
+          }
+        } catch (error) {
+          closeModal(loadingModal);
+          showError('Error updating office/facility. Please try again.', { autoHide: false });
+        }
+      });
+
+      const deleteForm = document.getElementById('deleteDepartmentForm');
+      deleteForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const idInput = document.getElementById('deleteDepartmentId');
+        const id = idInput?.value || activeDepartmentId;
+        if (!id) {
+          showError('Could not determine which office/facility to delete. Please try again.', { autoHide: false });
+          return;
+        }
 
         const response = await fetch(`/delete-department/${id}`, { method: 'DELETE' });
         const contentType = response.headers.get('content-type') || '';
-        const result = contentType.includes('application/json')
-          ? await response.json().catch(() => ({}))
-          : {};
-        const responseText = !contentType.includes('application/json')
-          ? await response.text().catch(() => '')
-          : '';
-        
+        const result = contentType.includes('application/json') ? await response.json().catch(() => ({})) : {};
+        const responseText = !contentType.includes('application/json') ? await response.text().catch(() => '') : '';
+
         if (response.ok) {
-          // Close the delete modal with animation
-          const deleteCard = document.getElementById('deleteDepartmentModalCard');
-          if (deleteCard) {
-            deleteCard.classList.add('scale-95', 'opacity-0');
-            deleteCard.classList.remove('scale-100', 'opacity-100');
-          }
-          setTimeout(() => {
-            deleteModal.classList.add('hidden');
-            deleteModal.classList.remove('flex');
-          }, 180);
-          // Show delete-specific toast notification with trash icon
-          showDeleteToast('Office/Facility deleted successfully');
-          // clear hidden id after deletion
           if (idInput) idInput.value = '';
-          // Reload table
+          closeModal(deleteModal);
+          showDeleteToast('Office/Facility deleted successfully');
           loadDepartments();
         } else {
           const serverMsg = (result && (result.error || result.message))
             ? (result.error || result.message)
-            : (responseText ? responseText : 'Failed to delete office/facility. Please try again.');
+            : (responseText || 'Failed to delete office/facility. Please try again.');
           showToastError(`(${response.status}) ${serverMsg}`);
         }
       });
 
-      // Handle Edit Form Submit (PUT request) - moved outside to prevent multiple attachments
-      const editForm = document.getElementById('editDepartmentForm');
-      const editInput = document.getElementById('editDepartmentName');
-      const editIdInput = document.getElementById('editDepartmentId');
-
-      editForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const deptId = document.getElementById('editDepartmentId').value;
-    const newName = document.getElementById('editDepartmentName').value.trim();
-    const newCategory = document.getElementById('editDepartmentCategory').value; // ← dynamic selection
-
-    if (!newName) return alert("Please enter a department name.");
-    if (!newCategory) return alert("Please select a category.");
-
-    try {
-        const response = await fetch(`/update-department/${deptId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ department_name: newName, category: newCategory }) // ← send selected category
-        });
-
-        if (response.ok) {
-          showSuccess('Department updated successfully!');
-          document.getElementById('editDepartmentModal').classList.add('hidden');
-          loadDepartments();
-        } else {
-          alert('Error updating department.');
-        }
-    } catch (error) {
-        console.error('Update error:', error);
-        alert('Error updating department.');
-    }
-});
-      function attachEditButtons() {
-        const editButtons = document.querySelectorAll('.openEditModal');
-        const editModal = document.getElementById('editDepartmentModal');
-
-        editButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const deptName = btn.dataset.deptName;
-            const deptId = btn.dataset.deptId;
-            const deptCategory = btn.dataset.deptCategory;
-
-            editInput.value = deptName;
-            editIdInput.value = deptId;
-            document.getElementById('editDepartmentCategory').value = deptCategory;
-
-            editModal.classList.remove('hidden');
-            editModal.classList.add('flex');
-          });
-        });
-      }
-
-      function attachDeleteButtons() {
-        const deleteButtons = document.querySelectorAll('.openDeleteModal');
-
-        deleteButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const deptId = btn.dataset.id;
-            const deptName = btn.dataset.deptName;
-            // Set values and open delete modal directly
-            const idInput = document.getElementById('deleteDepartmentId');
-            if (idInput) idInput.value = deptId;
-            if (deleteDeptName) deleteDeptName.textContent = deptName;
-            if (deleteModal) {
-              const deleteCard = document.getElementById('deleteDepartmentModalCard');
-              deleteModal.classList.remove('hidden');
-              deleteModal.classList.add('flex');
-              // Animate in
-              setTimeout(() => {
-                if (deleteCard) {
-                  deleteCard.classList.remove('scale-95', 'opacity-0');
-                  deleteCard.classList.add('scale-100', 'opacity-100');
-                }
-              }, 10);
-            }
-          });
-        });
-      }
-
-      // Load departments on page load
+      attachDepartmentRowClickHandlers();
       loadDepartments();
 
-      // Helper functions for category display
-      function getCategoryDisplay(category) {
-        return category || 'Not specified'; // Just display what’s in the dropdown
-      }
-
-      function getCategoryBadgeClass(category) {
-        if (!category) return 'bg-gray-100 text-gray-800 border-gray-200';
-
-        // Assign colors based on the category text
-        switch (category) {
-          case 'Computer Laboratory A':
-          case 'Computer Laboratory B':
-          case 'Computer Laboratory C':
-            return 'bg-blue-100 text-blue-800 border-blue-200';
-          case 'Other':
-            return 'bg-gray-100 text-gray-800 border-gray-200';
-          case 'Administrative Office':
-            return 'bg-blue-100 text-blue-800 border-blue-200';
-          case 'Academic Department':
-            return 'bg-green-100 text-green-800 border-green-200';
-          case 'Support Services':
-            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-          case 'Facility':
-            return 'bg-purple-100 text-purple-800 border-purple-200';
-          case 'Laboratory':
-            return 'bg-red-100 text-red-800 border-red-200';
-          default:
-            return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-      }
-
-      // Handle flashed messages from server - use toast instead of alert
       const flashedMessages = {{ get_flashed_messages(with_categories=true) | tojson }};
       if (Array.isArray(flashedMessages) && flashedMessages.length > 0) {
         flashedMessages.forEach(([category, message]) => {
-          const normalized = (category === 'success') ? 'success'
-            : (category === 'danger') ? 'error'
-            : category;
+          const normalized = category === 'success' ? 'success' : (category === 'danger' ? 'error' : category);
           showToast(message, normalized);
         });
       }
-
     });
   </script>
 </body>

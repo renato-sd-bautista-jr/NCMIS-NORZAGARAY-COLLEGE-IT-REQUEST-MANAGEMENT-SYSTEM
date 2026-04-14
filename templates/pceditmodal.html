@@ -28,19 +28,16 @@
         </div>
 
         <div>
-          <label class="label">Department</label>
+          <label class="label">Office and Facility</label>
           <select id="modalDepartment" name="department_id" required class="input">
-            <option value="">Select Department</option>
+            <option value="">Select Office and Facility</option>
             {% for dep in departments %}
             <option value="{{ dep.department_id }}">{{ dep.department_name }}</option>
             {% endfor %}
           </select>
         </div>
 
-        <div>
-          <label class="label">Location</label>
-          <input type="text" id="modalLocation" name="location" class="input" placeholder="e.g., IT Office">
-        </div>
+        <!-- Location removed per UI change -->
 
         <div>
           <label class="label">Quantity</label>
@@ -76,12 +73,12 @@
 
         <div>
           <label class="label">Serial No</label>
-          <input type="text" id="modalSerialNo" name="serial_no" class="input" placeholder="e.g., SN-123456" readonly required>
+          <input type="text" id="modalSerialNo" name="serial_no" class="input" placeholder="e.g., SN-123456" readonly>
         </div>
 
         <div>
           <label class="label">Municipal Serial No</label>
-          <input type="text" id="modalMunicipalSerialNo" name="municipal_serial_no" class="input" placeholder="e.g., MSN-987654" readonly required>
+          <input type="text" id="modalMunicipalSerialNo" name="municipal_serial_no" class="input" placeholder="e.g., MSN-987654" readonly>
         </div>
 
         <div>
@@ -327,7 +324,7 @@ async function openPcModal(pcData = null) {
       pcid: 'modalPcId',
       pcname: 'modalPcName',
       department_id: 'modalDepartment',
-      location: 'modalLocation',
+      /* location removed */
       quantity: 'modalQuantity',
       acquisition_cost: 'modalAcquisitionCost',
       date_acquired: 'modalDateAcquired',
@@ -389,6 +386,8 @@ async function openPcModal(pcData = null) {
 
   // 🪟 Show modal
   modal.classList.remove('hidden');
+  // Add body class to hide underlying pagination while modal is open
+  document.body.classList.add('modal-open-pc');
   setTimeout(() => document.getElementById('pcModalContent').classList.add('scale-100'), 50);
   lucide.createIcons();
   
@@ -401,6 +400,8 @@ function closePcModal() {
   }
   if (modal) {
     modal.classList.add('hidden');
+    // Remove body class when closing modal so pagination returns
+    document.body.classList.remove('modal-open-pc');
   }
 }
 
@@ -538,8 +539,6 @@ function validatePcForm(formData) {
     { name: "pcname", label: "PC Name" },
     { name: "department_id", label: "Department" },
     { name: "date_acquired", label: "Date Acquired" },
-    { name: "serial_no", label: "Serial No" },
-    { name: "municipal_serial_no", label: "Municipal Serial No" },
     { name: "status", label: "Status" }
   ];
 
@@ -550,6 +549,14 @@ function validatePcForm(formData) {
       showPopup("error", `${field.label} is required.`);
       return false;
     }
+  }
+
+  // Require at least one identifier
+  const serialVal = (formData.get('serial_no') || '').trim();
+  const municipalVal = (formData.get('municipal_serial_no') || '').trim();
+  if (!serialVal && !municipalVal) {
+    showPopup('error', 'Provide at least Serial No or Municipal Serial No.');
+    return false;
   }
 // Quantity validation
   const quantity = parseInt(formData.get("quantity"), 10);

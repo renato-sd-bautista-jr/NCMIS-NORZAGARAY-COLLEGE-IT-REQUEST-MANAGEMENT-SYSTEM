@@ -2,7 +2,8 @@ from flask import request, render_template, redirect, url_for, flash, Blueprint,
 from db import get_db_connection
 from io import BytesIO
 import pandas as pd
-import pymysql,re
+import pymysql, re
+from collections import defaultdict
 import uuid
 from datetime import date
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -64,6 +65,15 @@ def filter_pcs():
 
         search = args.get('search')
 
+        # Determine whether the table has `is_archived` to avoid SQL errors on older schemas
+        try:
+            with conn.cursor() as _cur:
+                _cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pcinfofull' AND COLUMN_NAME = 'is_archived'")
+                _row = _cur.fetchone()
+                has_is_arch = bool(_row and (int(_row.get('cnt', 0)) if isinstance(_row, dict) else _row[0] > 0))
+        except Exception:
+            has_is_arch = False
+
         query = """
             SELECT 
                 p.pcid,
@@ -97,20 +107,26 @@ def filter_pcs():
 
             FROM pcinfofull p
             LEFT JOIN departments d ON p.department_id = d.department_id
-            WHERE p.is_archived = 0
+            WHERE 1=1
         """
 
+        if has_is_arch:
+            query += " AND COALESCE(p.is_archived, 0) = 0"
+        
+
         params = []
-        if status != 'Surrendered':
-             query += " AND p.status != 'Surrendered'"
+        # Normalize status parameter and default to excluding surrendered PCs
+        status_norm = status.strip().lower() if isinstance(status, str) and status.strip() else None
+        if status_norm != 'surrendered':
+            query += " AND LOWER(COALESCE(p.status, '')) != 'surrendered'"
 
         if department_id:
             query += " AND p.department_id = %s"
             params.append(department_id)
 
         if status:
-            query += " AND p.status = %s"
-            params.append(status)
+            query += " AND LOWER(COALESCE(p.status, '')) = %s"
+            params.append(status_norm)
 
         if location:
             query += " AND p.location LIKE %s"
@@ -206,46 +222,96 @@ def add_pcinfofull():
 
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            # 🔹 Check for duplicates (Serial No or Municipal Serial No)
-            cur.execute("""
-                SELECT COUNT(*) AS count FROM pcinfofull 
-                WHERE serial_no = %s OR municipal_serial_no = %s
-            """, (data['serial_no'], data['municipal_serial_no']))
-            duplicate = cur.fetchone()['count']
+            # 🔹 Check inputs: require at least one identifier (serial_no or municipal_serial_no)
+            serial = (data.get('serial_no') or '').strip() or None
+            municipal = (data.get('municipal_serial_no') or '').strip() or None
 
+            if not serial and not municipal:
+                return jsonify({"success": False, "error": "Provide at least Serial No or Municipal Serial No."}), 400
+
+            # 🔹 Conditional duplicate check depending on which identifiers were provided
+            if serial and municipal:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE serial_no = %s OR municipal_serial_no = %s", (serial, municipal))
+            elif serial:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE serial_no = %s", (serial,))
+            else:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE municipal_serial_no = %s", (municipal,))
+
+            duplicate = cur.fetchone()['count']
             if duplicate > 0:
-                return jsonify({
-                    "success": False,
-                    "error": "Duplicate entry: Serial No or Municipal Serial No already exists."
-                }), 400
+                return jsonify({"success": False, "error": "Duplicate entry: Serial No or Municipal Serial No already exists."}), 400
 
             # Default new PCs to Available (unless explicitly set) and initialize check/health values
             if not data.get('status'):
                 data['status'] = 'Available'
 
-            # Reuse surrendered numbered slot first for single add (e.g., surrendered ...-21 gets reused).
+            # Reuse surrendered/damaged/archived numbered slot first for single add.
             department_id = data.get('department_id')
             if department_id:
+                # Fetch department info
                 cur.execute(
-                    "SELECT department_name, department_code FROM departments WHERE department_id = %s",
+                    "SELECT department_name, department_code, COALESCE(max_pc_allowed, 0) AS max_pc_allowed FROM departments WHERE department_id = %s",
                     (department_id,)
                 )
                 dept_row = cur.fetchone()
 
                 if dept_row:
-                    dept_code = (dept_row['department_code'] or dept_row['department_name']).strip().lower().replace(' ', '-')
+                    dept_code = (dept_row.get('department_code') or dept_row.get('department_name') or '').strip().lower().replace(' ', '-')
                     base_pcname = f"pc-{dept_code}"
 
-                    cur.execute("""
-                        SELECT pcname, status
-                        FROM pcinfofull
-                        WHERE department_id = %s AND pcname LIKE %s
-                    """, (department_id, f"{base_pcname}-%"))
+                    # Check if pcinfofull has is_archived column
+                    try:
+                        cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pcinfofull' AND COLUMN_NAME = 'is_archived'")
+                        _row = cur.fetchone()
+                        has_is_arch = bool(_row and (int(_row.get('cnt', 0)) if isinstance(_row, dict) else _row[0] > 0))
+                    except Exception:
+                        has_is_arch = False
+
+                    # Compute current active PC total (exclude surrendered, damaged/unusable, and archived if column exists)
+                    # Compute current active PC total (exclude surrendered, damaged/unusable, and archived if column exists)
+                    pc_active_arch_cond = 'AND COALESCE(p.is_archived, 0) = 0' if has_is_arch else ''
+                    cur.execute(f"""
+                        SELECT COUNT(DISTINCT p.pcid) AS active_total
+                        FROM pcinfofull p
+                        WHERE p.department_id = %s {pc_active_arch_cond}
+                          AND LOWER(COALESCE(p.status, '')) NOT IN ('surrendered', 'damaged', 'damage', 'unusable')
+                    """, (department_id,))
+                    active_row = cur.fetchone()
+                    active_total = int(active_row.get('active_total', 0) if active_row else 0)
+
+                    # Respect max_pc_allowed (0 = no limit)
+                    try:
+                        max_pc_allowed = int(dept_row.get('max_pc_allowed') or 0)
+                    except Exception:
+                        max_pc_allowed = 0
+
+                    # Single add counts as one PC
+                    new_quantity = 1
+
+                    if max_pc_allowed > 0 and (active_total + new_quantity) > max_pc_allowed:
+                        return jsonify({
+                            "success": False,
+                            "error": f"Cannot add PC: department has reached its PC limit ({max_pc_allowed}). Active PCs: {active_total}."
+                        }), 400
+
+                    # Get existing PC names/status for that department (include is_archived if available)
+                    if has_is_arch:
+                        cur.execute("""
+                            SELECT pcname, status, COALESCE(is_archived, 0) AS is_archived
+                            FROM pcinfofull
+                            WHERE department_id = %s AND pcname LIKE %s
+                        """, (department_id, f"{base_pcname}-%"))
+                    else:
+                        cur.execute("""
+                            SELECT pcname, status, 0 AS is_archived
+                            FROM pcinfofull
+                            WHERE department_id = %s AND pcname LIKE %s
+                        """, (department_id, f"{base_pcname}-%"))
                     existing_rows = cur.fetchall()
 
                     pattern = re.compile(rf"^{re.escape(base_pcname)}-(\d+)$", re.IGNORECASE)
                     active_numbers = set()
-                    surrendered_numbers = set()
+                    available_numbers = set()
 
                     for row in existing_rows:
                         pc_name = (row.get('pcname') or '').strip()
@@ -255,12 +321,15 @@ def add_pcinfofull():
 
                         seq_number = int(match.group(1))
                         row_status = str(row.get('status') or '').strip().lower()
-                        if row_status == 'surrendered':
-                            surrendered_numbers.add(seq_number)
+                        row_archived = int(row.get('is_archived') or 0)
+
+                        # Treat surrendered, damaged/unusable, or archived rows as available for reuse
+                        if row_archived == 1 or row_status in ('surrendered', 'damaged', 'damage', 'unusable'):
+                            available_numbers.add(seq_number)
                         else:
                             active_numbers.add(seq_number)
 
-                    reusable_numbers = sorted(num for num in surrendered_numbers if num not in active_numbers)
+                    reusable_numbers = sorted(num for num in available_numbers if num not in active_numbers)
                     if reusable_numbers:
                         data['pcname'] = f"{base_pcname}-{reusable_numbers[0]:02d}"
 
@@ -272,11 +341,11 @@ def add_pcinfofull():
                 last_checked, health_score, risk_level)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, CURDATE(), 100, 'Low')
             """, (
-                data['pcname'], data['department_id'], data['location'], data['quantity'],
-                data['acquisition_cost'], data['date_acquired'], data['accountable'],
-                data['serial_no'], data['municipal_serial_no'], data['status'], data['note'],data.get('maintenance_interval_days')
-                , data['motherboard'], data['ram'], data['storage'],
-                data['gpu'], data['psu'], data['casing'], data['other_parts']
+                data.get('pcname'), data.get('department_id'), data.get('location'), data.get('quantity'),
+                data.get('acquisition_cost'), data.get('date_acquired'), data.get('accountable'),
+                serial, municipal, data.get('status'), data.get('note'), data.get('maintenance_interval_days'),
+                data.get('motherboard'), data.get('ram'), data.get('storage'),
+                data.get('gpu'), data.get('psu'), data.get('casing'), data.get('other_parts')
             ))
 
             # Ensure DB defaults/triggers can't leave the newly created PC in an incorrect state
@@ -320,23 +389,23 @@ def update_pcinfofull():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
 
-            # 🔹 1. Duplicate check
-            cur.execute("""
-                SELECT COUNT(*) AS count
-                FROM pcinfofull
-                WHERE (serial_no = %s OR municipal_serial_no = %s)
-                  AND pcid != %s
-            """, (
-                data['serial_no'],
-                data['municipal_serial_no'],
-                data['pcid']
-            ))
+            # 🔹 1. Duplicate check (require at least one identifier)
+            serial = (data.get('serial_no') or '').strip() or None
+            municipal = (data.get('municipal_serial_no') or '').strip() or None
+            pcid = data.get('pcid')
+
+            if not serial and not municipal:
+                return jsonify({"success": False, "error": "Provide at least Serial No or Municipal Serial No."}), 400
+
+            if serial and municipal:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE (serial_no = %s OR municipal_serial_no = %s) AND pcid != %s", (serial, municipal, pcid))
+            elif serial:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE serial_no = %s AND pcid != %s", (serial, pcid))
+            else:
+                cur.execute("SELECT COUNT(*) AS count FROM pcinfofull WHERE municipal_serial_no = %s AND pcid != %s", (municipal, pcid))
 
             if cur.fetchone()['count'] > 0:
-                return jsonify({
-                    "success": False,
-                    "error": "Duplicate entry: Serial No or Municipal Serial No already exists."
-                }), 400
+                return jsonify({"success": False, "error": "Duplicate entry: Serial No or Municipal Serial No already exists."}), 400
 
             # 🔹 2. Fetch OLD values
             cur.execute("SELECT * FROM pcinfofull WHERE pcid = %s", (data['pcid'],))
@@ -370,27 +439,27 @@ def update_pcinfofull():
                     other_parts=%s
                 WHERE pcid=%s
             """, (
-                data['pcname'],
-                data['department_id'],
-                data['location'],
-                data['quantity'],
-                data['acquisition_cost'],
-                data['date_acquired'],
-                data['accountable'],
-                data['serial_no'],
-                data['municipal_serial_no'],
-                data['status'],
-                data['status'],
-                data['note'],
+                data.get('pcname'),
+                data.get('department_id'),
+                data.get('location'),
+                data.get('quantity'),
+                data.get('acquisition_cost'),
+                data.get('date_acquired'),
+                data.get('accountable'),
+                serial,
+                municipal,
+                data.get('status'),
+                data.get('status'),
+                data.get('note'),
                 data.get('maintenance_interval_days'),  # ⭐
-                data['motherboard'],
-                data['ram'],
-                data['storage'],
-                data['gpu'],
-                data['psu'],
-                data['casing'],
-                data['other_parts'],
-                data['pcid']
+                data.get('motherboard'),
+                data.get('ram'),
+                data.get('storage'),
+                data.get('gpu'),
+                data.get('psu'),
+                data.get('casing'),
+                data.get('other_parts'),
+                data.get('pcid')
             ))
 
             # 🔹 4. AUDIT LOGGING
@@ -454,26 +523,78 @@ def batch_add_pcinfofull():
             if not department_id:
                 return jsonify({'success': False, 'error': 'Missing department ID'}), 400
 
-            # 🔹 Get department_code (new column)
-            cur.execute("SELECT department_name, department_code FROM departments WHERE department_id = %s", (department_id,))
+            # 🔹 Get department_code and max_pc_allowed
+            cur.execute("SELECT department_name, department_code, COALESCE(max_pc_allowed, 0) AS max_pc_allowed FROM departments WHERE department_id = %s", (department_id,))
             dept_row = cur.fetchone()
             if not dept_row:
                 return jsonify({'success': False, 'error': 'Department not found'}), 404
 
-            dept_code = (dept_row['department_code'] or dept_row['department_name']).strip().lower().replace(' ', '-')
+            dept_code = (dept_row.get('department_code') or dept_row.get('department_name')).strip().lower().replace(' ', '-')
             base_pcname = f"pc-{dept_code}"
 
-            # 🔹 Get existing PC names/status for that department
-            cur.execute("""
-                SELECT pcname, status FROM pcinfofull
-                WHERE department_id = %s AND pcname LIKE %s
-            """, (department_id, f"{base_pcname}-%"))
+            # Check if pcinfofull has is_archived column
+            try:
+                cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pcinfofull' AND COLUMN_NAME = 'is_archived'")
+                _row = cur.fetchone()
+                has_is_arch = bool(_row and (int(_row.get('cnt', 0)) if isinstance(_row, dict) else _row[0] > 0))
+            except Exception:
+                has_is_arch = False
+
+            # Compute current active PC total (exclude surrendered, damaged/unusable, and archived if column exists)
+            pc_active_arch_cond = 'AND COALESCE(p.is_archived, 0) = 0' if has_is_arch else ''
+            cur.execute(f"""
+                SELECT COUNT(DISTINCT p.pcid) AS active_total
+                FROM pcinfofull p
+                WHERE p.department_id = %s {pc_active_arch_cond}
+                  AND LOWER(COALESCE(p.status, '')) NOT IN ('surrendered', 'damaged', 'damage', 'unusable')
+            """, (department_id,))
+            active_row = cur.fetchone()
+            active_total = int(active_row.get('active_total', 0) if active_row else 0)
+
+            # Determine total number of new PCs (skip invalid rows and duplicates)
+            total_new = 0
+            for pc in data:
+                serial = pc.get('serial_no') or None
+                municipal = pc.get('municipal_serial_no') or None
+                if not serial and not municipal:
+                    continue
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS count
+                    FROM pcinfofull
+                    WHERE serial_no = %s OR municipal_serial_no = %s
+                    """, (serial, municipal)
+                )
+                if cur.fetchone()['count'] > 0:
+                    # duplicate/skipped
+                    continue
+                total_new += 1
+
+            try:
+                max_pc_allowed = int(dept_row.get('max_pc_allowed') or 0)
+            except Exception:
+                max_pc_allowed = 0
+
+            if max_pc_allowed > 0 and (active_total + total_new) > max_pc_allowed:
+                return jsonify({'success': False, 'error': f'Cannot add PCs: would exceed department PC limit ({max_pc_allowed}). Active: {active_total}, adding: {total_new}'}), 400
+
+            # 🔹 Get existing PC names/status for that department (include is_archived if available)
+            if has_is_arch:
+                cur.execute("""
+                    SELECT pcname, status, COALESCE(is_archived, 0) AS is_archived FROM pcinfofull
+                    WHERE department_id = %s AND pcname LIKE %s
+                """, (department_id, f"{base_pcname}-%"))
+            else:
+                cur.execute("""
+                    SELECT pcname, status, 0 AS is_archived FROM pcinfofull
+                    WHERE department_id = %s AND pcname LIKE %s
+                """, (department_id, f"{base_pcname}-%"))
             existing_rows = cur.fetchall()
 
-            # Reuse surrendered slots first (e.g., if ...-21 is surrendered, next add gets ...-21).
+            # Reuse surrendered/damaged/archived slots first (e.g., if ...-21 is surrendered, next add gets ...-21).
             pattern = re.compile(rf"^{re.escape(base_pcname)}-(\d+)$", re.IGNORECASE)
             active_numbers = set()
-            surrendered_numbers = set()
+            available_numbers = set()
 
             for row in existing_rows:
                 pc_name = (row.get('pcname') or '').strip()
@@ -483,34 +604,70 @@ def batch_add_pcinfofull():
 
                 seq_number = int(match.group(1))
                 row_status = str(row.get('status') or '').strip().lower()
+                row_archived = int(row.get('is_archived') or 0)
 
-                if row_status == 'surrendered':
-                    surrendered_numbers.add(seq_number)
+                if row_archived == 1 or row_status in ('surrendered', 'damaged', 'damage', 'unusable'):
+                    available_numbers.add(seq_number)
                 else:
                     active_numbers.add(seq_number)
 
-            reusable_numbers = sorted(num for num in surrendered_numbers if num not in active_numbers)
-            all_seen_numbers = active_numbers.union(surrendered_numbers)
+            reusable_numbers = sorted(num for num in available_numbers if num not in active_numbers)
+            all_seen_numbers = active_numbers.union(available_numbers)
             next_number = (max(all_seen_numbers) + 1) if all_seen_numbers else 1
+
+
+            # 🔹 Pre-validate batch: require at least one identifier per row and detect in-file duplicates
+            missing_rows = []
+            serial_map = defaultdict(list)
+            municipal_map = defaultdict(list)
+
+            for idx, pc in enumerate(data):
+                row_no = idx + 1
+                s = (pc.get('serial_no') or '').strip() or None
+                m = (pc.get('municipal_serial_no') or '').strip() or None
+                if not s and not m:
+                    missing_rows.append(row_no)
+                if s:
+                    serial_map[s].append(row_no)
+                if m:
+                    municipal_map[m].append(row_no)
+
+            duplicate_serials = {s: rows for s, rows in serial_map.items() if len(rows) > 1}
+            duplicate_municipals = {m: rows for m, rows in municipal_map.items() if len(rows) > 1}
+
+            if missing_rows or duplicate_serials or duplicate_municipals:
+                issues = []
+                if missing_rows:
+                    issues.append(f"Rows missing both Serial No and Municipal Serial No: {', '.join(map(str, missing_rows))}")
+                if duplicate_serials:
+                    items = [f"'{s}' (rows {', '.join(map(str, rows))})" for s, rows in duplicate_serials.items()]
+                    issues.append(f"Duplicate Serial No in batch: {', '.join(items)}")
+                if duplicate_municipals:
+                    items = [f"'{m}' (rows {', '.join(map(str, rows))})" for m, rows in duplicate_municipals.items()]
+                    issues.append(f"Duplicate Municipal Serial No in batch: {', '.join(items)}")
+
+                return jsonify({'success': False, 'error': '; '.join(issues)}), 400
+
+            # 🔹 Check database for existing identifiers referenced in batch
+            db_conflicts = []
+            if serial_map:
+                placeholders = ','.join(['%s'] * len(serial_map))
+                cur.execute(f"SELECT serial_no FROM pcinfofull WHERE serial_no IN ({placeholders})", list(serial_map.keys()))
+                for r in cur.fetchall():
+                    db_conflicts.append(f"Serial '{r.get('serial_no')}'")
+            if municipal_map:
+                placeholders = ','.join(['%s'] * len(municipal_map))
+                cur.execute(f"SELECT municipal_serial_no FROM pcinfofull WHERE municipal_serial_no IN ({placeholders})", list(municipal_map.keys()))
+                for r in cur.fetchall():
+                    db_conflicts.append(f"Municipal '{r.get('municipal_serial_no')}'")
+
+            if db_conflicts:
+                return jsonify({'success': False, 'error': 'Duplicate in database: ' + ', '.join(db_conflicts)}), 400
 
             # 🔹 Insert each PC
             for pc in data:
-                required = ['serial_no', 'municipal_serial_no']
-                if not all(pc.get(field) for field in required):
-                    continue
-
                 if not pc.get('status'):
                     pc['status'] = 'Available'
-
-                # Duplicate check
-                cur.execute("""
-                    SELECT COUNT(*) AS count
-                    FROM pcinfofull
-                    WHERE serial_no = %s OR municipal_serial_no = %s
-                """, (pc['serial_no'], pc['municipal_serial_no']))
-                if cur.fetchone()['count'] > 0:
-                    print(f"⚠️ Skipped duplicate: {pc['serial_no']} / {pc['municipal_serial_no']}")
-                    continue
 
                 if reusable_numbers:
                     assigned_number = reusable_numbers.pop(0)
@@ -532,7 +689,7 @@ def batch_add_pcinfofull():
                         created_at, updated_at
                     )
                     VALUES (
-                        %(pcname)s, %(department_id)s, %(location)s, %(quantity)s, %(acquisition_cost)s,
+                        %(pcname)s, %(department_id)s, %(department_id)s, %(quantity)s, %(acquisition_cost)s,
                         %(date_acquired)s, %(accountable)s, %(serial_no)s, %(municipal_serial_no)s,
                         %(status)s, %(note)s, %(maintenance_interval_days)s, %(motherboard)s, %(ram)s, %(storage)s,
                         %(gpu)s, %(psu)s, %(casing)s, %(other_parts)s,
@@ -715,15 +872,7 @@ def import_pcs_excel():
             if old_name in df.columns and new_name not in df.columns:
                 df[new_name] = df[old_name]
 
-        conn = get_db_connection()
-        cur = conn.cursor(pymysql.cursors.DictCursor)
-
-        added = 0
-        updated = 0
-        skipped = 0
-
-        department_cache = {}
-
+        # Lightweight cleaning helper used for pre-validation and per-row processing
         def clean_value(value):
             if pd.isna(value):
                 return None
@@ -733,6 +882,54 @@ def import_pcs_excel():
             if isinstance(value, pd.Timestamp):
                 return value.date()
             return value
+
+        # Pre-validate uploaded file for duplicate serial / municipal numbers
+        serial_rows = defaultdict(list)
+        municipal_rows = defaultdict(list)
+        missing_both_rows = []
+
+        for idx, row in df.iterrows():
+            row_number = int(idx) + 2  # Excel row (header at row 1)
+            serial = clean_value(row.get("serial_no"))
+            municipal = clean_value(row.get("municipal_serial_no"))
+
+            if not serial and not municipal:
+                missing_both_rows.append(row_number)
+
+            if serial:
+                serial_rows[serial].append(row_number)
+
+            if municipal:
+                municipal_rows[municipal].append(row_number)
+
+        duplicate_serials = {s: rows for s, rows in serial_rows.items() if len(rows) > 1}
+        duplicate_municipals = {m: rows for m, rows in municipal_rows.items() if len(rows) > 1}
+
+        # If the uploaded file contains duplicates within itself, fail fast and return details
+        if duplicate_serials or duplicate_municipals or missing_both_rows:
+            issues = []
+            if duplicate_serials:
+                items = [f"'{s}' (rows {', '.join(map(str, rows))})" for s, rows in duplicate_serials.items()]
+                issues.append(f"Duplicate Serial No in file: {', '.join(items)}")
+            if duplicate_municipals:
+                items = [f"'{m}' (rows {', '.join(map(str, rows))})" for m, rows in duplicate_municipals.items()]
+                issues.append(f"Duplicate Municipal Serial No in file: {', '.join(items)}")
+            if missing_both_rows:
+                issues.append(f"Rows missing both Serial No and Municipal Serial No: {', '.join(map(str, missing_both_rows))}")
+
+            return jsonify({
+                "success": False,
+                "error": "; ".join(issues)
+            }), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor(pymysql.cursors.DictCursor)
+
+        added = 0
+        updated = 0
+        skipped = 0
+
+        department_cache = {}
 
         for _, row in df.iterrows():
 

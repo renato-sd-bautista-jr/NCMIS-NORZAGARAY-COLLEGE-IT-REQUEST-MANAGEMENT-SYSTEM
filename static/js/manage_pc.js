@@ -6,8 +6,6 @@
  
 
  
-
- 
 function notifyUser(message, type = "info") {
   if (typeof showToast === "function") {
     showToast(message, type);
@@ -38,7 +36,7 @@ function markPcChecked(pcid) {
   if (!confirm("Mark this PC as checked?")) return;
 
   fetch(`/inventory/pc/${pcid}/check`, { method: "POST" })
-    .then(res => res.json())
+    .then(r => r.json())
     .then(d => {
       if (d.success) {
         refreshPcTableWithoutReload();
@@ -70,7 +68,7 @@ function bulkMarkPcChecked() {
 
   const executeBulkCheck = () => {
     const toastId = typeof showToast === 'function' 
-      ? showToast(`Marking ${selected.length} PC(s) as checked...`, 'loading')
+      ? showToast(`Marking ${selected.length} PC(s) as checked...`, 'loading', { showProgress: false })
       : null;
     
     fetch("/inventory/pc/bulk-check", {
@@ -91,12 +89,12 @@ function bulkMarkPcChecked() {
               riskLevel: 'Low'
             });
           } else if (typeof showToast === 'function') {
-            showToast(`${selected.length} PC(s) marked as checked successfully`, 'success');
+            showToast(`${selected.length} PC(s) marked as checked successfully`, 'success', { showProgress: false });
           }
           setTimeout(() => refreshPcTableWithoutReload(), 2000);
         } else {
           if (typeof showToast === 'function') {
-            showToast(d.error || 'Failed to mark PCs as checked', 'error');
+            showToast(d.error || 'Failed to mark PCs as checked', 'error', { showProgress: false });
           } else {
             notifyUser("Bulk update failed");
           }
@@ -105,7 +103,7 @@ function bulkMarkPcChecked() {
       .catch(() => {
         if (toastId) hideToast(toastId);
         if (typeof showToast === 'function') {
-          showToast('Server error during bulk check', 'error');
+          showToast('Server error during bulk check', 'error', { showProgress: false });
         } else {
           notifyUser("Bulk update failed");
         }
@@ -159,11 +157,24 @@ function bulkSurrenderSelectedPCs() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pcids: checked })
     })
-    .then(r => r.json())
-    .then(d => {
+    .then(async (r) => {
+      const contentType = (r.headers.get('content-type') || '').toLowerCase();
+      let data = null;
+      if (contentType.includes('application/json')) {
+        data = await r.json();
+      } else {
+        const text = await r.text();
+        data = {
+          success: r.ok,
+          error: text && text.trim() ? text.slice(0, 250) : `Unexpected server response (${r.status})`
+        };
+      }
+      return { res: r, data };
+    })
+    .then(({ res, data }) => {
       if (toastId) hideToast(toastId);
       
-      if (d && d.success) {
+      if (data && data.success) {
         if (typeof showSurrenderToast === 'function') {
           showSurrenderToast({
             count: checked.length,
@@ -185,9 +196,12 @@ function bulkSurrenderSelectedPCs() {
         }, 2000);
       } else {
         if (typeof showToast === 'function') {
-          showToast(d.error || 'Surrender failed', 'error');
+          const errorMessage = (data && (data.error || data.message))
+            ? (data.error || data.message)
+            : `Surrender failed (${res?.status || 'unknown'})`;
+          showToast(errorMessage, 'error');
         } else {
-          notifyUser('Surrender failed: ' + (d.error || 'unknown'));
+          notifyUser('Surrender failed: ' + ((data && (data.error || data.message)) || 'unknown'));
         }
       }
     })
@@ -362,6 +376,62 @@ function exportCurrentPcTableToExcel() {
 }
 
 window.exportCurrentPcTableToExcel = exportCurrentPcTableToExcel;
+window.exportSelectedPCs = exportSelectedPCs;
+
+function exportSinglePC(pcid) {
+  const id = pcid;
+  if (!id && id !== 0) {
+    if (typeof showToast === 'function') {
+      showToast('Invalid PC selected for export', 'error');
+    } else {
+      alert('Invalid PC selected for export');
+    }
+    return;
+  }
+
+  const toastId = typeof showToast === 'function'
+    ? showToast('Exporting PC...', 'loading')
+    : null;
+
+  fetch('/manage_pc/export-selected-pcs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pcids: [id] })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Export failed');
+    return res.blob();
+  })
+  .then(blob => {
+    if (toastId) hideToast(toastId);
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pc_${id}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    if (typeof showExportToast === 'function') {
+      showExportToast({ count: 1, type: 'PC', filename: `pc_${id}.xlsx` });
+    } else if (typeof showToast === 'function') {
+      showToast('PC exported successfully', 'success');
+    }
+  })
+  .catch(err => {
+    if (toastId) hideToast(toastId);
+    console.error(err);
+    if (typeof showToast === 'function') {
+      showToast(err?.message || 'Export failed. Please try again.', 'error');
+    } else {
+      alert(err?.message || 'Export failed');
+    }
+  });
+}
+
+window.exportSinglePC = exportSinglePC;
 function bulkMarkDamagedSelectedPCs() {
   const checked = Array.from(document.querySelectorAll('.pc-checkbox'))
     .filter(cb => cb.checked)
@@ -811,7 +881,6 @@ function toPcDurationYears(maintenanceIntervalDays) {
 
 function renderPcMaintenanceHealthCell(healthScore, maintenanceIntervalDays, status) {
   const forceZero = isPcZeroDurationStatus(status);
-  const healthPercent = forceZero ? 0 : toPcHealthPercent(healthScore);
   let durationLabel = "--";
   if (forceZero) {
     durationLabel = "0 years";
@@ -821,26 +890,9 @@ function renderPcMaintenanceHealthCell(healthScore, maintenanceIntervalDays, sta
       durationLabel = `${durationYears} year${durationYears === 1 ? "" : "s"}`;
     }
   }
-  const healthTextClass = healthPercent === null
-    ? "text-gray-400"
-    : healthPercent >= 80
-      ? "text-green-600"
-      : healthPercent >= 50
-        ? "text-yellow-600"
-        : "text-red-600";
-  const healthBarClass = healthPercent === null ? "bg-gray-300" : getPcHealthBarClass(healthPercent);
-  const healthLabel = healthPercent === null ? "--" : `${healthPercent.toFixed(2)}%`;
-  const healthWidth = healthPercent === null ? 0 : healthPercent;
-
   return `
     <div class="min-w-[140px]">
-      <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
-        <span>Duration: ${escapeHtml(durationLabel)}</span>
-        <span class="font-semibold ${healthTextClass}">${escapeHtml(healthLabel)}</span>
-      </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="h-2 rounded-full ${healthBarClass}" style="width: ${healthWidth}%"></div>
-      </div>
+      <span class="text-xs text-gray-600">${escapeHtml(durationLabel)}</span>
     </div>
   `;
 }
@@ -852,14 +904,11 @@ function shouldShowPcMarkCheckedButton(pc) {
 const PC_FILTER_PARAM_KEYS = [
   "department_id",
   "status",
-  "location",
   "accountable",
   "serial_no",
   "date_from",
   "date_to",
   "risk_level",
-  "health_min",
-  "health_max",
   "last_checked_from",
   "last_checked_to",
   "overdue",
@@ -911,7 +960,7 @@ function renderPcDesktopRows(pcs, canEdit) {
   tbody.innerHTML = "";
 
   if (!pcs.length) {
-    const emptyCols = canEdit ? 14 : 13;
+    const emptyCols = canEdit ? 13 : 12;
     tbody.innerHTML = `
       <tr>
         <td colspan="${emptyCols}" class="px-4 py-6 text-center text-gray-500">No PCs found.</td>
@@ -963,7 +1012,6 @@ function renderPcDesktopRows(pcs, canEdit) {
         <td class="px-4 py-2 border-b">${escapeHtml(pc.pcid)}</td>
         <td class="px-4 py-2 border-b">${escapeHtml(pc.pcname)}</td>
         <td class="px-4 py-2 border-b">${escapeHtml(pc.department_name)}</td>
-        <td class="px-4 py-2 border-b">${escapeHtml(pc.location)}</td>
         <td class="px-4 py-2 border-b">${escapeHtml(pc.acquisition_cost)}</td>
         <td class="px-4 py-2 border-b">${escapeHtml(pc.date_acquired)}</td>
         <td class="px-4 py-2 border-b">${escapeHtml(pc.accountable)}</td>
@@ -1044,8 +1092,7 @@ function renderPcMobileCards(pcs, canEdit) {
         </div>
 
         <div class="space-y-1 text-sm text-gray-600 mb-3">
-          <p><span class="font-medium">Department:</span> ${escapeHtml(pc.department_name)}</p>
-          <p><span class="font-medium">Location:</span> ${escapeHtml(pc.location)}</p>
+          <p><span class="font-medium">Office and Facility:</span> ${escapeHtml(pc.department_name)}</p>
           <p><span class="font-medium">Accountable:</span> ${escapeHtml(pc.accountable)}</p>
           ${serialLine}
           <p class="px-4 py-2 border-b font-medium ${functionalClass}">${functionalText}</p>
@@ -1332,3 +1379,33 @@ function addPcExcelToManageList() {
 }
 
 window.addPcExcelToManageList = addPcExcelToManageList;
+
+// --- MODAL PAGINATION HIDE LOGIC ---
+// Fallback modal handlers: only define these if a richer implementation
+// (for example from the `pceditmodal.html` partial) hasn't already
+// provided them. This prevents accidentally overriding the modal logic
+// which populates form fields when editing a PC.
+if (typeof window.openPcModal !== 'function') {
+  window.openPcModal = function (pc) {
+    const modal = document.getElementById("pcModal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      document.body.classList.add("modal-open-pc");
+      if (window.lucide) lucide.createIcons();
+      // Basic fallback: populate a minimal field if provided
+      if (pc && document.getElementById('modalPcName')) {
+        try { document.getElementById('modalPcName').value = pc.pcname || ''; } catch (e) { /* ignore */ }
+      }
+    }
+  };
+}
+
+if (typeof window.closePcModal !== 'function') {
+  window.closePcModal = function () {
+    const modal = document.getElementById("pcModal");
+    if (modal) {
+      modal.classList.add("hidden");
+      document.body.classList.remove("modal-open-pc");
+    }
+  };
+}

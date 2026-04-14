@@ -30,6 +30,17 @@ window.openConsumableModalById = async function (id) {
   }
 };
 
+// Helper: read item name from element's data attribute, then call archiveConsumable
+window.archiveConsumableFromEl = function (el, id) {
+  try {
+    const name = el && el.getAttribute ? el.getAttribute('data-item-name') : '';
+    window.archiveConsumable(id, name);
+  } catch (e) {
+    // fallback: call without name
+    window.archiveConsumable(id, '');
+  }
+};
+
 async function openConsumableModal(data = null) {
   const modal = document.getElementById('consumableModal');
   const form = document.getElementById('consumableForm');
@@ -105,6 +116,128 @@ async function openConsumableModal(data = null) {
     modal.classList.add('modal-open');
   });
 }
+
+// Archive (delete) consumable with confirmation and AJAX
+window.archiveConsumable = function (id, itemName) {
+  if (typeof showConfirmationModal === 'function') {
+    showConfirmationModal(
+      'Archive Consumable',
+      'Are you sure you want to archive "' + itemName + '"? This action cannot be undone.',
+      'Archive',
+      function () {
+        const toastId = typeof showToast === 'function' ? showToast('Archiving consumable...', 'loading') : null;
+        fetch(`/archive-consumable/${id}`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(async (res) => {
+            const isJson = res.headers.get && res.headers.get('content-type') && res.headers.get('content-type').includes('application/json');
+            const data = isJson ? await res.json() : null;
+
+            if (!res.ok) {
+              const msg = (data && (data.error || data.message)) || `Delete failed (${res.status})`;
+              // If server says it cannot delete due to transaction history, offer to set to Inactive
+              if (res.status === 400 && /transaction history|inactive status/i.test(msg)) {
+                if (typeof showConfirmationModal === 'function') {
+                  showConfirmationModal(
+                    'Set Inactive Instead?',
+                    msg + '\n\nWould you like to set this consumable to Inactive instead?',
+                    'Set Inactive',
+                    function () {
+                      const body = new URLSearchParams();
+                      body.set('accession_id', id);
+                      body.set('status', 'Inactive');
+
+                      const updatingToast = typeof showToast === 'function' ? showToast('Setting status to Inactive...', 'loading') : null;
+                      fetch('/update-consumable', {
+                        method: 'POST',
+                        headers: {
+                          'X-Requested-With': 'XMLHttpRequest',
+                          'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: body.toString()
+                      })
+                        .then(r => r.json())
+                        .then(resData => {
+                          if (updatingToast && typeof hideToast === 'function') hideToast(updatingToast);
+                          if (resData && resData.success) {
+                            if (typeof showToast === 'function') showToast('Consumable set to Inactive', 'success');
+                            refreshConsumableTableWithoutReload();
+                          } else {
+                            if (typeof showToast === 'function') showToast(resData && (resData.error || resData.message) || 'Failed to set Inactive', 'error');
+                          }
+                        })
+                        .catch(() => {
+                          if (updatingToast && typeof hideToast === 'function') hideToast(updatingToast);
+                          if (typeof showToast === 'function') showToast('Server error while setting inactive', 'error');
+                        });
+                    }
+                  );
+                } else {
+                  if (confirm(msg + '\n\nSet to Inactive instead?')) {
+                    const body = new URLSearchParams();
+                    body.set('accession_id', id);
+                    body.set('status', 'Inactive');
+                    fetch('/update-consumable', {
+                      method: 'POST',
+                      headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                      },
+                      body: body.toString()
+                    })
+                      .then(r => r.json())
+                      .then(resData => {
+                        if (resData && resData.success) {
+                          if (typeof showToast === 'function') showToast('Consumable set to Inactive', 'success');
+                          refreshConsumableTableWithoutReload();
+                        } else {
+                          if (typeof showToast === 'function') showToast(resData && (resData.error || resData.message) || 'Failed to set Inactive', 'error');
+                        }
+                      })
+                      .catch(() => {
+                        if (typeof showToast === 'function') showToast('Server error while setting inactive', 'error');
+                      });
+                  }
+                }
+              } else {
+                if (typeof showToast === 'function') showToast(msg, 'error');
+              }
+
+              if (toastId && typeof hideToast === 'function') hideToast(toastId);
+              return;
+            }
+
+            // Success path
+            const d = data;
+            if (toastId && typeof hideToast === 'function') hideToast(toastId);
+            if (d && d.success) {
+              if (typeof showDeleteConsumableToast === 'function') {
+                showDeleteConsumableToast({ itemName });
+              } else if (typeof showToast === 'function') {
+                showToast('Consumable archived successfully', 'success');
+              }
+              refreshConsumableTableWithoutReload();
+            } else {
+              if (typeof showToast === 'function') showToast((d && (d.error || d.message)) || 'Failed to archive consumable', 'error');
+            }
+          })
+          .catch(() => {
+            if (toastId && typeof hideToast === 'function') hideToast(toastId);
+            if (typeof showToast === 'function') showToast('Server error during archive', 'error');
+          });
+      }
+    );
+  } else {
+    if (confirm('Archive this consumable?')) {
+      fetch(`/delete-consumable/${id}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(() => refreshConsumableTableWithoutReload());
+    }
+  }
+};
 
 function closeConsumableModal() {
   const modal = document.getElementById('consumableModal');
@@ -271,6 +404,17 @@ function refreshConsumableTableWithoutReload() {
 
   if (typeof loadConsumablePageAjax === 'function') {
     loadConsumablePageAjax(page, perPage, false);
+  }
+
+  // If the archive page is open, also refresh its consumables list so newly
+  // archived items appear immediately without a manual reload.
+  if (typeof window.loadConsumables === 'function') {
+    try {
+      window.loadConsumables();
+    } catch (e) {
+      // ignore errors from unrelated pages
+      console.debug('loadConsumables invoke failed', e);
+    }
   }
 }
 
@@ -516,7 +660,7 @@ function renderConsumableDesktopRows(consumables, canEdit) {
         <td class="px-4 py-2 border-b">
           <div class="flex flex-wrap gap-1">
             <button onclick="openConsumableModalById(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
-            <button type="button" onclick="openDeleteModal('/delete-consumable/${encodeURIComponent(item.accession_id)}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Delete</button>
+            <button type="button" data-item-name="${escapeConsumableHtml(item.item_name)}" onclick="archiveConsumableFromEl(this, ${itemId})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Archive</button>
             <button onclick="markChecked('CONSUMABLE', ${itemId})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
             <button onclick="openMaintenanceLog(${itemId}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
           </div>
@@ -569,7 +713,7 @@ function renderConsumableMobileCards(consumables, canEdit) {
       ? `
       <div class="grid grid-cols-2 gap-2">
         <button onclick="editConsumable(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
-        <button type="button" onclick="openDeleteModal('/delete-consumable/${encodeURIComponent(item.accession_id)}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Delete</button>
+        <button type="button" data-item-name="${escapeConsumableHtml(item.item_name)}" onclick="archiveConsumableFromEl(this, ${itemId})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Archive</button>
         <button onclick="markChecked('CONSUMABLE', ${itemId})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
         <button onclick="openMaintenanceLog(${itemId}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
       </div>

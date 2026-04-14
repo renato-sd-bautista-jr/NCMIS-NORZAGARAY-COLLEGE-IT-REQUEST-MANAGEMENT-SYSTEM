@@ -3,6 +3,10 @@ import pymysql
 from db import get_db_connection
 from io import BytesIO
 import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+from openpyxl.utils import get_column_letter
+from datetime import datetime
 
 report_bp = Blueprint('report_bp', __name__, template_folder='templates')
 
@@ -91,10 +95,127 @@ def export_reports():
     cursor.close()
     conn.close()
 
-    # Create Excel file in memory
+    # Create Excel file in memory with enhanced styling
     df = pd.DataFrame(data)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reports"
+
+    # ── Colour palette ──
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
+    title_font = Font(name="Calibri", bold=True, color="1F4E79", size=16)
+    subtitle_font = Font(name="Calibri", bold=False, color="4472C4", size=11)
+    data_font = Font(name="Calibri", size=11, color="333333")
+    data_font_bold = Font(name="Calibri", size=11, color="333333", bold=True)
+    even_fill = PatternFill(start_color="D6E4F0", end_color="D6E4F0", fill_type="solid")
+    odd_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+    thin_border = Border(
+        left=Side(style="thin", color="B4C6E7"),
+        right=Side(style="thin", color="B4C6E7"),
+        top=Side(style="thin", color="B4C6E7"),
+        bottom=Side(style="thin", color="B4C6E7"),
+    )
+    header_border = Border(
+        left=Side(style="thin", color="1F4E79"),
+        right=Side(style="thin", color="1F4E79"),
+        top=Side(style="medium", color="1F4E79"),
+        bottom=Side(style="medium", color="1F4E79"),
+    )
+    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left_align = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    right_align = Alignment(horizontal="right", vertical="center")
+
+    # ── Title row ──
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(df.columns))
+    title_cell = ws.cell(row=1, column=1, value="Norzagaray College — IT Request Management System")
+    title_cell.font = title_font
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 36
+
+    # ── Subtitle row ──
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(df.columns))
+    subtitle_cell = ws.cell(row=2, column=1, value=f"Inventory Report — Exported {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
+    subtitle_cell.font = subtitle_font
+    subtitle_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[2].height = 22
+
+    # ── Blank spacer row ──
+    ws.row_dimensions[3].height = 8
+
+    # ── Header row (row 4) ──
+    header_row = 4
+    for col_idx, col_name in enumerate(df.columns, start=1):
+        cell = ws.cell(row=header_row, column=col_idx, value=col_name)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_align
+        cell.border = header_border
+    ws.row_dimensions[header_row].height = 28
+
+    # ── Data rows ──
+    currency_cols = {"Acquisition Cost"}
+    date_cols = {"Date Acquired"}
+    for row_idx, (_, row_data) in enumerate(df.iterrows(), start=header_row + 1):
+        is_even = (row_idx - header_row) % 2 == 0
+        row_fill = even_fill if is_even else odd_fill
+        ws.row_dimensions[row_idx].height = 22
+
+        for col_idx, col_name in enumerate(df.columns, start=1):
+            val = row_data[col_name]
+            if pd.isna(val):
+                val = ""
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.font = data_font
+            cell.fill = row_fill
+            cell.border = thin_border
+
+            if col_name in currency_cols:
+                cell.number_format = '₱#,##0.00'
+                cell.alignment = right_align
+            elif col_name in date_cols:
+                cell.number_format = 'YYYY-MM-DD'
+                cell.alignment = center_align
+            elif col_name == "Status":
+                cell.alignment = center_align
+                status_val = str(val).strip().lower()
+                if status_val == "available":
+                    cell.font = Font(name="Calibri", size=11, color="1E6B3A", bold=True)
+                elif status_val == "in use":
+                    cell.font = Font(name="Calibri", size=11, color="1D4ED8", bold=True)
+                elif status_val == "damaged":
+                    cell.font = Font(name="Calibri", size=11, color="B91C1C", bold=True)
+                elif status_val == "surrendered":
+                    cell.font = Font(name="Calibri", size=11, color="9A3412", bold=True)
+            elif col_name == "Name":
+                cell.font = data_font_bold
+                cell.alignment = left_align
+            else:
+                cell.alignment = left_align
+
+    # ── Auto-width columns ──
+    for col_idx, col_name in enumerate(df.columns, start=1):
+        max_len = len(str(col_name)) + 2
+        for row_idx in range(header_row + 1, header_row + 1 + len(df)):
+            cell_val = ws.cell(row=row_idx, column=col_idx).value
+            if cell_val is not None:
+                max_len = max(max_len, len(str(cell_val)) + 2)
+        ws.column_dimensions[get_column_letter(col_idx)].width = min(max_len, 40)
+
+    # ── Freeze panes (header stays visible) ──
+    ws.freeze_panes = "A5"
+
+    # ── Print settings ──
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.print_title_rows = f"{header_row}:{header_row}"
+
+    # ── Auto-filter on headers ──
+    ws.auto_filter.ref = f"A{header_row}:{get_column_letter(len(df.columns))}{header_row + len(df)}"
+
     output = BytesIO()
-    df.to_excel(output, index=False, engine='openpyxl')
+    wb.save(output)
     output.seek(0)
 
     return send_file(

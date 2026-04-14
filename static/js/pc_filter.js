@@ -89,10 +89,10 @@ function renderPcTable(pcs) {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  if (!pcs.length) {
+    if (!pcs.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="13" class="text-center py-6 text-gray-500">No PCs found.</td>
+        <td colspan="12" class="text-center py-6 text-gray-500">No PCs found.</td>
       </tr>`;
     return;
   }
@@ -120,7 +120,6 @@ function renderPcTable(pcs) {
         <td class="px-4 py-2 border-b">${pc.pcid ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.pcname ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.department_name ?? "—"}</td>
-        <td class="px-4 py-2 border-b">${pc.location ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.acquisition_cost ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.date_acquired ?? "—"}</td>
         <td class="px-4 py-2 border-b">${pc.accountable ?? "—"}</td>

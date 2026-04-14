@@ -343,13 +343,25 @@ def get_consumables_list_paginated(page=1, per_page=10, department_id=None, stat
     per_page = _normalize_per_page(per_page)
     conn = get_db_connection()
     try:
-        where_sql = """
-            WHERE 1=1
-                AND (
-                    df.accession_id IS NULL
-                    OR TRIM(LOWER(df.device_type)) = 'consumable'
-                )
-        """
+        # Detect whether the `is_archived` column exists in the consumables
+        # table. Some installations don't have that column, and referencing
+        # it directly causes a SQL error which returns an empty result set.
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT COUNT(*) AS cnt
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'consumables'
+                  AND COLUMN_NAME = 'is_archived'
+            """)
+            row = cur.fetchone()
+            has_is_archived = bool(row and int(row.get('cnt', 0)) > 0)
+
+        # Build base WHERE clause. Only include is_archived filter when
+        # the column exists in the schema.
+        where_sql = "WHERE 1=1"
+        if has_is_archived:
+            where_sql += " AND COALESCE(c.is_archived, 0) = 0"
         params = []
 
         if department_id:
@@ -760,9 +772,28 @@ def bulk_surrender_pcs():
             old_map = {str(row['pcid']): row for row in old_rows}
 
             cur.execute(
-                f"UPDATE pcinfofull SET status = 'Surrendered' WHERE pcid IN ({placeholders})",
-                tuple(pcids)
+                # If the schema provides an `is_archived` column, mark surrendered PCs as archived too
+                """
+                SELECT COUNT(*) AS cnt
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'pcinfofull'
+                  AND COLUMN_NAME = 'is_archived'
+                """
             )
+            row = cur.fetchone()
+            has_is_arch = bool(row and int(row.get('cnt', 0)) > 0)
+
+            if has_is_arch:
+                cur.execute(
+                    f"UPDATE pcinfofull SET status = 'Surrendered', is_archived = 1, deleted_at = NOW() WHERE pcid IN ({placeholders})",
+                    tuple(pcids)
+                )
+            else:
+                cur.execute(
+                    f"UPDATE pcinfofull SET status = 'Surrendered' WHERE pcid IN ({placeholders})",
+                    tuple(pcids)
+                )
 
             # Insert maintenance_logs and history entries for each pc
             for pcid in pcids:
@@ -853,14 +884,33 @@ def bulk_surrender_devices():
             old_rows = cur.fetchall()
             old_map = {str(row['accession_id']): row for row in old_rows}
 
+            # If devices_full supports archiving, mark surrendered devices as archived too
             cur.execute(
-                f"""
-                UPDATE devices_full
-                SET status = 'Surrendered'
-                WHERE accession_id IN ({placeholders})
-                """,
-                tuple(device_ids)
+                """
+                SELECT COUNT(*) AS cnt
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'devices_full'
+                  AND COLUMN_NAME = 'is_archived'
+                """
             )
+            row = cur.fetchone()
+            has_is_arch = bool(row and int(row.get('cnt', 0)) > 0)
+
+            if has_is_arch:
+                cur.execute(
+                    f"UPDATE devices_full SET status = 'Surrendered', is_archived = 1, deleted_at = NOW() WHERE accession_id IN ({placeholders})",
+                    tuple(device_ids)
+                )
+            else:
+                cur.execute(
+                    f"""
+                    UPDATE devices_full
+                    SET status = 'Surrendered'
+                    WHERE accession_id IN ({placeholders})
+                    """,
+                    tuple(device_ids)
+                )
 
             for accession_id in device_ids:
                 old = old_map.get(str(accession_id))
@@ -1034,6 +1084,7 @@ def get_item_list():
                     df.supplier
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
+                WHERE COALESCE(df.is_archived, 0) = 0 AND LOWER(COALESCE(df.status, '')) != 'surrendered'
                 ORDER BY df.accession_id DESC
             """)
             return cur.fetchall()
@@ -1149,7 +1200,7 @@ def get_pc_list_paginated(page=1, per_page=10, filters=None):
     filters = filters or {}
     conn = get_db_connection()
 
-    where_clauses = ["pc.status != 'Surrendered'", "pc.is_archived = 0"]
+    where_clauses = ["LOWER(COALESCE(pc.status, '')) != 'surrendered'", "COALESCE(pc.is_archived, 0) = 0"]
     query_params = []
 
     department_id = filters.get("department_id")
@@ -2136,6 +2187,7 @@ def get_consumables_list(department_id=None, status=None, accountable=None,
                                         df.accession_id IS NULL
                                         OR TRIM(LOWER(df.device_type)) = 'consumable'
                                     )
+                            AND COALESCE(c.is_archived, 0) = 0
         """
         params = []
 

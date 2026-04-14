@@ -670,20 +670,19 @@
         min-width: 110px;
       }
 
+      /* After removing Location column (old index 5), shift hidden columns */
+      #inventorySection .pc-table th:nth-child(5),
+      #inventorySection .pc-table td:nth-child(5),
       #inventorySection .pc-table th:nth-child(6),
       #inventorySection .pc-table td:nth-child(6),
       #inventorySection .pc-table th:nth-child(7),
       #inventorySection .pc-table td:nth-child(7),
-      #inventorySection .pc-table th:nth-child(5),
-      #inventorySection .pc-table td:nth-child(5),
       #inventorySection .pc-table th:nth-child(8),
       #inventorySection .pc-table td:nth-child(8),
       #inventorySection .pc-table th:nth-child(9),
       #inventorySection .pc-table td:nth-child(9),
-      #inventorySection .pc-table th:nth-child(10),
-      #inventorySection .pc-table td:nth-child(10),
-      #inventorySection .pc-table th:nth-child(12),
-      #inventorySection .pc-table td:nth-child(12) {
+      #inventorySection .pc-table th:nth-child(11),
+      #inventorySection .pc-table td:nth-child(11) {
         display: none;
       }
     }
@@ -963,8 +962,8 @@
         padding: 0.44rem 0.52rem !important;
       }
 
-      #inventorySection .pc-table th:nth-child(10),
-      #inventorySection .pc-table td:nth-child(10) {
+      #inventorySection .pc-table th:nth-child(9),
+      #inventorySection .pc-table td:nth-child(9) {
         display: none;
       }
     }
@@ -974,10 +973,10 @@
         min-width: 730px;
       }
 
+      #inventorySection .pc-table th:nth-child(5),
+      #inventorySection .pc-table td:nth-child(5),
       #inventorySection .pc-table th:nth-child(6),
-      #inventorySection .pc-table td:nth-child(6),
-      #inventorySection .pc-table th:nth-child(7),
-      #inventorySection .pc-table td:nth-child(7) {
+      #inventorySection .pc-table td:nth-child(6) {
         display: none;
       }
     }
@@ -987,12 +986,12 @@
         min-width: 620px;
       }
 
+      #inventorySection .pc-table th:nth-child(7),
+      #inventorySection .pc-table td:nth-child(7),
       #inventorySection .pc-table th:nth-child(8),
       #inventorySection .pc-table td:nth-child(8),
-      #inventorySection .pc-table th:nth-child(9),
-      #inventorySection .pc-table td:nth-child(9),
-      #inventorySection .pc-table th:nth-child(12),
-      #inventorySection .pc-table td:nth-child(12) {
+      #inventorySection .pc-table th:nth-child(11),
+      #inventorySection .pc-table td:nth-child(11) {
         display: none;
       }
     }
@@ -1837,35 +1836,35 @@
 
 <nav class="inventory-top-tabs flex flex-col md:flex-row gap-3 mb-4 bg-white rounded-xl shadow-sm border border-gray-200">
 
-<button onclick="showSection('inventorySection'); setActiveNav(this)"
+<button type="button" onclick="showSection('inventorySection'); setActiveNav(this)"
 class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-blue-50 text-blue-700 border border-blue-300 shadow-sm transition-all duration-200"
 id="inventoryBtn">
 <i data-lucide="cpu" class="w-5 h-5 mr-2 text-blue-600"></i>
 Manage PC
 </button>
 
-<button onclick="showSection('itemsSection'); setActiveNav(this)"
+<button type="button" onclick="showSection('itemsSection'); setActiveNav(this)"
 class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-gray-200 shadow-sm transition-all duration-200"
 id="itemsBtn">
 <i data-lucide="package" class="w-5 h-5 mr-2 text-blue-600"></i>
 Manage Item
 </button>
 
-<button onclick="showSection('consumablesSection'); setActiveNav(this)"
+<button type="button" onclick="showSection('consumablesSection'); setActiveNav(this)"
 class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 shadow-sm transition-all duration-200"
 id="consumablesBtn">
 <i data-lucide="package-open" class="w-5 h-5 mr-2 text-green-600"></i>
 Manage Consumables
 </button>
 
-<button onclick="showSection('surrenderedSection'); setActiveNav(this)"
+<button type="button" onclick="showSection('surrenderedSection'); setActiveNav(this)"
 class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-gray-200 shadow-sm transition-all duration-200"
 id="surrenderedBtn">
 <i data-lucide="archive" class="w-5 h-5 mr-2 text-red-600"></i>
 Surrendered PCs
 </button>
 
-<button onclick="showSection('surrenderedItemsSection'); setActiveNav(this)"
+<button type="button" onclick="showSection('surrenderedItemsSection'); setActiveNav(this)"
 class="flex items-center px-5 py-3 rounded-lg font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-gray-200 shadow-sm transition-all duration-200"
 id="surrenderedItemsBtn">
 <i data-lucide="archive-x" class="w-5 h-5 mr-2 text-red-600"></i>
@@ -1942,6 +1941,7 @@ Surrendered Item
             </button>
             {% if permissions.get('inventory', {}).get('edit', False) %}
             <button 
+              type="button"
               onclick="bulkMarkPcChecked()"
               class="pc-btn pc-btn-green">
               <i data-lucide="check-square"></i>
@@ -1949,12 +1949,14 @@ Surrendered Item
             </button>
             <button
             id="bulkSurrenderBtn"
+            type="button"
             onclick="bulkSurrenderSelectedPCs()"
             class="pc-btn pc-btn-red">
             <i data-lucide="archive" class="w-5 h-5"></i>
             Surrender Selected
           </button>
           <button id="bulkDamagedBtn"
+           type="button"
            onclick="bulkMarkDamagedSelectedPCs()"
             class="pc-btn pc-btn-red"
           >
@@ -2007,11 +2009,12 @@ Surrendered Item
             <div class="pc-io-card inline-block rounded-xl border border-purple-200 bg-purple-50/60 p-2">
               <div class="flex items-end">
                 <button
-                  onclick="exportCurrentPcTableToExcel()"
-                  title="Export current PC table to Excel"
+                  type="button"
+                  onclick="exportSelectedPCs()"
+                  title="Export selected PCs to Excel"
                   class="pc-export-btn bg-purple-600 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-md text-xs font-medium flex items-center justify-center gap-1 whitespace-nowrap transition"
                 >
-                  <i data-lucide="download" class="w-4 h-4"></i> Export Pcs to Excel
+                  <i data-lucide="download" class="w-4 h-4"></i> Export PCs to Excel
                 </button>
               </div>
             </div>
@@ -2033,8 +2036,7 @@ Surrendered Item
 </th>
                   <th class="px-4 py-2 border-b text-left">PC Number</th>
                   <th class="px-4 py-2 border-b text-left">PC Name</th>
-                  <th class="px-4 py-2 border-b text-left">Department</th>
-                  <th class="px-4 py-2 border-b text-left">Location</th>
+                  <th class="px-4 py-2 border-b text-left">Office and Facility</th>
                   <th class="px-4 py-2 border-b text-left">Acquisition_Cost</th>
                   <th class="px-4 py-2 border-b text-left">Date Acquired</th>
                   <th class="px-4 py-2 border-b text-left">Accountable</th>
@@ -2062,7 +2064,6 @@ Surrendered Item
                   <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
-                  <td class="px-4 py-2 border-b">{{ pc.location }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.acquisition_cost }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.date_acquired }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
@@ -2103,9 +2104,11 @@ Surrendered Item
                     {% set pc_effective_risk = 'High' if pc_status_key in ['damaged', 'damage', 'unusable'] else (pc.risk_level or '--') %}
                     <td class="px-4 py-2 border-b {% if pc_effective_risk == 'High' %}text-red-600 font-semibold{% elif pc_effective_risk == 'Medium' %}text-yellow-600 font-semibold{% elif pc_effective_risk == 'Low' %}text-green-600 font-semibold{% else %}text-gray-500{% endif %}">{{ pc_effective_risk }}</td>  
                     <!-- ACTIONS -->
-                {% if permissions.get('inventory', {}).get('edit', False) %}
                   <td class="px-4 py-2 border-b">
                     <div class="flex flex-wrap gap-1">
+                      <button type="button" onclick="exportSinglePC({{ pc.pcid }})" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
+                        <i data-lucide="download" class="w-3 h-3"></i> Export
+                      </button>
                       {% if permissions.get('inventory', {}).get('edit', False) %}
                       <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
                         <i data-lucide="pencil" class="w-3 h-3"></i> Edit
@@ -2128,7 +2131,6 @@ Surrendered Item
                       {% endif %}
                     </div>
                   </td>
-            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -2154,8 +2156,7 @@ Surrendered Item
               </div>
               
               <div class="space-y-1 text-sm text-gray-600 mb-3">
-                <p><span class="font-medium">Department:</span> {{ pc.department_name }}</p>
-                <p><span class="font-medium">Location:</span> {{ pc.location }}</p>
+                <p><span class="font-medium">Office and Facility:</span> {{ pc.department_name }}</p>
                 <p><span class="font-medium">Accountable:</span> {{ pc.accountable }}</p>
                 {% if pc.serial_no %}<p><span class="font-medium">Serial:</span> {{ pc.serial_no }}</p>{% endif %}
                 <p class="px-4 py-2 border-b font-medium
@@ -2180,8 +2181,11 @@ Surrendered Item
               {% set pc_mobile_status_key = (pc.status or '')|trim|lower %}
               {% set pc_mobile_effective_risk = 'High' if pc_mobile_status_key in ['damaged', 'damage', 'unusable'] else (pc.risk_level or '--') %}
 
-              {% if permissions.get('inventory', {}).get('edit', False) %}
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button type="button" onclick="exportSinglePC({{ pc.pcid }})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                  <i data-lucide="download" class="w-3 h-3"></i> Export
+                </button>
+                {% if permissions.get('inventory', {}).get('edit', False) %}
                 <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
                   <i data-lucide="pencil" class="w-3 h-3"></i> Edit
                 </button>
@@ -2200,8 +2204,8 @@ Surrendered Item
                 <button onclick="openMaintenanceLog({{ pc.pcid }}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
                   <i data-lucide="clock" class="w-3 h-3"></i> History
                 </button>
+                {% endif %}
               </div>
-              {% endif %}
               
             </div>
             {% endfor %}
@@ -2439,8 +2443,7 @@ Surrendered Item
                 <tr>
                   <th class="px-4 py-2 border-b text-left">PC Number</th>
                   <th class="px-4 py-2 border-b text-left">PC Name</th>
-                  <th class="px-4 py-2 border-b text-left">Department</th>
-                  <th class="px-4 py-2 border-b text-left">Location</th>
+                  <th class="px-4 py-2 border-b text-left">Office and Facility</th>
                   <th class="px-4 py-2 border-b text-left">Accountable</th>
                   <th class="px-4 py-2 border-b text-left">Serial No.</th>
                   <th class="px-4 py-2 border-b text-left">Date Acquired</th>
@@ -2453,7 +2456,6 @@ Surrendered Item
                   <td class="px-4 py-2 border-b">{{ pc.pcid }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.pcname }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.department_name }}</td>
-                  <td class="px-4 py-2 border-b">{{ pc.location }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.accountable }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.serial_no }}</td>
                   <td class="px-4 py-2 border-b">{{ pc.date_acquired }}</td>
@@ -2476,8 +2478,7 @@ Surrendered Item
                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">{{ pc.status }}</span>
               </div>
               <div class="space-y-1 text-sm text-gray-600">
-                <p><span class="font-medium">Department:</span> {{ pc.department_name or '—' }}</p>
-                <p><span class="font-medium">Location:</span> {{ pc.location or '—' }}</p>
+                <p><span class="font-medium">Office and Facility:</span> {{ pc.department_name or '—' }}</p>
                 <p><span class="font-medium">Accountable:</span> {{ pc.accountable or '—' }}</p>
                 <p><span class="font-medium">Serial:</span> {{ pc.serial_no or '—' }}</p>
                 <p><span class="font-medium">Date Acquired:</span> {{ pc.date_acquired or '—' }}</p>
@@ -2811,6 +2812,7 @@ Surrendered Item
       </button>
 
       <button
+        type="button"
         onclick="bulkMarkCheckedSelectedDevices()"
         class="item-btn item-btn-green">
         <i data-lucide="check-square"></i>
@@ -2818,6 +2820,7 @@ Surrendered Item
       </button>
 
       <button
+        type="button"
         onclick="bulkSurrenderSelectedDevices()"
         class="item-btn item-btn-red">
         <i data-lucide="archive" class="w-5 h-5"></i>
@@ -2825,6 +2828,7 @@ Surrendered Item
       </button>
 
       <button
+        type="button"
         onclick="bulkMarkDamagedSelectedDevices()"
         class="item-btn item-btn-red">
         <i data-lucide="alert-triangle" class="w-5 h-5"></i>
@@ -2945,8 +2949,25 @@ Surrendered Item
     {{ item.status }}
   </td>
   <td class="px-4 py-2 border-b">
+    {# Duration for item: show years based on maintenance_interval_days #}
+    {% set item_status_for_maintenance = (item.status or '')|trim|lower %}
+    {% if item_status_for_maintenance in ['damaged', 'damage', 'unusable'] %}
+      {% set item_duration_text = '0 year' %}
+    {% else %}
+      {% if item.maintenance_interval_days %}
+        {% set item_interval_value = item.maintenance_interval_days|int %}
+        {% if item_interval_value >= 365 %}
+          {% set item_duration_years = (item_interval_value / 365)|round|int %}
+        {% else %}
+          {% set item_duration_years = item_interval_value %}
+        {% endif %}
+        {% set item_duration_text = item_duration_years ~ ' year' %}
+      {% else %}
+        {% set item_duration_text = '--' %}
+      {% endif %}
+    {% endif %}
     <div class="min-w-[140px]">
-      <span class="text-xs text-gray-600">Checked</span>
+      <span class="text-xs text-gray-600">{{ item_duration_text }}</span>
     </div>
   </td>
 
@@ -2959,9 +2980,12 @@ Surrendered Item
 
 
   <!-- ACTIONS -->
-  {% if permissions.get('inventory', {}).get('edit', False) %}
   <td class="px-4 py-2 border-b">
     <div class="flex flex-wrap gap-1">
+      <button type="button" onclick="exportSingleDevice({{ item.accession_id }})" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
+        <i data-lucide="download" class="w-3 h-3"></i> Export
+      </button>
+
       {% if permissions.get('inventory', {}).get('edit', False) %}
       <button onclick="openItemModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
         <i data-lucide="pencil" class="w-3 h-3"></i> Edit
@@ -2984,7 +3008,6 @@ Surrendered Item
       {% endif %}
     </div>
   </td>
-  {% endif %}
 </tr>
           {% endfor %}
         </tbody>
@@ -3029,13 +3052,17 @@ Surrendered Item
           </div>
           
           <div class="flex items-center gap-2 mb-3">
-            <input type="checkbox" class="device-checkbox" value="{{ item.accession_id }}" class="rounded">
+            <input type="checkbox" class="device-checkbox rounded" value="{{ item.accession_id }}">
             <label class="text-sm text-gray-600">Select for bulk actions</label>
           </div>
           
-          {% if permissions.get('inventory', {}).get('edit', False) %}
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button onclick="openItemModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+            <button type="button" onclick="exportSingleDevice({{ item.accession_id }})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+              <i data-lucide="download" class="w-3 h-3"></i> Export
+            </button>
+
+            {% if permissions.get('inventory', {}).get('edit', False) %}
+            <button onclick="openItemModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-content-center gap-1">
               <i data-lucide="pencil" class="w-3 h-3"></i> Edit
             </button>
             <button type="button" onclick="openDeleteModal('{{ url_for('manage_item_bp.delete_item', id=item.accession_id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
@@ -3053,8 +3080,8 @@ Surrendered Item
             <button onclick="openMaintenanceLog({{ item.accession_id }}, 'DEVICE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
               <i data-lucide="clock" class="w-3 h-3"></i> History
             </button>
+            {% endif %}
           </div>
-          {% endif %}
         </div>
         {% endfor %}
       </div>
@@ -3245,13 +3272,13 @@ Surrendered Item
         </div>
 
         <div class="section-toolbar consumable-toolbar-main">
-          <button 
+            <button 
               type="button"
-              onclick="openConsumableModal()"
+              onclick="(function(){console.log('Add Consumable clicked'); if(typeof openConsumableModal==='function'){ openConsumableModal(); } else { console.error('openConsumableModal is not defined'); alert('Debug: openConsumableModal is not defined. Check console for details.'); } })()"
               class="consumable-btn consumable-btn-green">
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               Add Consumable
-          </button>
+            </button>
           <button 
             type="button"
             class="consumable-btn consumable-btn-blue"
@@ -3381,7 +3408,7 @@ Surrendered Item
   <td class="px-4 py-2 border-b">
     <div class="flex flex-wrap gap-1">
       <button onclick="openConsumableModalById({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
-      <button type="button" onclick="archiveConsumable({{ item.accession_id }}, '{{ item.item_name|e }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Archive</button>
+      <button type="button" data-item-name="{{ item.item_name|e }}" onclick="archiveConsumableFromEl(this, {{ item.accession_id }})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Archive</button>
       <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
       <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
     </div>
@@ -3426,9 +3453,7 @@ Surrendered Item
             {% if permissions.get('inventory', {}).get('edit', False) %}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button onclick="editConsumable({{ item.accession_id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
-              <button type="button" onclick="archiveConsumable({{ item.accession_id }}, '{{ item.item_name|e }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Archive</button>
-                  // Archive consumable and refresh table automatically
-                  // Archive handler is now in manage_consumable.js and uses /delete-consumable/<id>
+                <button type="button" data-item-name="{{ item.item_name|e }}" onclick="archiveConsumableFromEl(this, {{ item.accession_id }})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Archive</button>
               <button onclick="markChecked('CONSUMABLE', {{ item.accession_id }})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
               <button onclick="openMaintenanceLog({{ item.accession_id }}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
             </div>

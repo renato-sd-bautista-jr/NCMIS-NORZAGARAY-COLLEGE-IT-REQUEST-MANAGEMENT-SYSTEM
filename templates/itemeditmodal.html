@@ -107,10 +107,17 @@
 
       <!-- Department -->
       <div>
-        <label class="block text-gray-700 font-medium mb-1">Facilities</label>
+        <label class="block text-gray-700 font-medium mb-1">Office / Facility</label>
         <select name="department_id" id="department_id" required
           class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 text-black">
-          <option value="">Loading Facilities...</option>
+          {% if departments %}
+            <option value="">Select Office / Facility</option>
+            {% for dep in departments %}
+              <option value="{{ dep.department_id }}">{{ dep.department_name }}</option>
+            {% endfor %}
+          {% else %}
+            <option value="">Loading Office / Facility...</option>
+          {% endif %}
         </select>
       </div>
 
@@ -198,6 +205,10 @@
 .modal-open-item #itemPerPageForm {
   display: none !important;
 }
+
+body.modal-open-item {
+  overflow: hidden;
+}
 </style>
 
 <script>
@@ -216,7 +227,68 @@ function convertDisplayYearsToStoredDays(rawValue) {
   return String(Math.round(numericValue * 365));
 }
 
+// Load departments with caching, timeout, fallbacks and debug logging
+async function loadDepartments(timeoutMs = 12000) {
+  if (window._departmentsCache && Array.isArray(window._departmentsCache)) {
+    console.debug('[itemeditmodal] using cached departments', window._departmentsCache.length);
+    return window._departmentsCache;
+  }
+
+  const endpoints = ['/manage_inventory/get-departments', '/get-departments'];
+
+  for (const url of endpoints) {
+    console.debug('[itemeditmodal] attempting to fetch departments from', url);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal, credentials: 'same-origin' });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        console.debug('[itemeditmodal] fetch to', url, 'returned', res.status);
+        continue; // try next endpoint
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.debug('[itemeditmodal] fetch to', url, 'returned non-array data');
+        continue;
+      }
+      window._departmentsCache = data;
+      console.debug('[itemeditmodal] fetched departments count=', data.length);
+      return data;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.debug('[itemeditmodal] fetch to', url, 'failed:', err && err.message ? err.message : err);
+      // try next endpoint
+    }
+  }
+
+  console.error('[itemeditmodal] all department fetch attempts failed');
+  return null;
+}
+
+// Prefetch departments on page load to avoid visible "Loading" state
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const deps = await loadDepartments();
+    if (deps && deps.length) {
+      const deptSelect = document.getElementById('department_id');
+      if (deptSelect) {
+        deptSelect.innerHTML = '<option value="">Select Office / Facility</option>';
+        deps.forEach(dep => {
+          const opt = document.createElement('option');
+          opt.value = dep.department_id;
+          opt.textContent = dep.department_name;
+          deptSelect.appendChild(opt);
+        });
+      }
+    }
+  } catch (e) {
+    /* ignore prefetch errors */
+  }
+});
+
 async function openItemModal(itemData = null) {
+  console.debug('[itemeditmodal] openItemModal called', { hasItem: !!itemData });
   const modal = document.getElementById('itemModal');
   const title = document.getElementById('modalTitle');
   const form = document.getElementById('itemForm');
@@ -242,19 +314,48 @@ async function openItemModal(itemData = null) {
   serialInput.readOnly = false;
 
   
-  // Load departments
+  // Load departments (use cached loader with timeout and prefetch)
+  // Only show a loading placeholder if the select is empty or only contains a single empty placeholder
   try {
-    const res = await fetch('/get-departments');
-    const departments = await res.json();
-    deptSelect.innerHTML = '<option value="">Select Department</option>';
-    departments.forEach(dep => {
-      const opt = document.createElement('option');
-      opt.value = dep.department_id;
-      opt.textContent = dep.department_name;
-      deptSelect.appendChild(opt);
-    });
-  } catch {
-    deptSelect.innerHTML = '<option value="">Error loading departments</option>';
+    const hasOptions = deptSelect && deptSelect.options && deptSelect.options.length > 0;
+    const onlyPlaceholder = hasOptions && deptSelect.options.length === 1 && deptSelect.options[0].value === '';
+    if (!hasOptions || onlyPlaceholder) {
+      deptSelect.innerHTML = '<option value="">Loading Office / Facility...</option>';
+    }
+  } catch (e) {
+    deptSelect.innerHTML = '<option value="">Loading Office / Facility...</option>';
+  }
+  try {
+    const deps = await loadDepartments();
+    if (deps && deps.length) {
+      deptSelect.innerHTML = '<option value="">Select Office / Facility</option>';
+      deps.forEach(dep => {
+        const opt = document.createElement('option');
+        opt.value = dep.department_id;
+        opt.textContent = dep.department_name;
+        deptSelect.appendChild(opt);
+      });
+      // If in edit mode, preserve selected department
+      if (itemData && itemData.department_id) {
+        deptSelect.value = itemData.department_id;
+        setTimeout(() => {
+          try {
+            const opt = deptSelect.querySelector(`option[value="${String(itemData.department_id)}"]`);
+            if (opt) {
+              opt.selected = true;
+              try { deptSelect.focus({preventScroll: true}); } catch(e){}
+              try { opt.scrollIntoView({ block: 'center' }); } catch(e){}
+            }
+          } catch (e) { /* ignore */ }
+        }, 0);
+      }
+      } else {
+      console.debug('[itemeditmodal] no departments returned from loader');
+      deptSelect.innerHTML = '<option value="">Error loading Office / Facility</option>';
+    }
+  } catch (err) {
+    console.error('[itemeditmodal] load departments failed', err);
+    deptSelect.innerHTML = '<option value="">Error loading Office / Facility</option>';
   }
 
   function applyItemTypeRules(typeValue) {
@@ -279,9 +380,12 @@ async function openItemModal(itemData = null) {
     }
   }
 
-  deviceTypeInput.addEventListener('input', (event) => {
-    applyItemTypeRules(event.target.value);
-  });
+  if (!deviceTypeInput._itemTypeListenerAdded) {
+    deviceTypeInput.addEventListener('input', (event) => {
+      applyItemTypeRules(event.target.value);
+    });
+    deviceTypeInput._itemTypeListenerAdded = true;
+  }
 
   if (itemData) {
     // EDIT MODE
@@ -334,6 +438,8 @@ async function openItemModal(itemData = null) {
   }
 
   lucide.createIcons();
+  document.body.classList.add('modal-open-item');
+  try { document.body.style.overflow = 'hidden'; } catch (e) {}
   modal.classList.remove('hidden');
 }
 
@@ -341,6 +447,8 @@ async function openItemModal(itemData = null) {
 function closeItemModal() {
   const modal = document.getElementById('itemModal');
   modal.classList.add('hidden');
+  document.body.classList.remove('modal-open-item');
+  try { document.body.style.overflow = ''; } catch (e) {}
 }
 
 // SUBMIT FORM WITH DUPLICATE CHECK

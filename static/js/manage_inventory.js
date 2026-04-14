@@ -1,10 +1,28 @@
+// Refresh Manage Item table without reload (AJAX)
+window.refreshItemTableWithoutReload = function () {
+  const nav = document.getElementById("itemPaginationNav");
+  const perPageSelect = document.getElementById("itemPerPageSelect");
+  const pageInput = document.getElementById("itemPageInput");
+
+  const page = Number(nav?.dataset.page) || Number(pageInput?.value) || 1;
+  const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
+
+  if (typeof window.loadItemPageAjax === "function") {
+    window.loadItemPageAjax(page, perPage, false);
+  } else {
+    location.reload();
+  }
+};
 window.currentSection = "pc";
+let inventorySearchObserver = null;
+let inventoryLiveSearchTerm = "";
 
 function getSectionKeyFromId(id) {
   if (id === "inventorySection") return "pc";
   if (id === "itemsSection") return "item";
   if (id === "consumablesSection") return "consumable";
   if (id === "surrenderedSection") return "surrendered";
+  if (id === "surrenderedItemsSection") return "surrendered_item";
   return null;
 }
 
@@ -19,6 +37,14 @@ function getSectionTargets(sectionParam) {
 
   if (sectionParam === "surrendered") {
     return { sectionId: "surrenderedSection", buttonId: "surrenderedBtn" };
+  }
+
+  if (
+    sectionParam === "surrendered_item" ||
+    sectionParam === "surrendered-items" ||
+    sectionParam === "surrendereditem"
+  ) {
+    return { sectionId: "surrenderedItemsSection", buttonId: "surrenderedItemsBtn" };
   }
 
   return { sectionId: "inventorySection", buttonId: "inventoryBtn" };
@@ -37,7 +63,268 @@ function syncSectionQueryParam(sectionKey) {
     url.searchParams.delete("surrendered_per_page");
   }
 
+  if (sectionKey !== "surrendered_item") {
+    url.searchParams.delete("surrendered_item_page");
+    url.searchParams.delete("surrendered_item_per_page");
+  }
+
   window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+}
+
+function getInventorySearchControlIds(sectionKey) {
+  if (sectionKey === "item") {
+    return {
+      inputId: "itemLiveSearchInput",
+      clearBtnId: "itemLiveSearchClearBtn",
+      statusId: "itemLiveSearchStatus"
+    };
+  }
+
+  if (sectionKey === "consumable") {
+    return {
+      inputId: "consumableLiveSearchInput",
+      clearBtnId: "consumableLiveSearchClearBtn",
+      statusId: "consumableLiveSearchStatus"
+    };
+  }
+
+  if (sectionKey === "surrendered") {
+    return {
+      inputId: "surrenderedPcLiveSearchInput",
+      clearBtnId: "surrenderedPcLiveSearchClearBtn",
+      statusId: "surrenderedPcLiveSearchStatus"
+    };
+  }
+
+  if (sectionKey === "surrendered_item") {
+    return {
+      inputId: "surrenderedItemLiveSearchInput",
+      clearBtnId: "surrenderedItemLiveSearchClearBtn",
+      statusId: "surrenderedItemLiveSearchStatus"
+    };
+  }
+
+  return {
+    inputId: "inventoryLiveSearchInput",
+    clearBtnId: "inventoryLiveSearchClearBtn",
+    statusId: "inventoryLiveSearchStatus"
+  };
+}
+
+function getInventorySearchControls(sectionKey) {
+  const ids = getInventorySearchControlIds(sectionKey);
+  return {
+    input: document.getElementById(ids.inputId),
+    clearBtn: document.getElementById(ids.clearBtnId),
+    status: document.getElementById(ids.statusId)
+  };
+}
+
+function syncInventorySearchInputs(value) {
+  [
+    "inventoryLiveSearchInput",
+    "itemLiveSearchInput",
+    "consumableLiveSearchInput",
+    "surrenderedPcLiveSearchInput",
+    "surrenderedItemLiveSearchInput"
+  ].forEach((id) => {
+    const input = document.getElementById(id);
+    if (input && input.value !== value) {
+      input.value = value;
+    }
+  });
+}
+
+function bindInventorySearchControl(inputId, clearBtnId) {
+  const input = document.getElementById(inputId);
+  if (input && input.dataset.bound !== "1") {
+    input.dataset.bound = "1";
+    input.addEventListener("input", () => {
+      inventoryLiveSearchTerm = input.value;
+      syncInventorySearchInputs(inventoryLiveSearchTerm);
+      applyInventoryLiveSearch();
+    });
+  }
+
+  const clearBtn = document.getElementById(clearBtnId);
+  if (clearBtn && clearBtn.dataset.bound !== "1") {
+    clearBtn.dataset.bound = "1";
+    clearBtn.addEventListener("click", () => {
+      inventoryLiveSearchTerm = "";
+      syncInventorySearchInputs("");
+      applyInventoryLiveSearch();
+
+      const activeControls = getInventorySearchControls(window.currentSection || "pc");
+      if (activeControls.input) {
+        activeControls.input.focus();
+      }
+    });
+  }
+}
+
+function getInventorySearchTargets(sectionKey) {
+  if (sectionKey === "item") {
+    return [
+      { selector: "#deviceTableBody tr", countable: true },
+      { selector: "#itemMobileCards > div", countable: false }
+    ];
+  }
+
+  if (sectionKey === "consumable") {
+    return [
+      { selector: "#consumableTableBody tr", countable: true },
+      { selector: "#consumableMobileCards > div", countable: false }
+    ];
+  }
+
+  if (sectionKey === "surrendered") {
+    return [
+      { selector: "#surrenderedPcTableBody tr", countable: true },
+      { selector: "#surrenderedPcMobileCards > div", countable: false }
+    ];
+  }
+
+  if (sectionKey === "surrendered_item") {
+    return [
+      { selector: "#surrenderedItemTableBody tr", countable: true }
+    ];
+  }
+
+  return [
+    { selector: "#pcTableBody tr", countable: true },
+    { selector: "#pcMobileCards > div", countable: false }
+  ];
+}
+
+function getInventorySearchSectionLabel(sectionKey) {
+  if (sectionKey === "item") return "Manage Item";
+  if (sectionKey === "consumable") return "Manage Consumables";
+  if (sectionKey === "surrendered") return "Surrendered PCs";
+  if (sectionKey === "surrendered_item") return "Surrendered Item";
+  return "Manage PC";
+}
+
+function updateInventoryLiveSearchContext() {
+  const controls = getInventorySearchControls(window.currentSection || "pc");
+  const input = controls.input;
+  const status = controls.status;
+  if (!input) return;
+
+  const sectionLabel = getInventorySearchSectionLabel(window.currentSection || "pc");
+  if (input.value !== inventoryLiveSearchTerm) {
+    input.value = inventoryLiveSearchTerm;
+  }
+  input.placeholder = `Search ${sectionLabel}...`;
+
+  if (status && !inventoryLiveSearchTerm.trim()) {
+    status.textContent = `Type to auto-filter ${sectionLabel}.`;
+  }
+}
+
+function applyInventoryLiveSearch() {
+  const controls = getInventorySearchControls(window.currentSection || "pc");
+  const input = controls.input;
+  const clearBtn = controls.clearBtn;
+  const status = controls.status;
+  if (!input) return;
+
+  const rawTerm = input.value.trim();
+  inventoryLiveSearchTerm = rawTerm;
+  syncInventorySearchInputs(rawTerm);
+  const term = rawTerm.toLowerCase();
+  const sectionKey = window.currentSection || "pc";
+  const sectionLabel = getInventorySearchSectionLabel(sectionKey);
+  const targets = getInventorySearchTargets(sectionKey);
+
+  let totalCountableRows = 0;
+  let matchedCountableRows = 0;
+
+  targets.forEach((target) => {
+    const nodes = document.querySelectorAll(target.selector);
+    nodes.forEach((node) => {
+      const text = String(node.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+      const isEmptyState = text.includes("no ") && text.includes("found");
+      const matches = !term || isEmptyState || text.includes(term);
+
+      node.hidden = !matches;
+
+      if (target.countable && !isEmptyState) {
+        totalCountableRows += 1;
+        if (matches) {
+          matchedCountableRows += 1;
+        }
+      }
+    });
+  });
+
+  if (clearBtn) {
+    clearBtn.classList.toggle("hidden", rawTerm.length === 0);
+  }
+
+  if (!status) return;
+
+  if (!rawTerm) {
+    status.textContent = `Type to auto-filter ${sectionLabel}.`;
+    return;
+  }
+
+  if (totalCountableRows > 0 && matchedCountableRows === 0) {
+    status.textContent = `No matching records in ${sectionLabel}.`;
+    return;
+  }
+
+  status.textContent = `Filtering ${sectionLabel} by "${rawTerm}".`;
+}
+
+function initInventoryLiveSearchObserver() {
+  if (inventorySearchObserver || typeof MutationObserver === "undefined") {
+    return;
+  }
+
+  const observerTargets = [
+    "#pcTableBody",
+    "#deviceTableBody",
+    "#consumableTableBody",
+    "#surrenderedPcTableBody",
+    "#surrenderedItemTableBody",
+    "#pcMobileCards",
+    "#itemMobileCards",
+    "#consumableMobileCards",
+    "#surrenderedPcMobileCards"
+  ]
+    .map((selector) => document.querySelector(selector))
+    .filter(Boolean);
+
+  if (!observerTargets.length) return;
+
+  inventorySearchObserver = new MutationObserver(() => {
+    if (window.__inventorySearchRefreshScheduled) return;
+
+    window.__inventorySearchRefreshScheduled = true;
+    window.requestAnimationFrame(() => {
+      window.__inventorySearchRefreshScheduled = false;
+      applyInventoryLiveSearch();
+    });
+  });
+
+  observerTargets.forEach((target) => {
+    inventorySearchObserver.observe(target, { childList: true, subtree: true });
+  });
+}
+
+function initInventoryLiveSearch() {
+  bindInventorySearchControl("inventoryLiveSearchInput", "inventoryLiveSearchClearBtn");
+  bindInventorySearchControl("itemLiveSearchInput", "itemLiveSearchClearBtn");
+  bindInventorySearchControl("consumableLiveSearchInput", "consumableLiveSearchClearBtn");
+  bindInventorySearchControl("surrenderedPcLiveSearchInput", "surrenderedPcLiveSearchClearBtn");
+  bindInventorySearchControl("surrenderedItemLiveSearchInput", "surrenderedItemLiveSearchClearBtn");
+
+  initInventoryLiveSearchObserver();
+  updateInventoryLiveSearchContext();
+  applyInventoryLiveSearch();
 }
 
 function showSection(id) {
@@ -53,6 +340,8 @@ function showSection(id) {
   if (sectionKey) {
     window.currentSection = sectionKey;
     syncSectionQueryParam(sectionKey);
+    updateInventoryLiveSearchContext();
+    applyInventoryLiveSearch();
   }
 
 }
@@ -101,6 +390,8 @@ showSection(sectionId);
 
 const btn = document.getElementById(buttonId);
 if (btn) setActiveNav(btn);
+
+  initInventoryLiveSearch();
 
   if (window.lucide) {
     lucide.createIcons();
@@ -190,9 +481,10 @@ function renderSurrenderedDesktopRows(pcs) {
   if (!pcs.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" class="px-4 py-6 text-center text-gray-500">No surrendered PCs found.</td>
+        <td colspan="7" class="px-4 py-6 text-center text-gray-500">No surrendered records found.</td>
       </tr>
     `;
+    applyInventoryLiveSearch();
     return;
   }
 
@@ -204,7 +496,6 @@ function renderSurrenderedDesktopRows(pcs) {
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.pcid)}</td>
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.pcname)}</td>
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.department_name || "--")}</td>
-        <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.location || "--")}</td>
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.accountable || "--")}</td>
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.serial_no || "--")}</td>
         <td class="px-4 py-2 border-b">${escapeInventoryHtml(pc.date_acquired || "--")}</td>
@@ -213,6 +504,8 @@ function renderSurrenderedDesktopRows(pcs) {
       `
     );
   });
+
+  applyInventoryLiveSearch();
 }
 
 function renderSurrenderedMobileCards(pcs) {
@@ -222,7 +515,8 @@ function renderSurrenderedMobileCards(pcs) {
   container.innerHTML = "";
 
   if (!pcs.length) {
-    container.innerHTML = '<div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No surrendered PCs found.</div>';
+    container.innerHTML = '<div class="bg-gray-100 text-gray-600 p-4 rounded-lg text-center">No surrendered records found.</div>';
+    applyInventoryLiveSearch();
     return;
   }
 
@@ -239,8 +533,7 @@ function renderSurrenderedMobileCards(pcs) {
           <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">${escapeInventoryHtml(pc.status || "Surrendered")}</span>
         </div>
         <div class="space-y-1 text-sm text-gray-600">
-          <p><span class="font-medium">Department:</span> ${escapeInventoryHtml(pc.department_name || "--")}</p>
-          <p><span class="font-medium">Location:</span> ${escapeInventoryHtml(pc.location || "--")}</p>
+          <p><span class="font-medium">Office and Facility:</span> ${escapeInventoryHtml(pc.department_name || "--")}</p>
           <p><span class="font-medium">Accountable:</span> ${escapeInventoryHtml(pc.accountable || "--")}</p>
           <p><span class="font-medium">Serial:</span> ${escapeInventoryHtml(pc.serial_no || "--")}</p>
           <p><span class="font-medium">Date Acquired:</span> ${escapeInventoryHtml(pc.date_acquired || "--")}</p>
@@ -249,6 +542,8 @@ function renderSurrenderedMobileCards(pcs) {
       `
     );
   });
+
+  applyInventoryLiveSearch();
 }
 
 function buildSurrenderedPaginationMarkup(currentPage, totalPages) {
@@ -448,8 +743,364 @@ function initSurrenderedAjaxPagination() {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSurrenderedAjaxPagination);
-} else {
+function createSurrenderedItemPageUrl(page, perPage) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("section", "surrendered_item");
+  url.searchParams.set("surrendered_item_page", String(page));
+  url.searchParams.set("surrendered_item_per_page", String(perPage));
+  return `${url.pathname}?${url.searchParams.toString()}`;
+}
+
+function createSurrenderedItemPagedApiUrl(page, perPage) {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  params.set("per_page", String(perPage));
+  return `/manage_inventory/surrendered-items-paged?${params.toString()}`;
+}
+
+function renderSurrenderedItemRows(items) {
+  const tbody = document.getElementById("surrenderedItemTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (!items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="px-4 py-6 text-center text-gray-500">No surrendered item records found.</td>
+      </tr>
+    `;
+    applyInventoryLiveSearch();
+    return;
+  }
+
+  items.forEach((item) => {
+    tbody.insertAdjacentHTML(
+      "beforeend",
+      `
+      <tr class="surrendered-item-row transition">
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.accession_id)}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.item_name || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.brand_model || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.device_type || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.department_name || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.accountable || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.serial_no || "--")}</td>
+        <td class="px-4 py-2 border-b">${escapeInventoryHtml(item.date_acquired || "--")}</td>
+        <td class="px-4 py-2 border-b"><span class="surrendered-item-status-pill">${escapeInventoryHtml(item.status || "Surrendered")}</span></td>
+      </tr>
+      `
+    );
+  });
+
+  applyInventoryLiveSearch();
+}
+
+function buildSurrenderedItemPaginationMarkup(currentPage, totalPages) {
+  let html = "";
+
+  const navButtonClass = "flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-colors";
+  const disabledButtonClass = "flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed";
+
+  if (currentPage > 1) {
+    html += `<button type="button" data-surrendered-item-page="${currentPage - 1}" onclick="return goToSurrenderedItemPage(${currentPage - 1}, event)" class="${navButtonClass}"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>Prev</button>`;
+  } else {
+    html += `<span class="${disabledButtonClass}"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>Prev</span>`;
+  }
+
+  if (totalPages > 0) {
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      html += '<button type="button" data-surrendered-item-page="1" onclick="return goToSurrenderedItemPage(1, event)" class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-colors">1</button>';
+      if (startPage > 2) {
+        html += '<span class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-500">...</span>';
+      }
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+      if (page === currentPage) {
+        html += `<span class="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-lg transition-colors z-10 bg-red-600 text-white border border-red-600">${page}</span>`;
+      } else {
+        html += `<button type="button" data-surrendered-item-page="${page}" onclick="return goToSurrenderedItemPage(${page}, event)" class="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-lg transition-colors text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-red-600">${page}</button>`;
+      }
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        html += '<span class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-500">...</span>';
+      }
+      html += `<button type="button" data-surrendered-item-page="${totalPages}" onclick="return goToSurrenderedItemPage(${totalPages}, event)" class="hidden sm:flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-colors">${totalPages}</button>`;
+    }
+  }
+
+  if (currentPage < totalPages) {
+    html += `<button type="button" data-surrendered-item-page="${currentPage + 1}" onclick="return goToSurrenderedItemPage(${currentPage + 1}, event)" class="${navButtonClass}">Next<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>`;
+  } else {
+    html += `<span class="${disabledButtonClass}">Next<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>`;
+  }
+
+  return html;
+}
+
+function updateSurrenderedItemPaginationSummary(page, perPage, totalItems) {
+  const summary = document.getElementById("surrenderedItemPaginationSummary");
+  if (!summary) return;
+
+  const start = totalItems > 0 ? (page - 1) * perPage + 1 : 0;
+  const end = totalItems > 0 ? Math.min(page * perPage, totalItems) : 0;
+
+  summary.innerHTML = `Showing <span class="font-medium">${start}</span> - <span class="font-medium">${end}</span> of <span class="font-medium">${totalItems}</span> records`;
+}
+
+function updateSurrenderedItemPageSummary(page, totalPages, totalItems) {
+  const pageSummary = document.getElementById("surrenderedItemPageSummary");
+  if (!pageSummary) return;
+
+  pageSummary.textContent = `Showing page ${page} of ${totalPages} (${totalItems} total surrendered items)`;
+}
+
+function applySurrenderedItemPaginationState(page, perPage, totalItems, totalPages) {
+  const nav = document.getElementById("surrenderedItemPaginationNav");
+  const perPageSelect = document.getElementById("surrenderedItemPerPageSelect");
+  const pageInput = document.getElementById("surrenderedItemPageInput");
+  const totalChip = document.getElementById("surrenderedItemTotalChip");
+  const pageChip = document.getElementById("surrenderedItemPageChip");
+
+  if (nav) {
+    nav.dataset.page = String(page);
+    nav.dataset.perPage = String(perPage);
+    nav.dataset.totalPages = String(totalPages);
+    nav.dataset.totalItems = String(totalItems);
+    nav.innerHTML = buildSurrenderedItemPaginationMarkup(page, totalPages);
+  }
+
+  if (perPageSelect) {
+    perPageSelect.value = String(perPage);
+  }
+
+  if (pageInput) {
+    pageInput.value = String(page);
+  }
+
+  if (totalChip) {
+    totalChip.textContent = `Total ${totalItems}`;
+  }
+
+  if (pageChip) {
+    pageChip.textContent = `Page ${page} / ${totalPages > 0 ? totalPages : 1}`;
+  }
+
+  updateSurrenderedItemPaginationSummary(page, perPage, totalItems);
+  updateSurrenderedItemPageSummary(page, totalPages, totalItems);
+}
+
+async function loadSurrenderedItemPageAjax(page, perPage, updateUrl = true) {
+  try {
+    const response = await fetch(createSurrenderedItemPagedApiUrl(page, perPage));
+    if (!response.ok) {
+      throw new Error(`Failed to load surrendered item page: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const items = Array.isArray(data.items) ? data.items : [];
+    const currentPage = Number(data.page) || 1;
+    const currentPerPage = Number(data.per_page) || perPage;
+    const totalItems = Number(data.total_items) || 0;
+    const totalPages = Number(data.total_pages) || 0;
+
+    renderSurrenderedItemRows(items);
+    applySurrenderedItemPaginationState(currentPage, currentPerPage, totalItems, totalPages);
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    if (updateUrl) {
+      window.history.replaceState({}, "", createSurrenderedItemPageUrl(currentPage, currentPerPage));
+    }
+  } catch (error) {
+    console.error(error);
+    if (typeof showToast === "function") {
+      showToast("Failed to load surrendered item page. Please try again.", "error");
+    }
+  }
+}
+
+window.goToSurrenderedItemPage = function (page, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const targetPage = Number(page);
+  if (!targetPage) return false;
+
+  const nav = document.getElementById("surrenderedItemPaginationNav");
+  const perPageSelect = document.getElementById("surrenderedItemPerPageSelect");
+  const perPage = Number(perPageSelect && perPageSelect.value)
+    || Number(nav && nav.dataset.perPage)
+    || 10;
+
+  loadSurrenderedItemPageAjax(targetPage, perPage, true);
+  return false;
+};
+
+function initSurrenderedItemAjaxPagination() {
+  if (window.__surrenderedItemPaginationInitialized) {
+    return;
+  }
+
+  const nav = document.getElementById("surrenderedItemPaginationNav");
+  const perPageSelect = document.getElementById("surrenderedItemPerPageSelect");
+  const perPageForm = document.getElementById("surrenderedItemPerPageForm");
+  const tableBody = document.getElementById("surrenderedItemTableBody");
+
+  if (!nav || !perPageSelect || !perPageForm || !tableBody) {
+    return;
+  }
+
+  window.__surrenderedItemPaginationInitialized = true;
+
+  nav.addEventListener("click", (event) => {
+    const pageButton = event.target && event.target.closest
+      ? event.target.closest("[data-surrendered-item-page]")
+      : null;
+
+    if (!pageButton || !nav.contains(pageButton)) {
+      return;
+    }
+
+    const page = Number(pageButton.getAttribute("data-surrendered-item-page"));
+    if (!page) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    window.goToSurrenderedItemPage(page, event);
+  });
+
+  perPageForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+  });
+
+  perPageSelect.addEventListener("change", () => {
+    const perPage = Number(perPageSelect.value) || 10;
+    loadSurrenderedItemPageAjax(1, perPage, true);
+  });
+
+  window.addEventListener("popstate", () => {
+    const url = new URL(window.location.href);
+    const section = url.searchParams.get("section");
+    if (section !== "surrendered_item" && section !== "surrendered-items" && section !== "surrendereditem") return;
+
+    const page = Number(url.searchParams.get("surrendered_item_page")) || 1;
+    const perPage = Number(url.searchParams.get("surrendered_item_per_page")) || Number(perPageSelect.value) || 10;
+    loadSurrenderedItemPageAjax(page, perPage, false);
+  });
+}
+
+function initInventoryPaginationHandlers() {
   initSurrenderedAjaxPagination();
+  initSurrenderedItemAjaxPagination();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initInventoryPaginationHandlers);
+} else {
+  initInventoryPaginationHandlers();
+}
+
+// --- MODAL PAGINATION HIDE LOGIC FOR ITEM MODAL ---
+// ========== ARCHIVE DEVICE (ITEM) ========== //
+window.archiveDevice = function (id, itemName) {
+  if (typeof showConfirmationModal === 'function') {
+    showConfirmationModal(
+      'Archive Device',
+      `Are you sure you want to archive "${itemName}"? This action cannot be undone.`,
+      'Archive',
+      function () {
+        const toastId = showToast('Archiving device...', 'loading');
+        fetch(`/manage_inventory/delete-item/${id}`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(res => res.json())
+          .then(d => {
+            hideToast(toastId);
+            if (d.success) {
+              showToast('Device archived successfully', 'success');
+              // Refresh Manage Item table
+              if (typeof window.refreshItemTableWithoutReload === 'function') {
+                window.refreshItemTableWithoutReload();
+              } else {
+                location.reload();
+              }
+              // Refresh Archive (Surrendered Item) table
+              if (typeof window.refreshSurrenderedItemTableWithoutReload === 'function') {
+                window.refreshSurrenderedItemTableWithoutReload();
+              }
+            } else {
+              showToast(d.error || 'Failed to archive device', 'error');
+            }
+          })
+          .catch(() => {
+            hideToast(toastId);
+            showToast('Server error during archive', 'error');
+          });
+      }
+    );
+  } else {
+    if (confirm('Archive this device?')) {
+      fetch(`/manage_inventory/delete-item/${id}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(() => location.reload());
+    }
+  }
+};
+
+// Refresh surrendered item (archive) table without reload
+window.refreshSurrenderedItemTableWithoutReload = function () {
+  const nav = document.getElementById("surrenderedItemPaginationNav");
+  const perPageSelect = document.getElementById("surrenderedItemPerPageSelect");
+  const pageInput = document.getElementById("surrenderedItemPageInput");
+
+  const page = Number(nav?.dataset.page) || Number(pageInput?.value) || 1;
+  const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
+
+  if (typeof loadSurrenderedItemPageAjax === "function") {
+    loadSurrenderedItemPageAjax(page, perPage, false);
+  }
+};
+function openItemModalFallback(item) {
+  const modal = document.getElementById("itemModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.body.classList.add("modal-open-item");
+    if (window.lucide) lucide.createIcons();
+    // Minimal fallback: leave detailed population to template implementation
+    if (item) {
+      // optional population for legacy callers
+    }
+  }
+}
+
+function closeItemModalFallback() {
+  const modal = document.getElementById("itemModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.classList.remove("modal-open-item");
+  }
+}
+
+// Only set global functions if a template-provided implementation doesn't exist
+if (typeof window.openItemModal !== 'function') {
+  window.openItemModal = openItemModalFallback;
+}
+if (typeof window.closeItemModal !== 'function') {
+  window.closeItemModal = closeItemModalFallback;
 }

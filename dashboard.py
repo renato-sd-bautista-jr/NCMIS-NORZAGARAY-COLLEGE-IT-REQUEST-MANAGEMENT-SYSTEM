@@ -6,6 +6,37 @@ from datetime import datetime, timedelta
 
 dashboard_bp = Blueprint('dashboard_bp', __name__, template_folder='templates')
 
+# Simple cache for table column existence checks within this process
+_table_column_cache = {}
+
+def _table_has_column(conn, table_name, column_name='is_archived'):
+    """Return True if the given table has the specified column in the current database.
+
+    Uses a small in-memory cache to avoid repeated information_schema queries
+    during a single request/worker lifetime.
+    """
+    key = f"{table_name}.{column_name}"
+    if key in _table_column_cache:
+        return _table_column_cache[key]
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS"
+                " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+                (table_name, column_name)
+            )
+            row = cur.fetchone()
+            if isinstance(row, dict):
+                exists = int(row.get('cnt', 0)) > 0
+            else:
+                exists = bool(row and row[0] > 0)
+    except Exception:
+        exists = False
+
+    _table_column_cache[key] = exists
+    return exists
+
 
 
 
@@ -21,19 +52,26 @@ def inventory_category_data():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             # Get device categories from devices_full
-            cur.execute("""
+            has_dev_arch = _table_has_column(conn, 'devices_full')
+            has_pc_arch = _table_has_column(conn, 'pcinfofull')
+
+            dev_where_arch = 'AND COALESCE(is_archived, 0) = 0' if has_dev_arch else ''
+            pc_where_arch = 'AND COALESCE(is_archived, 0) = 0' if has_pc_arch else ''
+
+            cur.execute(f"""
                 SELECT device_type as category, COUNT(*) as count, SUM(acquisition_cost) as total_cost
                 FROM devices_full
-                WHERE device_type IS NOT NULL AND device_type != ''
+                WHERE device_type IS NOT NULL AND device_type != '' {dev_where_arch} AND LOWER(COALESCE(status, '')) != 'surrendered'
                 GROUP BY device_type
                 ORDER BY count DESC
             """)
             device_categories = cur.fetchall()
-            
+
             # Get PCs as a separate category
-            cur.execute("""
+            cur.execute(f"""
                 SELECT 'PCs' as category, COUNT(*) as count, SUM(acquisition_cost) as total_cost
                 FROM pcinfofull
+                WHERE { '1=1 ' + pc_where_arch if pc_where_arch else '1=1' } AND LOWER(COALESCE(status, '')) != 'surrendered'
             """)
             pc_data = cur.fetchone()
             
@@ -61,17 +99,25 @@ def stock_status_data():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             # Get device statuses
-            cur.execute("""
+            has_dev_arch = _table_has_column(conn, 'devices_full')
+            has_pc_arch = _table_has_column(conn, 'pcinfofull')
+
+            dev_where_arch = 'AND is_archived = 0' if has_dev_arch else ''
+            pc_where_arch = 'AND is_archived = 0' if has_pc_arch else ''
+
+            cur.execute(f"""
                 SELECT status, COUNT(*) as count
                 FROM devices_full
+                WHERE 1=1 {dev_where_arch}
                 GROUP BY status
             """)
             device_statuses = cur.fetchall()
-            
+
             # Get PC statuses
-            cur.execute("""
+            cur.execute(f"""
                 SELECT status, COUNT(*) as count
                 FROM pcinfofull
+                WHERE 1=1 {pc_where_arch}
                 GROUP BY status
             """)
             pc_statuses = cur.fetchall()
@@ -121,12 +167,14 @@ def cost_data(filter_type):
                 range_start = week_starts[0]
 
                 for table_name in ('devices_full', 'pcinfofull'):
+                    has_arch = _table_has_column(conn, table_name)
+                    arch_clause = 'AND is_archived = 0' if has_arch else ''
                     cur.execute(f"""
                         SELECT
                             DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY) AS week_start,
                             SUM(acquisition_cost) AS total
                         FROM {table_name}
-                        WHERE created_at >= %s
+                        WHERE created_at >= %s {arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'
                         GROUP BY week_start
                     """, (range_start,))
                     for row in cur.fetchall():
@@ -147,10 +195,12 @@ def cost_data(filter_type):
                 yearly_cost = {year: 0.0 for year in years}
 
                 for table_name in ('devices_full', 'pcinfofull'):
+                    has_arch = _table_has_column(conn, table_name)
+                    arch_clause = 'AND is_archived = 0' if has_arch else ''
                     cur.execute(f"""
                         SELECT YEAR(created_at) AS year, SUM(acquisition_cost) AS total
                         FROM {table_name}
-                        WHERE YEAR(created_at) BETWEEN %s AND %s
+                        WHERE YEAR(created_at) BETWEEN %s AND %s {arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'
                         GROUP BY YEAR(created_at)
                     """, (start_year, current_year))
                     for row in cur.fetchall():
@@ -166,10 +216,12 @@ def cost_data(filter_type):
                 monthly_cost = {m: 0.0 for m in range(1, 13)}
 
                 for table_name in ('devices_full', 'pcinfofull'):
+                    has_arch = _table_has_column(conn, table_name)
+                    arch_clause = 'AND is_archived = 0' if has_arch else ''
                     cur.execute(f"""
                         SELECT MONTH(created_at) AS month, SUM(acquisition_cost) AS total
                         FROM {table_name}
-                        WHERE YEAR(created_at) = %s
+                        WHERE YEAR(created_at) = %s {arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'
                         GROUP BY MONTH(created_at)
                     """, (current_year,))
                     for row in cur.fetchall():
@@ -424,7 +476,13 @@ def department_analytics_data():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             # Get department usage statistics
-            cur.execute("""
+            has_dev_arch = _table_has_column(conn, 'devices_full')
+            has_pc_arch = _table_has_column(conn, 'pcinfofull')
+
+            df_join_arch = 'AND df.is_archived = 0' if has_dev_arch else ''
+            pcf_join_arch = 'AND pcf.is_archived = 0' if has_pc_arch else ''
+
+            cur.execute(f"""
                 SELECT 
                     d.department_name,
                     COUNT(DISTINCT df.accession_id) as device_count,
@@ -436,15 +494,15 @@ def department_analytics_data():
                     COUNT(DISTINCT CASE WHEN df.status = 'Available' THEN df.accession_id END) +
                     COUNT(DISTINCT CASE WHEN pcf.status = 'Available' THEN pcf.pcid END) as available_count
                 FROM departments d
-                LEFT JOIN devices_full df ON d.department_id = df.department_id
-                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id
+                LEFT JOIN devices_full df ON d.department_id = df.department_id {df_join_arch} AND LOWER(COALESCE(df.status, '')) != 'surrendered'
+                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id {pcf_join_arch} AND LOWER(COALESCE(pcf.status, '')) != 'surrendered'
                 GROUP BY d.department_id, d.department_name
                 ORDER BY total_assets DESC
             """)
             department_usage = cur.fetchall()
             
             # Get cross-department efficiency metrics
-            cur.execute("""
+            cur.execute(f"""
                 SELECT 
                     d.department_name,
                     COUNT(DISTINCT br.borrow_id) as total_borrows,
@@ -456,8 +514,8 @@ def department_analytics_data():
                     ROUND(COUNT(DISTINCT br.borrow_id) * 1.0 / 
                           NULLIF((COUNT(DISTINCT df.accession_id) + COUNT(DISTINCT pcf.pcid)), 0), 2) as utilization_rate
                 FROM departments d
-                LEFT JOIN devices_full df ON d.department_id = df.department_id
-                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id
+                LEFT JOIN devices_full df ON d.department_id = df.department_id {df_join_arch} AND LOWER(COALESCE(df.status, '')) != 'surrendered'
+                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id {pcf_join_arch} AND LOWER(COALESCE(pcf.status, '')) != 'surrendered'
                 LEFT JOIN borrow_requests br ON (df.accession_id = br.device_id OR pcf.pcid = br.device_id)
                 GROUP BY d.department_id, d.department_name
                 HAVING total_assets > 0
@@ -466,7 +524,7 @@ def department_analytics_data():
             department_efficiency = cur.fetchall()
             
             # Get cost per department breakdown
-            cur.execute("""
+            cur.execute(f"""
                 SELECT 
                     d.department_name,
                     COALESCE(SUM(df.acquisition_cost), 0) as device_costs,
@@ -476,8 +534,8 @@ def department_analytics_data():
                     ROUND((COALESCE(SUM(df.acquisition_cost), 0) + COALESCE(SUM(pcf.acquisition_cost), 0)) / 
                           NULLIF(COUNT(DISTINCT df.accession_id) + COUNT(DISTINCT pcf.pcid), 0), 2) as avg_cost_per_asset
                 FROM departments d
-                LEFT JOIN devices_full df ON d.department_id = df.department_id
-                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id
+                LEFT JOIN devices_full df ON d.department_id = df.department_id {df_join_arch} AND LOWER(COALESCE(df.status, '')) != 'surrendered'
+                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id {pcf_join_arch} AND LOWER(COALESCE(pcf.status, '')) != 'surrendered'
                 GROUP BY d.department_id, d.department_name
                 ORDER BY total_costs DESC
             """)
@@ -485,14 +543,14 @@ def department_analytics_data():
             
             # Get monthly department usage trends
             current_year = datetime.now().year
-            cur.execute("""
+            cur.execute(f"""
                 SELECT 
                     d.department_name,
                     MONTH(br.borrow_date) as month,
                     COUNT(*) as borrow_count
                 FROM departments d
-                LEFT JOIN devices_full df ON d.department_id = df.department_id
-                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id
+                LEFT JOIN devices_full df ON d.department_id = df.department_id {df_join_arch} AND LOWER(COALESCE(df.status, '')) != 'surrendered'
+                LEFT JOIN pcinfofull pcf ON d.department_id = pcf.department_id {pcf_join_arch} AND LOWER(COALESCE(pcf.status, '')) != 'surrendered'
                 LEFT JOIN borrow_requests br ON (df.accession_id = br.device_id OR pcf.pcid = br.device_id)
                 WHERE YEAR(br.borrow_date) = %s AND br.borrow_date IS NOT NULL
                 GROUP BY d.department_id, d.department_name, MONTH(br.borrow_date)
@@ -684,42 +742,49 @@ def dashboard_load():
             
 
             # 🔹 Manage Items Count (devices_full)
-            cur.execute("SELECT COUNT(*) AS total FROM devices_full")
+            has_dev_arch = _table_has_column(conn, 'devices_full')
+            has_pc_arch = _table_has_column(conn, 'pcinfofull')
+
+            dev_arch_clause = 'AND is_archived = 0' if has_dev_arch else ''
+            pc_arch_clause = 'AND is_archived = 0' if has_pc_arch else ''
+
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE 1=1 {dev_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'")
             total_items = _get_num(cur.fetchone(), 'total', 0)
 
             # 🔹 PC Inventory Count (pcs)
-            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull")
+            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE 1=1 {pc_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'")
             total_pcs = _get_num(cur.fetchone(), 'total', 0)
 
             # 🔹 Status Counts (from devices_units)
-            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Available'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Available' {dev_arch_clause}")
             available_devices = _get_num(cur.fetchone(), 'total', 0)
-            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Available'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Available' {pc_arch_clause}")
             available_pc = _get_num(cur.fetchone(), 'total', 0)
 
             available_items = available_devices + available_pc
 
-            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'In Used'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE status = 'In Used' {dev_arch_clause}")
             in_use_devices = _get_num(cur.fetchone(), 'total', 0)
 
-            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'In Used'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'In Used' {pc_arch_clause}")
             in_use_pcs = _get_num(cur.fetchone(), 'total', 0)
 
             in_use_items = in_use_devices + in_use_pcs
 
-            
-            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Damaged'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE status = 'Damaged' {dev_arch_clause}")
             damaged_pc = _get_num(cur.fetchone(), 'total', 0)
-            cur.execute("SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Damaged'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'Damaged' {pc_arch_clause}")
             damaged_devices = _get_num(cur.fetchone(), 'total', 0)
             damaged_items= damaged_pc + damaged_devices
 
-            # 🔹 Total Consumables Count
-            cur.execute("SELECT COUNT(*) AS total FROM consumables")
+            # 🔹 Total Consumables Count (exclude archived if column exists)
+            has_cons_arch = _table_has_column(conn, 'consumables')
+            cons_where_arch = 'WHERE COALESCE(is_archived, 0) = 0' if has_cons_arch else ''
+            cur.execute(f"SELECT COUNT(*) AS total FROM consumables {cons_where_arch}")
             total_consumables = _get_num(cur.fetchone(), 'total', 0)
 
             # 🔹 Total Consumable Items Count (devices_full)
-            cur.execute("SELECT COUNT(*) AS total FROM devices_full WHERE device_type = 'Consumable'")
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE device_type = 'Consumable' {dev_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'")
             total_consumable_items = _get_num(cur.fetchone(), 'total', 0)
 
             # 🔹 Total Received/Returned Items (from consumable_transactions)
@@ -734,18 +799,18 @@ def dashboard_load():
             total_departments = _get_num(cur.fetchone(), 'total', 0)
 
             # 🔹 Total Cost In (sum of acquisition_cost from both tables)
-            cur.execute("SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM devices_full")
+            cur.execute(f"SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM devices_full WHERE 1=1 {dev_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'")
             device_cost = _get_num(cur.fetchone(), 'total', 0)
 
-            cur.execute("SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM pcinfofull")
+            cur.execute(f"SELECT IFNULL(SUM(acquisition_cost), 0) AS total FROM pcinfofull WHERE 1=1 {pc_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'")
             pc_cost = _get_num(cur.fetchone(), 'total', 0)
 
             # Average cost
-            cur.execute("""
+            cur.execute(f"""
                 SELECT AVG(acquisition_cost) AS avg_cost FROM (
-                    SELECT acquisition_cost FROM devices_full
+                    SELECT acquisition_cost FROM devices_full WHERE 1=1 {dev_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'
                     UNION ALL
-                    SELECT acquisition_cost FROM pcinfofull
+                    SELECT acquisition_cost FROM pcinfofull WHERE 1=1 {pc_arch_clause} AND LOWER(COALESCE(status, '')) != 'surrendered'
                 ) AS combined
             """)
             avg_cost = _get_num(cur.fetchone(), 'avg_cost', 0) or 0
@@ -798,7 +863,7 @@ def dashboard_load():
                         'Device' as item_type
                     FROM devices_full df
                     LEFT JOIN departments dep ON df.department_id = dep.department_id
-                    WHERE df.status != 'Damaged' AND df.status != 'Surrendered'
+                    WHERE df.status != 'Damaged' AND LOWER(COALESCE(df.status, '')) != 'surrendered' {dev_arch_clause}
                     UNION ALL
                     -- PCs needing maintenance
                     SELECT
@@ -817,7 +882,7 @@ def dashboard_load():
                         'PC' as item_type
                     FROM pcinfofull pcf
                     LEFT JOIN departments dep ON pcf.department_id = dep.department_id
-                    WHERE pcf.status != 'Damaged' AND pcf.status != 'Surrendered'
+                    WHERE pcf.status != 'Damaged' AND LOWER(COALESCE(pcf.status, '')) != 'surrendered' {pc_arch_clause}
                 ) AS maintenance_items
                 WHERE maintenance_status != 'OK'
                 ORDER BY
@@ -857,7 +922,7 @@ def dashboard_load():
                        quantity, status, device_type, department_name
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE (quantity <= 2 OR status IN ('Needs Checking', 'Damaged')) AND status != 'Surrendered'
+                WHERE (quantity <= 2 OR status IN ('Needs Checking', 'Damaged')) AND LOWER(COALESCE(status, '')) != 'surrendered' {dev_arch_clause}
                 ORDER BY quantity ASC, status DESC
                 LIMIT 10
                 """)
@@ -868,7 +933,7 @@ def dashboard_load():
                        '' as brand_model, quantity, status, 'PC' as device_type, department_name
                 FROM pcinfofull pcf
                 LEFT JOIN departments dep ON pcf.department_id = dep.department_id
-                WHERE (quantity <= 2 OR status IN ('Needs Checking', 'Damaged')) AND status != 'Surrendered'
+                WHERE (quantity <= 2 OR status IN ('Needs Checking', 'Damaged')) AND LOWER(COALESCE(status, '')) != 'surrendered' {pc_arch_clause}
                 ORDER BY quantity ASC, status DESC
                 LIMIT 10
                 """)
@@ -887,7 +952,7 @@ def dashboard_load():
                        quantity, status, device_type, department_name
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE quantity = 0 AND status != 'Surrendered'
+                WHERE quantity = 0 AND LOWER(COALESCE(status, '')) != 'surrendered' {dev_arch_clause}
                 ORDER BY item_name ASC
                 LIMIT 10
                 """)
@@ -898,7 +963,7 @@ def dashboard_load():
                        '' as brand_model, quantity, status, 'PC' as device_type, department_name
                 FROM pcinfofull pcf
                 LEFT JOIN departments dep ON pcf.department_id = dep.department_id
-                WHERE quantity = 0 AND status != 'Surrendered'
+                WHERE quantity = 0 AND LOWER(COALESCE(status, '')) != 'surrendered' {pc_arch_clause}
                 ORDER BY pcname ASC
                 LIMIT 10
                 """)
@@ -917,7 +982,7 @@ def dashboard_load():
                        quantity, status, device_type, department_name
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
-                WHERE quantity >= 10 AND status != 'Surrendered'
+                WHERE quantity >= 10 AND LOWER(COALESCE(status, '')) != 'surrendered' {dev_arch_clause}
                 ORDER BY quantity DESC
                 LIMIT 10
                 """)
@@ -928,7 +993,7 @@ def dashboard_load():
                        '' as brand_model, quantity, status, 'PC' as device_type, department_name
                 FROM pcinfofull pcf
                 LEFT JOIN departments dep ON pcf.department_id = dep.department_id
-                WHERE quantity >= 10 AND status != 'Surrendered'
+                WHERE quantity >= 10 AND LOWER(COALESCE(status, '')) != 'surrendered' {pc_arch_clause}
                 ORDER BY quantity DESC
                 LIMIT 10
                 """)

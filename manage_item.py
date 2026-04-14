@@ -6,6 +6,8 @@ import pandas as pd
 import qrcode, os
 import time,random
 import re
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
 
 manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='templates')
 
@@ -15,8 +17,19 @@ manage_item_bp = Blueprint('manage_item_bp', __name__, template_folder='template
 def get_devices_with_details():
     conn = get_db_connection()
     try:
+        # Detect if the schema has is_archived; if not, avoid referencing it
+        try:
+            with conn.cursor() as _cur:
+                _cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'devices_full' AND COLUMN_NAME = 'is_archived'")
+                _row = _cur.fetchone()
+                has_is_arch = bool(_row and (int(_row.get('cnt', 0)) if isinstance(_row, dict) else _row[0] > 0))
+        except Exception:
+            has_is_arch = False
+
+        arch_clause = 'WHERE df.is_archived = 0' if has_is_arch else 'WHERE 1=1'
+
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
+            cur.execute(f"""
                 SELECT 
                     df.accession_id,
                     df.item_name,
@@ -35,6 +48,7 @@ def get_devices_with_details():
                     dep.department_name
                 FROM devices_full df
                 LEFT JOIN departments dep ON df.department_id = dep.department_id
+                {arch_clause}
                 ORDER BY df.accession_id
             """)
             return cur.fetchall()
@@ -295,6 +309,9 @@ def filter_devices():
         date_from = request.args.get('date_from')
         date_to = request.args.get('date_to')
 
+        # Normalize status for case-insensitive comparisons
+        status_norm = status.strip().lower() if isinstance(status, str) and status.strip() else None
+
         query = """
             SELECT 
                 df.accession_id,
@@ -314,7 +331,7 @@ def filter_devices():
                 dep.department_name
             FROM devices_full df
             LEFT JOIN departments dep ON df.department_id = dep.department_id
-            WHERE df.is_archived = 0
+            WHERE COALESCE(df.is_archived, 0) = 0 AND LOWER(COALESCE(df.status, '')) != 'surrendered'
         """
         params = []
 
@@ -323,8 +340,8 @@ def filter_devices():
             query += " AND df.department_id = %s"
             params.append(department_id)
         if status:
-            query += " AND df.status = %s"
-            params.append(status)
+            query += " AND LOWER(COALESCE(df.status, '')) = %s"
+            params.append(status_norm)
         if location:
             query += " AND df.location LIKE %s"
             params.append(f"%{location}%")
@@ -438,6 +455,52 @@ def export_selected_devices():
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='Selected Devices')
+
+            ws = writer.sheets.get('Selected Devices')
+            if ws:
+                ws.freeze_panes = 'A2'
+                ws.auto_filter.ref = ws.dimensions
+
+                header_font = Font(bold=True, color="FFFFFF")
+                header_fill = PatternFill("solid", fgColor="1D4ED8")
+                header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+                for cell in ws[1]:
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = header_alignment
+
+                ws.row_dimensions[1].height = 20
+
+                currency_headers = {"Acquisition Cost"}
+                date_headers = {"Date Acquired"}
+
+                for col_idx, column_cells in enumerate(ws.columns, start=1):
+                    column_letter = get_column_letter(col_idx)
+                    header_value = column_cells[0].value
+
+                    max_length = 0
+                    for cell in column_cells:
+                        if cell.value is None:
+                            continue
+                        cell_value = str(cell.value)
+                        if len(cell_value) > max_length:
+                            max_length = len(cell_value)
+
+                        if cell.row == 1:
+                            continue
+
+                        if header_value in currency_headers:
+                            cell.number_format = '#,##0.00'
+                            cell.alignment = Alignment(horizontal="right", vertical="top")
+                        elif header_value in date_headers:
+                            cell.number_format = 'yyyy-mm-dd'
+                            cell.alignment = Alignment(horizontal="center", vertical="top")
+                        else:
+                            cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=False)
+
+                    padded = min(max(max_length + 2, 10), 42)
+                    ws.column_dimensions[column_letter].width = padded
 
         output.seek(0)
 

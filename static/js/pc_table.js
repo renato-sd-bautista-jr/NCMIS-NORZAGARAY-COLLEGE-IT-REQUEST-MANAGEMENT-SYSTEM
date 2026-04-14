@@ -9,7 +9,6 @@ function renderPcTable(pcs) {
         <td>${pc.pcid}</td>
         <td>${pc.pcname}</td>
         <td>${pc.department_name}</td>
-        <td>${pc.location}</td>
         <td>${pc.acquisition_cost}</td>
         <td>${pc.date_acquired}</td>
         <td>${pc.accountable}</td>
