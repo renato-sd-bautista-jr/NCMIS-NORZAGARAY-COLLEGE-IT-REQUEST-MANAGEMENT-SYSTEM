@@ -74,7 +74,7 @@ document.addEventListener("submit", async (e) => {
     window.history.replaceState({}, "", `${url.pathname}?${nextParams.toString()}`);
 
     if (typeof loadPcPageAjax === "function") {
-      await loadPcPageAjax(1, perPage, true);
+      await loadPcPageAjax(1, perPage, true, "pcFilterSearch");
       closePcFilterModal();
       return;
     }

@@ -931,10 +931,14 @@ function getActivePcFilterParamsFromUrl() {
 }
 
 function createPcPageUrl(page, perPage) {
-  const url = new URL(window.location.href);
-  url.searchParams.set("section", "pc");
-  url.searchParams.set("page", String(page));
-  url.searchParams.set("per_page", String(perPage));
+  const url = new URL(window.location.origin + window.location.pathname);
+  const params = getActivePcFilterParamsFromUrl();
+  params.set("section", "pc");
+  params.set("page", String(page));
+  params.set("per_page", String(perPage));
+  params.forEach((value, key) => {
+    url.searchParams.set(key, value);
+  });
   return `${url.pathname}?${url.searchParams.toString()}`;
 }
 
@@ -947,7 +951,7 @@ function refreshPcTableWithoutReload() {
   const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
 
   if (typeof loadPcPageAjax === "function") {
-    loadPcPageAjax(page, perPage, false);
+    loadPcPageAjax(page, perPage, false, "refresh");
   }
 }
 
@@ -1199,18 +1203,40 @@ function applyPcPaginationState(page, perPage, totalItems, totalPages) {
   updatePcPaginationSummary(page, perPage, totalItems);
 }
 
-async function loadPcPageAjax(page, perPage, updateUrl = true) {
+async function loadPcPageAjax(page, perPage, updateUrl = true, source = "unknown") {
+  const pageNumber = Number(page) || 1;
+  const perPageNumber = Number(perPage) || 10;
+
+  const query = getActivePcFilterParamsFromUrl();
+  query.set("section", "pc");
+  query.set("page", String(pageNumber));
+  query.set("per_page", String(perPageNumber));
+  const requestKey = query.toString();
+
+  if (window.__pcPageAjaxPending) {
+    console.warn("Skipping duplicate PC AJAX load while another request is pending", { source, page: pageNumber, perPage: perPageNumber, requestKey });
+    return;
+  }
+
+  if (window.__pcLastPcAjaxRequestKey === requestKey && window.__pcLastPcAjaxRequestSource === source && Date.now() - (window.__pcLastPcAjaxRequestTime || 0) < 1000) {
+    console.debug("Skipping repeated PC AJAX request for same query", { source, page: pageNumber, perPage: perPageNumber, requestKey });
+    return;
+  }
+
+  window.__pcPageAjaxPending = true;
+  window.__pcLastPcAjaxRequestKey = requestKey;
+  window.__pcLastPcAjaxRequestSource = source;
+  window.__pcLastPcAjaxRequestTime = Date.now();
+
+  console.debug("PC AJAX load", { source, page: pageNumber, perPage: perPageNumber, requestKey });
+
   try {
-    const query = new URLSearchParams();
-    query.set("page", String(page));
-    query.set("per_page", String(perPage));
-
-    const filterParams = getActivePcFilterParamsFromUrl();
-    filterParams.forEach((value, key) => {
-      query.set(key, value);
+    const response = await fetch(`/manage_inventory/pcs-paged?${query.toString()}`, {
+      headers: {
+        "X-Request-Source": source,
+        "X-Page-Request": requestKey
+      }
     });
-
-    const response = await fetch(`/manage_inventory/pcs-paged?${query.toString()}`);
     if (!response.ok) throw new Error(`Failed to load PC page: ${response.status}`);
 
     const data = await response.json();
@@ -1239,6 +1265,8 @@ async function loadPcPageAjax(page, perPage, updateUrl = true) {
     if (typeof showToast === "function") {
       showToast("Failed to load page. Please try again.", "error");
     }
+  } finally {
+    window.__pcPageAjaxPending = false;
   }
 }
 
@@ -1252,7 +1280,7 @@ function initPcAjaxPagination() {
     return;
   }
 
-  nav.addEventListener("click", (event) => {
+  const handlePcPaginationClick = (event) => {
     const link = event.target.closest("a");
     if (!link || !nav.contains(link)) return;
 
@@ -1264,13 +1292,18 @@ function initPcAjaxPagination() {
       targetPage = null;
     }
 
-    if (!targetPage) return;
+    if (!Number.isInteger(targetPage) || targetPage < 1) return;
 
     event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
 
     const perPage = Number(perPageSelect.value) || Number(nav.dataset.perPage) || 10;
-    loadPcPageAjax(targetPage, perPage, true);
-  });
+    console.debug("PC pagination click", { href: link.href, targetPage, perPage });
+    loadPcPageAjax(targetPage, perPage, true, "click");
+  };
+
+  nav.addEventListener("click", handlePcPaginationClick);
 
   perPageForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1278,7 +1311,7 @@ function initPcAjaxPagination() {
 
   perPageSelect.addEventListener("change", () => {
     const perPage = Number(perPageSelect.value) || 10;
-    loadPcPageAjax(1, perPage, true);
+    loadPcPageAjax(1, perPage, true, "perPageChange");
   });
 
   window.addEventListener("popstate", () => {
@@ -1288,7 +1321,8 @@ function initPcAjaxPagination() {
 
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = Number(url.searchParams.get("per_page")) || Number(perPageSelect.value) || 10;
-    loadPcPageAjax(page, perPage, false);
+    console.debug("PC popstate load", { page, perPage });
+    loadPcPageAjax(page, perPage, false, "popstate");
   });
 }
 

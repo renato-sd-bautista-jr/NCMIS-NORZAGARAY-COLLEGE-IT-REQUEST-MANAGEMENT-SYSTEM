@@ -864,6 +864,7 @@ function renderDeviceMaintenanceHealthCell(healthScore, maintenanceIntervalDays,
 function getItemFilterValues() {
   const url = new URL(window.location.href);
   const filterKeys = [
+    "search",
     "department_id",
     "status",
     "accountable",
@@ -916,7 +917,7 @@ function refreshItemTableWithoutReload() {
   const perPage = Number(perPageSelect?.value) || Number(nav?.dataset.perPage) || 10;
 
   if (typeof loadItemPageAjax === "function") {
-    loadItemPageAjax(page, perPage, false);
+    loadItemPageAjax(page, perPage, false, "refresh");
   }
 }
 
@@ -1204,9 +1205,37 @@ function applyItemPaginationState(page, perPage, totalItems, totalPages) {
   updateItemPaginationSummary(page, perPage, totalItems);
 }
 
-async function loadItemPageAjax(page, perPage, updateUrl = true) {
+async function loadItemPageAjax(page, perPage, updateUrl = true, source = "unknown") {
+  const pageNumber = Number(page) || 1;
+  const perPageNumber = Number(perPage) || 10;
+
+  const requestUrl = createItemPagedApiUrl(pageNumber, perPageNumber);
+  const requestKey = requestUrl;
+
+  if (window.__itemPageAjaxPending) {
+    console.warn("Skipping duplicate item AJAX load while another request is pending", { source, page: pageNumber, perPage: perPageNumber, requestKey });
+    return;
+  }
+
+  if (window.__itemLastPageAjaxRequestKey === requestKey && window.__itemLastPageAjaxRequestSource === source && Date.now() - (window.__itemLastPageAjaxRequestTime || 0) < 1000) {
+    console.debug("Skipping repeated item AJAX request for same query", { source, page: pageNumber, perPage: perPageNumber, requestKey });
+    return;
+  }
+
+  window.__itemPageAjaxPending = true;
+  window.__itemLastPageAjaxRequestKey = requestKey;
+  window.__itemLastPageAjaxRequestSource = source;
+  window.__itemLastPageAjaxRequestTime = Date.now();
+
+  console.debug("Item AJAX load", { source, page: pageNumber, perPage: perPageNumber, requestUrl });
+
   try {
-    const response = await fetch(createItemPagedApiUrl(page, perPage));
+    const response = await fetch(requestUrl, {
+      headers: {
+        "X-Request-Source": source,
+        "X-Page-Request": requestKey
+      }
+    });
     if (!response.ok) throw new Error(`Failed to load item page: ${response.status}`);
 
     const data = await response.json();
@@ -1235,6 +1264,8 @@ async function loadItemPageAjax(page, perPage, updateUrl = true) {
     if (typeof showToast === "function") {
       showToast("Failed to load page. Please try again.", "error");
     }
+  } finally {
+    window.__itemPageAjaxPending = false;
   }
 }
 
@@ -1267,7 +1298,7 @@ function initItemAjaxPagination() {
     if (!targetPage) return;
 
     const perPage = Number(perPageSelect.value) || Number(nav.dataset.perPage) || 10;
-    loadItemPageAjax(targetPage, perPage, true);
+    loadItemPageAjax(targetPage, perPage, true, "click");
   });
 
   perPageForm.addEventListener("submit", (event) => {
@@ -1276,7 +1307,7 @@ function initItemAjaxPagination() {
 
   perPageSelect.addEventListener("change", () => {
     const perPage = Number(perPageSelect.value) || 10;
-    loadItemPageAjax(1, perPage, true);
+    loadItemPageAjax(1, perPage, true, "perPageChange");
   });
 
   window.addEventListener("popstate", () => {
@@ -1286,7 +1317,7 @@ function initItemAjaxPagination() {
 
     const page = Number(url.searchParams.get("item_page")) || 1;
     const perPage = Number(url.searchParams.get("per_page")) || Number(perPageSelect.value) || 10;
-    loadItemPageAjax(page, perPage, false);
+    loadItemPageAjax(page, perPage, false, "popstate");
   });
 }
 

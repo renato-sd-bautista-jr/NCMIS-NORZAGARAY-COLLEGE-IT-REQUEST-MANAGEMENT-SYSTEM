@@ -353,6 +353,7 @@ function escapeConsumableHtml(value) {
 function getConsumableFilterValues() {
   const url = new URL(window.location.href);
   const filterKeys = [
+    'search',
     'department_id',
     'status',
     'accountable',
@@ -363,6 +364,7 @@ function getConsumableFilterValues() {
   ];
 
   const filters = {};
+  // include 'search' in filterKeys so server-side search is forwarded
   filterKeys.forEach((key) => {
     const value = url.searchParams.get(key);
     if (value) {

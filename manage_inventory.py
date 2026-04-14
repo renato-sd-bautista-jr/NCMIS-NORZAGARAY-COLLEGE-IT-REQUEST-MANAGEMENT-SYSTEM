@@ -13,93 +13,6 @@ manage_inventory_bp = Blueprint('manage_inventory', __name__, template_folder='t
 ALLOWED_PER_PAGE = {5, 10, 25, 50}
 DEFAULT_PER_PAGE = 10
 
-
-def _normalize_page(value, default=1):
-    try:
-        page = int(value)
-    except (TypeError, ValueError):
-        page = default
-    return max(1, page)
-
-
-def _normalize_per_page(value):
-    try:
-        per_page = int(value)
-    except (TypeError, ValueError):
-        per_page = DEFAULT_PER_PAGE
-    return per_page if per_page in ALLOWED_PER_PAGE else DEFAULT_PER_PAGE
-
-
-def _clamp_page(page, total_pages):
-    if total_pages <= 0:
-        return 1
-    return min(max(1, page), total_pages)
-
-
-def _to_optional_int(value):
-    if value in (None, ""):
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _get_pc_filters(args):
-    return {
-        "department_id": args.get("department_id"),
-        "status": args.get("status"),
-        "location": args.get("location"),
-        "accountable": args.get("accountable"),
-        "serial_no": args.get("serial_no"),
-        "date_from": args.get("date_from"),
-        "date_to": args.get("date_to"),
-        "risk_level": args.get("risk_level"),
-        "health_min": _to_optional_int(args.get("health_min")),
-        "health_max": _to_optional_int(args.get("health_max")),
-        "last_checked_from": args.get("last_checked_from"),
-        "last_checked_to": args.get("last_checked_to"),
-        "overdue": args.get("overdue"),
-        "needs_checking": args.get("needs_checking"),
-        "search": args.get("search"),
-    }
-
-
-def _compute_remaining_health_percent(asset_row, today=None):
-    today = today or date.today()
-
-    status_key = str(asset_row.get("status") or "").strip().lower()
-    if status_key in {"damaged", "damage", "unusable"}:
-        return 0.0
-
-    interval_days = normalize_interval_days(asset_row.get("maintenance_interval_days"), default_days=30)
-    last_checked = parse_date(asset_row.get("last_checked"))
-    date_acquired = parse_date(asset_row.get("date_acquired"))
-
-    # Only use a real baseline date; do not implicitly reset by defaulting to "today".
-    baseline_date = last_checked or date_acquired
-    if baseline_date is None:
-        current_health = asset_row.get("health_score")
-        try:
-            current_health = float(current_health)
-            return round(max(0.0, min(100.0, current_health)), 2)
-        except (TypeError, ValueError):
-            return 100.0
-
-    elapsed_days = max(0, (today - baseline_date).days)
-    remaining_percent = max(0.0, 100.0 - ((elapsed_days / interval_days) * 100.0))
-    return round(remaining_percent, 2)
-
-
-def _apply_precise_health_scores(rows):
-    if not rows:
-        return
-
-    today = date.today()
-    for row in rows:
-        row["health_score"] = _compute_remaining_health_percent(row, today=today)
-
-
 @manage_inventory_bp.route('/manage_inventory')
 def inventory_load():
     """Load Manage Inventory with pagination for devices."""
@@ -204,6 +117,333 @@ def inventory_load():
         consumable_total_pages=consumable_pages
     )
 
+def _normalize_page(value, default=1):
+    try:
+        page = int(value)
+    except (TypeError, ValueError):
+        page = default
+    return max(1, page)
+
+
+def _normalize_per_page(value):
+    try:
+        per_page = int(value)
+    except (TypeError, ValueError):
+        per_page = DEFAULT_PER_PAGE
+    return per_page if per_page in ALLOWED_PER_PAGE else DEFAULT_PER_PAGE
+
+
+def _clamp_page(page, total_pages):
+    if total_pages <= 0:
+        return 1
+    return min(max(1, page), total_pages)
+
+
+def _to_optional_int(value):
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+@manage_inventory_bp.route('/manage_inventory/pcs-paged')
+def pcs_paged():
+    page = _normalize_page(request.args.get("page", 1, type=int))
+    per_page = _normalize_per_page(request.args.get("per_page", DEFAULT_PER_PAGE, type=int))
+    pc_filters = _get_pc_filters(request.args)
+
+    pcs, total_items, total_pages, page = get_pc_list_paginated(page, per_page, pc_filters)
+    request_source = request.headers.get('X-Request-Source', 'none')
+    request_key = request.headers.get('X-Page-Request', 'none')
+    print(f"📦 [pcs_paged] source={request_source} request_key={request_key} section={request.args.get('section')} page={page} per_page={per_page} total_items={total_items} total_pages={total_pages} filters={pc_filters}")
+
+    return jsonify({
+        "pcs": pcs,
+        "page": page,
+        "per_page": per_page,
+        "total_items": total_items,
+        "total_pages": total_pages
+    })
+
+def _get_pc_filters(args):
+    return {
+        "department_id": args.get("department_id"),
+        "status": args.get("status"),
+        "location": args.get("location"),
+        "accountable": args.get("accountable"),
+        "serial_no": args.get("serial_no"),
+        "date_from": args.get("date_from"),
+        "date_to": args.get("date_to"),
+        "risk_level": args.get("risk_level"),
+        "health_min": _to_optional_int(args.get("health_min")),
+        "health_max": _to_optional_int(args.get("health_max")),
+        "last_checked_from": args.get("last_checked_from"),
+        "last_checked_to": args.get("last_checked_to"),
+        "overdue": args.get("overdue"),
+        "needs_checking": args.get("needs_checking"),
+        "search": args.get("search"),
+    }
+
+
+def _compute_remaining_health_percent(asset_row, today=None):
+    today = today or date.today()
+
+    status_key = str(asset_row.get("status") or "").strip().lower()
+    if status_key in {"damaged", "damage", "unusable"}:
+        return 0.0
+
+    interval_days = normalize_interval_days(asset_row.get("maintenance_interval_days"), default_days=30)
+    last_checked = parse_date(asset_row.get("last_checked"))
+    date_acquired = parse_date(asset_row.get("date_acquired"))
+
+    # Only use a real baseline date; do not implicitly reset by defaulting to "today".
+    baseline_date = last_checked or date_acquired
+    if baseline_date is None:
+        current_health = asset_row.get("health_score")
+        try:
+            current_health = float(current_health)
+            return round(max(0.0, min(100.0, current_health)), 2)
+        except (TypeError, ValueError):
+            return 100.0
+
+    elapsed_days = max(0, (today - baseline_date).days)
+    remaining_percent = max(0.0, 100.0 - ((elapsed_days / interval_days) * 100.0))
+    return round(remaining_percent, 2)
+def get_pc_list_paginated(page=1, per_page=10, filters=None):
+    """
+    Fetch paginated PCs from pcinfofull excluding surrendered.
+    Returns:
+        pcs, total_items, total_pages, current_page
+    """
+    page = _normalize_page(page)
+    per_page = _normalize_per_page(per_page)
+    filters = filters or {}
+    conn = get_db_connection()
+
+    where_clauses = ["LOWER(COALESCE(pc.status, '')) != 'surrendered'", "COALESCE(pc.is_archived, 0) = 0"]
+    query_params = []
+
+    department_id = filters.get("department_id")
+    status = filters.get("status")
+    location = filters.get("location")
+    accountable = filters.get("accountable")
+    serial_no = filters.get("serial_no")
+    date_from = filters.get("date_from")
+    date_to = filters.get("date_to")
+    risk_level = filters.get("risk_level")
+    health_min = filters.get("health_min")
+    health_max = filters.get("health_max")
+    last_checked_from = filters.get("last_checked_from")
+    last_checked_to = filters.get("last_checked_to")
+    overdue_only = str(filters.get("overdue") or "") == "1"
+    needs_checking = str(filters.get("needs_checking") or "") == "1"
+    search = filters.get("search")
+
+    if department_id:
+        where_clauses.append("pc.department_id = %s")
+        query_params.append(department_id)
+
+    if status:
+        where_clauses.append("pc.status = %s")
+        query_params.append(status)
+
+    if location:
+        where_clauses.append("pc.location LIKE %s")
+        query_params.append(f"%{location}%")
+
+    if accountable:
+        where_clauses.append("pc.accountable LIKE %s")
+        query_params.append(f"%{accountable}%")
+
+    if serial_no:
+        where_clauses.append("(pc.serial_no LIKE %s OR pc.municipal_serial_no LIKE %s)")
+        query_params.extend([f"%{serial_no}%", f"%{serial_no}%"])
+
+    if date_from and date_to:
+        where_clauses.append("pc.date_acquired BETWEEN %s AND %s")
+        query_params.extend([date_from, date_to])
+    elif date_from:
+        where_clauses.append("pc.date_acquired >= %s")
+        query_params.append(date_from)
+    elif date_to:
+        where_clauses.append("pc.date_acquired <= %s")
+        query_params.append(date_to)
+
+    if risk_level:
+        where_clauses.append("(CASE WHEN LOWER(TRIM(pc.status)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE pc.risk_level END) = %s")
+        query_params.append(risk_level)
+
+    if health_min is not None:
+        where_clauses.append("pc.health_score >= %s")
+        query_params.append(health_min)
+
+    if health_max is not None:
+        where_clauses.append("pc.health_score <= %s")
+        query_params.append(health_max)
+
+    if last_checked_from and last_checked_to:
+        where_clauses.append("pc.last_checked BETWEEN %s AND %s")
+        query_params.extend([last_checked_from, last_checked_to])
+    elif last_checked_from:
+        where_clauses.append("pc.last_checked >= %s")
+        query_params.append(last_checked_from)
+    elif last_checked_to:
+        where_clauses.append("pc.last_checked <= %s")
+        query_params.append(last_checked_to)
+
+    if overdue_only:
+        where_clauses.append("""(
+            pc.last_checked IS NULL
+            OR DATE_ADD(
+                pc.last_checked,
+                INTERVAL GREATEST(
+                    1,
+                    CASE
+                        WHEN IFNULL(pc.maintenance_interval_days, 30) < 365
+                            THEN IFNULL(pc.maintenance_interval_days, 30) * 365
+                        ELSE IFNULL(pc.maintenance_interval_days, 30)
+                    END
+                ) DAY
+            ) < CURDATE()
+        )""")
+
+    if needs_checking:
+        where_clauses.append("pc.status = 'Needs Checking'")
+
+    if search:
+        where_clauses.append("(pc.pcname LIKE %s OR pc.motherboard LIKE %s OR pc.ram LIKE %s OR pc.storage LIKE %s OR pc.gpu LIKE %s)")
+        query_params.extend([f"%{search}%"] * 5)
+
+    where_sql = " WHERE " + " AND ".join(where_clauses)
+
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+
+            # Total count
+            cur.execute(
+                f"""
+                SELECT COUNT(*) AS total
+                FROM pcinfofull pc
+                {where_sql}
+                """,
+                query_params,
+            )
+            total_items = cur.fetchone()["total"]
+
+            total_pages = (total_items + per_page - 1) // per_page
+            page = _clamp_page(page, total_pages)
+            offset = (page - 1) * per_page
+
+            # Paginated PC data
+            cur.execute(f"""
+                SELECT
+                    pc.pcid,
+                    pc.pcname,
+                    pc.department_id,
+                    dep.department_name,
+                    pc.location,
+                    pc.acquisition_cost,
+                    pc.date_acquired,
+                    pc.accountable,
+                    pc.serial_no,
+                    pc.municipal_serial_no,
+                    pc.note,
+                    pc.maintenance_interval_days,
+                    pc.status,
+                    pc.last_checked,
+                    pc.health_score,
+                    CASE WHEN LOWER(TRIM(pc.status)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE pc.risk_level END AS risk_level,
+
+                    -- ⭐ maintenance calculation
+                    DATEDIFF(CURDATE(), pc.last_checked) AS days_since_check
+
+                FROM pcinfofull pc
+                LEFT JOIN departments dep
+                    ON pc.department_id = dep.department_id
+                {where_sql}
+                ORDER BY pc.pcid DESC
+                LIMIT %s OFFSET %s
+            """, query_params + [per_page, offset])
+
+            pcs = cur.fetchall()
+
+            # Keep risk consistent with status even if legacy rows still carry stale risk values.
+            for pc in pcs:
+                status_key = str(pc.get("status") or "").strip().lower()
+                if status_key in {"damaged", "damage", "unusable"}:
+                    pc["risk_level"] = "High"
+                elif not pc.get("risk_level"):
+                    pc["risk_level"] = "--"
+
+            _apply_precise_health_scores(pcs)
+            
+
+        return pcs, total_items, total_pages, page
+    
+    
+
+    except Exception as e:
+        print(f"❌ Error fetching paginated PCs: {e}")
+        return [], 0, 0, 1
+
+    finally:
+        conn.close()
+
+def get_pc_list():
+    """Fetch all PCs with department and part details from pcinfofull."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    p.pcid,
+                    p.pcname,
+                    p.department_id,
+                    d.department_name,
+                    p.location,
+                    p.quantity,
+                    p.acquisition_cost,
+                    p.date_acquired,
+                    p.accountable,
+                    p.serial_no,
+                    p.municipal_serial_no,
+                    p.status,
+                    p.note,
+                    p.maintenance_interval_days,
+                    p.motherboard,
+                    p.ram,
+                    p.storage,
+                    p.gpu,
+                    p.psu,
+                    p.casing,
+                    p.other_parts,
+                    p.risk_level,
+                    p.health_score
+                   
+                
+                FROM pcinfofull p
+                LEFT JOIN departments d ON p.department_id = d.department_id
+                ORDER BY p.pcid
+            """)
+            return cur.fetchall()
+    except Exception as e:
+        print(f"❌ Error fetching PC list: {e}")
+        return []
+    finally:
+        conn.close()
+
+ 
+def _apply_precise_health_scores(rows):
+    if not rows:
+        return
+
+    today = date.today()
+    for row in rows:
+        row["health_score"] = _compute_remaining_health_percent(row, today=today)
+
+
+
 @manage_inventory_bp.route('/manage_inventory/items-paged')
 def items_paged():
     page = _normalize_page(request.args.get("page", 1, type=int))
@@ -219,6 +459,9 @@ def items_paged():
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
 
+    request_source = request.headers.get('X-Request-Source', 'none')
+    request_key = request.headers.get('X-Page-Request', 'none')
+
     if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]):
         items, total_items, total_pages, page = get_filtered_item_list_paginated(
             page, per_page, department_id, status, accountable, serial_no,
@@ -226,6 +469,12 @@ def items_paged():
         )
     else:
         items, total_items, total_pages, page = get_item_list_paginated(page, per_page)
+
+    print(
+        f"📦 [items_paged] source={request_source} request_key={request_key} section={request.args.get('section')} "
+        f"page={page} per_page={per_page} total_items={total_items} total_pages={total_pages} "
+        f"filters={{'department_id': {department_id}, 'status': {status}, 'accountable': {accountable}, 'serial_no': {serial_no}, 'item_name': {item_name}, 'brand_model': {brand_model}, 'device_type': {device_type}, 'date_from': {date_from}, 'date_to': {date_to}}}"
+    )
 
     return jsonify({
         "items": items,
@@ -235,21 +484,6 @@ def items_paged():
         "total_pages": total_pages
     })
  
-@manage_inventory_bp.route('/manage_inventory/pcs-paged')
-def pcs_paged():
-    page = _normalize_page(request.args.get("page", 1, type=int))
-    per_page = _normalize_per_page(request.args.get("per_page", DEFAULT_PER_PAGE, type=int))
-    pc_filters = _get_pc_filters(request.args)
-
-    pcs, total_items, total_pages, page = get_pc_list_paginated(page, per_page, pc_filters)
-
-    return jsonify({
-        "pcs": pcs,
-        "page": page,
-        "per_page": per_page,
-        "total_items": total_items,
-        "total_pages": total_pages
-    })
 
 
 @manage_inventory_bp.route('/manage_inventory/surrendered-pcs-paged')
@@ -1008,50 +1242,7 @@ def get_departments_list():
     finally:
         conn.close()
 
-def get_pc_list():
-    """Fetch all PCs with department and part details from pcinfofull."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    p.pcid,
-                    p.pcname,
-                    p.department_id,
-                    d.department_name,
-                    p.location,
-                    p.quantity,
-                    p.acquisition_cost,
-                    p.date_acquired,
-                    p.accountable,
-                    p.serial_no,
-                    p.municipal_serial_no,
-                    p.status,
-                    p.note,
-                    p.maintenance_interval_days,
-                    p.motherboard,
-                    p.ram,
-                    p.storage,
-                    p.gpu,
-                    p.psu,
-                    p.casing,
-                    p.other_parts,
-                    p.risk_level,
-                    p.health_score
-                   
-                
-                FROM pcinfofull p
-                LEFT JOIN departments d ON p.department_id = d.department_id
-                ORDER BY p.pcid
-            """)
-            return cur.fetchall()
-    except Exception as e:
-        print(f"❌ Error fetching PC list: {e}")
-        return []
-    finally:
-        conn.close()
 
- 
  
 
 def get_item_list():
@@ -1189,184 +1380,6 @@ def get_pc_by_id(pcid):
 @manage_inventory_bp.route('/manage_inventory/pc-filter-modal')
 def pc_filter_modal():
     return render_template('pcFilterModal.html')
-def get_pc_list_paginated(page=1, per_page=10, filters=None):
-    """
-    Fetch paginated PCs from pcinfofull excluding surrendered.
-    Returns:
-        pcs, total_items, total_pages, current_page
-    """
-    page = _normalize_page(page)
-    per_page = _normalize_per_page(per_page)
-    filters = filters or {}
-    conn = get_db_connection()
-
-    where_clauses = ["LOWER(COALESCE(pc.status, '')) != 'surrendered'", "COALESCE(pc.is_archived, 0) = 0"]
-    query_params = []
-
-    department_id = filters.get("department_id")
-    status = filters.get("status")
-    location = filters.get("location")
-    accountable = filters.get("accountable")
-    serial_no = filters.get("serial_no")
-    date_from = filters.get("date_from")
-    date_to = filters.get("date_to")
-    risk_level = filters.get("risk_level")
-    health_min = filters.get("health_min")
-    health_max = filters.get("health_max")
-    last_checked_from = filters.get("last_checked_from")
-    last_checked_to = filters.get("last_checked_to")
-    overdue_only = str(filters.get("overdue") or "") == "1"
-    needs_checking = str(filters.get("needs_checking") or "") == "1"
-    search = filters.get("search")
-
-    if department_id:
-        where_clauses.append("pc.department_id = %s")
-        query_params.append(department_id)
-
-    if status:
-        where_clauses.append("pc.status = %s")
-        query_params.append(status)
-
-    if location:
-        where_clauses.append("pc.location LIKE %s")
-        query_params.append(f"%{location}%")
-
-    if accountable:
-        where_clauses.append("pc.accountable LIKE %s")
-        query_params.append(f"%{accountable}%")
-
-    if serial_no:
-        where_clauses.append("(pc.serial_no LIKE %s OR pc.municipal_serial_no LIKE %s)")
-        query_params.extend([f"%{serial_no}%", f"%{serial_no}%"])
-
-    if date_from and date_to:
-        where_clauses.append("pc.date_acquired BETWEEN %s AND %s")
-        query_params.extend([date_from, date_to])
-    elif date_from:
-        where_clauses.append("pc.date_acquired >= %s")
-        query_params.append(date_from)
-    elif date_to:
-        where_clauses.append("pc.date_acquired <= %s")
-        query_params.append(date_to)
-
-    if risk_level:
-        where_clauses.append("(CASE WHEN LOWER(TRIM(pc.status)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE pc.risk_level END) = %s")
-        query_params.append(risk_level)
-
-    if health_min is not None:
-        where_clauses.append("pc.health_score >= %s")
-        query_params.append(health_min)
-
-    if health_max is not None:
-        where_clauses.append("pc.health_score <= %s")
-        query_params.append(health_max)
-
-    if last_checked_from and last_checked_to:
-        where_clauses.append("pc.last_checked BETWEEN %s AND %s")
-        query_params.extend([last_checked_from, last_checked_to])
-    elif last_checked_from:
-        where_clauses.append("pc.last_checked >= %s")
-        query_params.append(last_checked_from)
-    elif last_checked_to:
-        where_clauses.append("pc.last_checked <= %s")
-        query_params.append(last_checked_to)
-
-    if overdue_only:
-        where_clauses.append("""(
-            pc.last_checked IS NULL
-            OR DATE_ADD(
-                pc.last_checked,
-                INTERVAL GREATEST(
-                    1,
-                    CASE
-                        WHEN IFNULL(pc.maintenance_interval_days, 30) < 365
-                            THEN IFNULL(pc.maintenance_interval_days, 30) * 365
-                        ELSE IFNULL(pc.maintenance_interval_days, 30)
-                    END
-                ) DAY
-            ) < CURDATE()
-        )""")
-
-    if needs_checking:
-        where_clauses.append("pc.status = 'Needs Checking'")
-
-    if search:
-        where_clauses.append("(pc.pcname LIKE %s OR pc.motherboard LIKE %s OR pc.ram LIKE %s OR pc.storage LIKE %s OR pc.gpu LIKE %s)")
-        query_params.extend([f"%{search}%"] * 5)
-
-    where_sql = " WHERE " + " AND ".join(where_clauses)
-
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cur:
-
-            # Total count
-            cur.execute(
-                f"""
-                SELECT COUNT(*) AS total
-                FROM pcinfofull pc
-                {where_sql}
-                """,
-                query_params,
-            )
-            total_items = cur.fetchone()["total"]
-
-            total_pages = (total_items + per_page - 1) // per_page
-            page = _clamp_page(page, total_pages)
-            offset = (page - 1) * per_page
-
-            # Paginated PC data
-            cur.execute(f"""
-                SELECT
-                    pc.pcid,
-                    pc.pcname,
-                    pc.department_id,
-                    dep.department_name,
-                    pc.location,
-                    pc.acquisition_cost,
-                    pc.date_acquired,
-                    pc.accountable,
-                    pc.serial_no,
-                    pc.municipal_serial_no,
-                    pc.note,
-                    pc.maintenance_interval_days,
-                    pc.status,
-                    pc.last_checked,
-                    pc.health_score,
-                    CASE WHEN LOWER(TRIM(pc.status)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE pc.risk_level END AS risk_level,
-
-                    -- ⭐ maintenance calculation
-                    DATEDIFF(CURDATE(), pc.last_checked) AS days_since_check
-
-                FROM pcinfofull pc
-                LEFT JOIN departments dep
-                    ON pc.department_id = dep.department_id
-                {where_sql}
-                ORDER BY pc.pcid DESC
-                LIMIT %s OFFSET %s
-            """, query_params + [per_page, offset])
-
-            pcs = cur.fetchall()
-
-            # Keep risk consistent with status even if legacy rows still carry stale risk values.
-            for pc in pcs:
-                status_key = str(pc.get("status") or "").strip().lower()
-                if status_key in {"damaged", "damage", "unusable"}:
-                    pc["risk_level"] = "High"
-                elif not pc.get("risk_level"):
-                    pc["risk_level"] = "--"
-
-            _apply_precise_health_scores(pcs)
-
-        return pcs, total_items, total_pages, page
-    
-    
-
-    except Exception as e:
-        print(f"❌ Error fetching paginated PCs: {e}")
-        return [], 0, 0, 1
-
-    finally:
-        conn.close()
 def run_inventory_auto_check():
     print("🔄 Running inventory auto-check...")
 

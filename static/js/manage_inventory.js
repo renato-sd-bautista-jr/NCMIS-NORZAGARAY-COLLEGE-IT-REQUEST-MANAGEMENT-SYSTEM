@@ -234,6 +234,90 @@ function applyInventoryLiveSearch() {
   const term = rawTerm.toLowerCase();
   const sectionKey = window.currentSection || "pc";
   const sectionLabel = getInventorySearchSectionLabel(sectionKey);
+  // For paginated sections (PCs, Devices/Items, Consumables) perform a server-side
+  // search so results include records that may be on other pages. For other
+  // sections fall back to the existing in-DOM filtering logic.
+  const serverSearchSections = new Set(["pc", "item", "consumable"]);
+
+  // If there is a search term and the current section supports server search,
+  // debounce and call the paged loader which will fetch filtered data from
+  // the server (backend expects `search` query param for PCs; we add support
+  // for items/consumables in the server as well).
+  if (rawTerm && serverSearchSections.has(sectionKey)) {
+    if (window.__inventorySearchDebounce) {
+      clearTimeout(window.__inventorySearchDebounce);
+    }
+
+    if (status) status.textContent = `Searching ${sectionLabel} for "${rawTerm}"...`;
+    if (clearBtn) clearBtn.classList.remove("hidden");
+
+    window.__inventorySearchDebounce = setTimeout(async () => {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("search", rawTerm);
+
+        if (sectionKey === "pc") {
+          url.searchParams.set("page", "1");
+          url.searchParams.set("per_page", "50");
+          window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+          if (typeof window.loadPcPageAjax === "function") {
+            await window.loadPcPageAjax(1, 50, true, "inventorySearch");
+          }
+        }
+
+        if (sectionKey === "item") {
+          url.searchParams.set("item_page", "1");
+          url.searchParams.set("per_page", "50");
+          window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+          if (typeof window.loadItemPageAjax === "function") {
+            await window.loadItemPageAjax(1, 50, true);
+          }
+        }
+
+        if (sectionKey === "consumable") {
+          url.searchParams.set("consumable_page", "1");
+          url.searchParams.set("per_page", "50");
+          window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+          if (typeof window.loadConsumablePageAjax === "function") {
+            await window.loadConsumablePageAjax(1, 50, true);
+          }
+        }
+      } catch (err) {
+        console.error("Inventory search error:", err);
+      }
+    }, 300);
+
+    return;
+  }
+
+  // If the search input was cleared, remove the `search` query param and
+  // refresh the currently visible paginated table (if available) to restore
+  // the original state.
+  if (!rawTerm && serverSearchSections.has(sectionKey)) {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("search")) {
+      url.searchParams.delete("search");
+      window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+    }
+
+    if (sectionKey === "pc" && typeof window.refreshPcTableWithoutReload === "function") {
+      window.refreshPcTableWithoutReload();
+    }
+
+    if (sectionKey === "item" && typeof window.refreshItemTableWithoutReload === "function") {
+      window.refreshItemTableWithoutReload();
+    }
+
+    if (sectionKey === "consumable" && typeof window.refreshConsumableTableWithoutReload === "function") {
+      window.refreshConsumableTableWithoutReload();
+    }
+
+    if (status) status.textContent = `Type to auto-filter ${sectionLabel}.`;
+    if (clearBtn) clearBtn.classList.add("hidden");
+    return;
+  }
+
+  // Fallback: client-side filtering for sections that don't use server search.
   const targets = getInventorySearchTargets(sectionKey);
 
   let totalCountableRows = 0;
