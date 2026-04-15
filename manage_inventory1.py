@@ -633,7 +633,6 @@ def part_suggestions():
 
             results = []
             for r in rows:
-                
                 name = (r.get('item_name') or '').strip()
                 brand = (r.get('brand_model') or '').strip()
                 label = name or str(r.get('accession_id'))

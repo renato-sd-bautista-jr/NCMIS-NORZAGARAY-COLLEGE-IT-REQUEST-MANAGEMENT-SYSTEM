@@ -145,7 +145,6 @@ def get_consumables():
 
             cur.execute(sql)
             consumables = cur.fetchall()
-            print(f"[DEBUG] /get-consumables returned {len(consumables)} rows")
         return jsonify(consumables)
     finally:
         conn.close()

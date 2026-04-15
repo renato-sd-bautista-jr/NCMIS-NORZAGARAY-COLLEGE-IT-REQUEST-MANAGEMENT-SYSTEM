@@ -619,7 +619,7 @@ def get_transactions_api():
                     u.id AS transaction_id,
                     u.accession_id,
                     u.item_name,
-                    'USE' AS action,
+                    'RETURN' AS action,
                     u.quantity,
                     u.previous_stock,
                     u.new_stock,
@@ -702,7 +702,7 @@ def get_transactions_api():
 
             transactions.append({
                 "id": r["transaction_id"],
-                "type": "receive" if action_value == "RECEIVE" else "use",
+                "type": "receive" if action_value == "RECEIVE" else "return",
                 "item_name": r["item_name"],
                 "quantity_change": qty_change,
                 "performed_by": r["username"],
