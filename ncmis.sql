@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 14, 2026 at 09:44 AM
+-- Generation Time: Apr 15, 2026 at 12:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -172,7 +172,7 @@ CREATE TABLE `consumables` (
 --
 
 INSERT INTO `consumables` (`accession_id`, `item_name`, `category`, `brand`, `quantity`, `unit`, `department_id`, `location`, `status`, `description`, `date_added`, `last_updated`, `added_by`, `is_archived`, `deleted_at`) VALUES
-(9, 'Bond Paper A4', 'Office Supplies', 'Double A', 50, 'Reams', 1, 'Stock Room', '', 'For printing documents', '2026-03-03 11:32:50', '2026-04-14 10:00:45', 'admin', 1, '2026-04-14 10:00:45'),
+(9, 'Bond Paper A4', 'Office Supplies', 'Double A', 49, 'Reams', 1, 'Stock Room', '', 'For printing documents', '2026-03-03 11:32:50', '2026-04-15 18:07:10', 'admin', 1, '2026-04-14 10:00:45'),
 (10, 'Printer Ink Black', 'Printer Supplies', 'HP', 20, 'Cartridges', 1, 'IT Office', '', 'HP 678 Black Ink', '2026-03-03 11:32:50', '2026-04-14 10:00:43', 'admin', 1, '2026-04-14 10:00:43'),
 (11, 'Ballpen Blue', 'Office Supplies', 'Pilot', 90, 'Pieces', 1, 'Stock Room', '', 'For general writing', '2026-03-03 11:32:50', '2026-04-14 10:00:40', 'staff1', 1, '2026-04-14 10:00:40'),
 (12, 'Stapler Wire', 'Office Supplies', 'Dong-A', 30, 'Boxes', 1, 'Admin Office', '', 'Standard size stapler wire', '2026-03-03 11:32:50', '2026-04-14 10:00:35', 'staff2', 1, '2026-04-14 10:00:35'),
@@ -193,12 +193,12 @@ INSERT INTO `consumables` (`accession_id`, `item_name`, `category`, `brand`, `qu
 (56, 'Motherboard', 'wafdaw', 'fafaw', 15, 'fdawf', 3, 'mis', 'Available', '', NULL, '2026-04-13 10:57:29', NULL, 1, '2026-04-13 10:57:29'),
 (57, 'Power Supply', 'electronics', 'rg65', 5, 'item', 3, 'mis office ', '', '', '2026-03-31 00:00:00', '2026-04-13 10:57:25', NULL, 1, '2026-04-13 10:57:25'),
 (58, 'USB Cable', 'electronics', '', 23, 'wire', 3, 'mis', '', '', '2026-04-13 00:00:00', '2026-04-13 10:56:53', NULL, 1, '2026-04-13 10:56:53'),
-(59, 'RJ45 Connector', 'electronics', '', 15, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', NULL, NULL, 0, NULL),
+(59, 'flash drive 8gb', 'electronics', '', 0, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', '2026-04-15 15:39:46', NULL, 0, NULL),
 (60, 'HDMI Cable', 'electronics', '', 5, '', 3, '', 'Available', '', '2026-04-14 00:00:00', NULL, NULL, 0, NULL),
 (61, 'Power Cable', '', '', 10, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', NULL, NULL, 0, NULL),
-(62, 'USB Cable', 'electronics', '', 6, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', NULL, NULL, 0, NULL),
+(62, 'flash drive 8gb', 'electronics', '', 0, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', '2026-04-15 16:41:03', NULL, 0, NULL),
 (63, 'Extension Cord', 'electronics', '', 5, '', 3, 'mis', 'Available', '', '2026-04-14 00:00:00', NULL, NULL, 0, NULL),
-(64, 'Ethernet Cable (Cat6)', 'electronics', '', 5, '', 3, 'mis', 'Available', '', '0000-00-00 00:00:00', NULL, NULL, 0, NULL);
+(64, '500W 80+ Bronze', 'electronics', '', 0, '', 3, 'mis', 'Available', '', '0000-00-00 00:00:00', '2026-04-15 16:37:41', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -253,7 +253,38 @@ INSERT INTO `consumable_transactions` (`transaction_id`, `accession_id`, `item_n
 (31, 56, 'Motherboard', 'RECEIVE', 5, 0, 5, 'PO-223232', NULL, NULL, 11, '2026-03-31 05:35:43'),
 (32, 56, 'Motherboard', 'RECEIVE', 5, 5, 10, 'PO-223232', NULL, NULL, 10, '2026-04-03 03:13:21'),
 (33, 57, 'Power Supply', 'RECEIVE', 5, 0, 5, 'PO-22323278', NULL, NULL, 11, '2026-04-03 03:24:45'),
-(34, 56, 'Motherboard', 'RECEIVE', 5, 10, 15, 'PO-223232565', NULL, NULL, 11, '2026-04-03 03:32:53');
+(34, 56, 'Motherboard', 'RECEIVE', 5, 10, 15, 'PO-223232565', NULL, NULL, 11, '2026-04-03 03:32:53'),
+(35, 59, 'flash drive 8gb', '', 1, 1, 0, NULL, 'Used', NULL, 9, '2026-04-15 07:39:46'),
+(36, 64, '500W 80+ Bronze', 'RETURN', 1, 1, 0, NULL, 'Used', NULL, 9, '2026-04-15 08:37:41'),
+(37, 62, 'flash drive 8gb', 'RETURN', 1, 1, 0, NULL, 'Used', NULL, 9, '2026-04-15 08:41:03');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `consumable_usage`
+--
+
+CREATE TABLE `consumable_usage` (
+  `id` int(11) NOT NULL,
+  `accession_id` int(11) NOT NULL,
+  `item_name` varchar(255) DEFAULT NULL,
+  `quantity` int(11) NOT NULL,
+  `previous_stock` int(11) DEFAULT NULL,
+  `new_stock` int(11) DEFAULT NULL,
+  `reference_no` varchar(100) DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `performed_by` int(11) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `consumable_usage`
+--
+
+INSERT INTO `consumable_usage` (`id`, `accession_id`, `item_name`, `quantity`, `previous_stock`, `new_stock`, `reference_no`, `reason`, `notes`, `performed_by`, `department_id`, `created_at`) VALUES
+(1, 9, 'Bond Paper A4', 1, 50, 49, NULL, 'Used', NULL, 9, NULL, '2026-04-15 10:07:10');
 
 -- --------------------------------------------------------
 
@@ -304,7 +335,8 @@ INSERT INTO `damage_reports` (`id`, `pcid`, `reported_by`, `damage_type`, `descr
 (33, 121, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-08 22:20:00'),
 (34, 121, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-08 22:30:02'),
 (35, 121, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-08 23:44:43'),
-(36, 103, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-12 13:11:16');
+(36, 103, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-12 13:11:16'),
+(37, 93, 'System', 'General Damage', 'Bulk marked as damaged', '2026-04-15 09:56:06');
 
 -- --------------------------------------------------------
 
@@ -411,7 +443,8 @@ CREATE TABLE `devices_full` (
 --
 
 INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_model`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `device_type`, `department_id`, `status`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`, `is_archived`, `deleted_at`) VALUES
-(14, NULL, 'Mouse', 'a4Tech', 1, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'Available', '2025-10-25 13:19:00', '2026-04-03 05:44:49', '2026-03-31', 30, 100, 'Low', 0, NULL),
+(9, NULL, 'Bond Paper A4', NULL, 49, NULL, NULL, NULL, 'SN63088965', 'MSN63088946', 'Consumable', NULL, 'Available', '2026-04-15 10:07:10', '2026-04-15 10:07:10', NULL, 30, 100, 'Low', 0, NULL),
+(14, NULL, 'Mouse', 'a4Tech', 0, 400.00, '2025-10-25', 'John Doe', 'SN-0103', 'MUN-0001241', 'Mouse', 1, 'IN USE', '2025-10-25 13:19:00', '2026-04-15 04:47:06', '2026-03-31', 30, 100, 'Low', 0, NULL),
 (15, NULL, 'inplay keyboard 1', 'inplay', 5, 1000.00, '0000-00-00', 'John Doe', 'SN-000001', 'MUN-0001252', 'keynoard', 1, 'Available', '2025-10-26 02:09:23', '2026-04-03 05:44:49', '2026-03-31', 30, 100, 'Low', 0, NULL),
 (16, NULL, 'Epson EB-X08', 'Epson', 1, 3000.00, '2025-10-27', 'John Doe', 'SN-003', 'MUN-000125', 'projector', 1, 'Available', '2025-10-26 17:13:39', '2026-04-03 05:44:49', '2026-03-31', 30, 100, 'Low', 0, NULL),
 (17, NULL, '3', '2', 1, 213321.00, '2025-10-27', '213', '123', '123', '213', 1, 'Available', '2025-10-27 02:00:09', '2026-04-03 05:44:49', '2026-03-31', 30, 100, 'Low', 0, NULL),
@@ -448,12 +481,12 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (56, NULL, 'Motherboard', 'motherboard999', 15, 7000.00, '2026-04-04', 'dean', 'SN34373791', 'MSN34374499', 'Consumable', 3, 'Available', '2026-03-31 05:35:43', '2026-04-10 12:30:46', '2026-04-08', 30, 100, 'Low', 1, '2026-04-10 20:30:46'),
 (57, NULL, 'Power Supply', 'power34444', 5, 5000.00, '2026-04-03', 'dean', 'SN68526992', 'MSN68527255', 'Consumable', 3, 'Available', '2026-04-03 03:24:45', '2026-04-12 05:03:04', '2026-04-12', 30, 100, 'Low', 1, '2026-04-09 16:18:51'),
 (58, NULL, 'flash drive 8gb', 'sandisk', 1, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10847315', 'MSN10847363', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-14 01:11:48', NULL, 1825, 100, 'Low', 0, NULL),
-(59, NULL, 'flash drive 8gb', 'sandisk', 1, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10847612', 'MSN10847689', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-14 01:11:48', NULL, 1825, 100, 'Low', 0, NULL),
+(59, NULL, 'flash drive 8gb', 'sandisk', 0, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10847612', 'MSN10847689', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-15 07:39:46', NULL, 1825, 100, 'Low', 0, NULL),
 (60, NULL, 'flash drive 8gb', 'sandisk', 1, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10847830', 'MSN10847826', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-14 01:11:48', NULL, 1825, 100, 'Low', 0, NULL),
 (61, NULL, 'flash drive 8gb', 'sandisk', 1, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10847970', 'MSN10847926', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-14 01:11:48', NULL, 1825, 100, 'Low', 0, NULL),
-(62, NULL, 'flash drive 8gb', 'sandisk', 1, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10848034', 'MSN10848076', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-14 01:11:48', NULL, 1825, 100, 'Low', 0, NULL),
-(63, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018253', 'MSN71018266', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
-(64, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018370', 'MSN71018318', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
+(62, NULL, 'flash drive 8gb', 'sandisk', 0, 1000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN10848034', 'MSN10848076', 'storage', 3, 'Available', '2026-04-14 01:11:48', '2026-04-15 08:41:03', NULL, 1825, 100, 'Low', 0, NULL),
+(63, NULL, '500W 80+ Bronze', 'Cool Master', 0, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018253', 'MSN71018266', 'Electronics', 3, 'IN USE', '2026-04-14 01:55:10', '2026-04-15 01:57:21', NULL, 1825, 100, 'Low', 0, NULL),
+(64, NULL, '500W 80+ Bronze', 'Cool Master', 0, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018370', 'MSN71018318', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-15 08:37:41', NULL, 1825, 100, 'Low', 0, NULL),
 (65, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018698', 'MSN71018644', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
 (66, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71018867', 'MSN71018860', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
 (67, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71019043', 'MSN71019080', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
@@ -462,7 +495,7 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (70, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71019447', 'MSN71019410', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
 (71, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71019574', 'MSN71019517', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
 (72, NULL, '500W 80+ Bronze', 'Cool Master', 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN71019767', 'MSN71019774', 'Electronics', 3, 'Available', '2026-04-14 01:55:10', '2026-04-14 01:55:10', NULL, 1825, 100, 'Low', 0, NULL),
-(73, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77365971', 'MSN77365914', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
+(73, NULL, 'Motherboard', 'Asus B650M', 0, 0.00, '2026-04-15', 'Sir Aurum', 'SN77365971', 'MSN77365914', 'Electronics', 3, 'IN USE', '2026-04-14 01:56:13', '2026-04-15 01:57:21', NULL, 365, 100, 'Low', 0, NULL),
 (74, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77366087', 'MSN77366010', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
 (75, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77366118', 'MSN77366157', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
 (76, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77366492', 'MSN77366469', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
@@ -512,7 +545,7 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (120, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77397855', 'MSN77397813', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
 (121, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77397934', 'MSN77397971', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
 (122, NULL, 'Motherboard', 'Asus B650M', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN77398066', 'MSN77398020', 'Electronics', 3, 'Available', '2026-04-14 01:56:13', '2026-04-14 01:56:13', NULL, 365, 100, 'Low', 0, NULL),
-(123, NULL, 'RAM', '8GB DDR4 3200MHz', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN81293029', 'MSN81293167', 'Electronics', 3, 'Available', '2026-04-14 01:56:52', '2026-04-14 01:56:52', NULL, 730, 100, 'Low', 0, NULL),
+(123, NULL, 'RAM', '8GB DDR4 3200MHz', 0, 0.00, '2026-04-15', 'Sir Aurum', 'SN81293029', 'MSN81293167', 'Electronics', 3, 'IN USE', '2026-04-14 01:56:52', '2026-04-15 01:57:21', NULL, 730, 100, 'Low', 0, NULL),
 (124, NULL, 'RAM', '8GB DDR4 3200MHz', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN81293469', 'MSN81293464', 'Electronics', 3, 'Available', '2026-04-14 01:56:52', '2026-04-14 01:56:52', NULL, 730, 100, 'Low', 0, NULL),
 (125, NULL, 'RAM', '8GB DDR4 3200MHz', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN81293527', 'MSN81293597', 'Electronics', 3, 'Available', '2026-04-14 01:56:52', '2026-04-14 01:56:52', NULL, 730, 100, 'Low', 0, NULL),
 (126, NULL, 'RAM', '8GB DDR4 3200MHz', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN81293617', 'MSN81293682', 'Electronics', 3, 'Available', '2026-04-14 01:56:52', '2026-04-14 01:56:52', NULL, 730, 100, 'Low', 0, NULL),
@@ -612,7 +645,7 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (220, NULL, 'Storage (SSD)', '256GB SSD', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN86271272', 'MSN86271222', 'Electronics', 3, 'Available', '2026-04-14 01:57:42', '2026-04-14 01:57:42', NULL, 1095, 100, 'Low', 0, NULL),
 (221, NULL, 'Storage (SSD)', '256GB SSD', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN86271395', 'MSN86271357', 'Electronics', 3, 'Available', '2026-04-14 01:57:42', '2026-04-14 01:57:42', NULL, 1095, 100, 'Low', 0, NULL),
 (222, NULL, 'Storage (SSD)', '256GB SSD', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN86271416', 'MSN86271445', 'Electronics', 3, 'Available', '2026-04-14 01:57:42', '2026-04-14 01:57:42', NULL, 1095, 100, 'Low', 0, NULL),
-(223, NULL, 'Graphics Card (GPU)', 'Integrated Graphics (Ryzen 5 5600G)', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN91358772', 'MSN91358784', 'Electronics', 3, 'Available', '2026-04-14 01:58:33', '2026-04-14 01:58:33', NULL, 1095, 100, 'Low', 0, NULL),
+(223, NULL, 'Graphics Card (GPU)', 'Integrated Graphics (Ryzen 5 5600G)', 0, 0.00, '2026-04-15', 'Sir Aurum', 'SN91358772', 'MSN91358784', 'Electronics', 3, 'IN USE', '2026-04-14 01:58:33', '2026-04-15 01:57:21', NULL, 1095, 100, 'Low', 0, NULL),
 (224, NULL, 'Graphics Card (GPU)', 'Integrated Graphics (Ryzen 5 5600G)', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN91359046', 'MSN91359055', 'Electronics', 3, 'Available', '2026-04-14 01:58:33', '2026-04-14 01:58:33', NULL, 1095, 100, 'Low', 0, NULL),
 (225, NULL, 'Graphics Card (GPU)', 'Integrated Graphics (Ryzen 5 5600G)', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN91359287', 'MSN91359254', 'Electronics', 3, 'Available', '2026-04-14 01:58:33', '2026-04-14 01:58:33', NULL, 1095, 100, 'Low', 0, NULL),
 (226, NULL, 'Graphics Card (GPU)', 'Integrated Graphics (Ryzen 5 5600G)', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN91359523', 'MSN91359569', 'Electronics', 3, 'Available', '2026-04-14 01:58:33', '2026-04-14 01:58:33', NULL, 1095, 100, 'Low', 0, NULL),
@@ -913,7 +946,107 @@ INSERT INTO `devices_full` (`accession_id`, `device_id`, `item_name`, `brand_mod
 (519, NULL, 'Keyboard', 'a4Tech', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN28880329', 'MSN28880345', 'Electronics', 3, 'Available', '2026-04-14 02:04:48', '2026-04-14 02:04:48', NULL, 1825, 100, 'Low', 0, NULL),
 (520, NULL, 'Keyboard', 'a4Tech', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN28880387', 'MSN28880350', 'Electronics', 3, 'Available', '2026-04-14 02:04:48', '2026-04-14 02:04:48', NULL, 1825, 100, 'Low', 0, NULL),
 (521, NULL, 'Keyboard', 'a4Tech', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN28880425', 'MSN28880433', 'Electronics', 3, 'Available', '2026-04-14 02:04:48', '2026-04-14 02:04:48', NULL, 1825, 100, 'Low', 0, NULL),
-(522, NULL, 'Keyboard', 'a4Tech', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN28880511', 'MSN28880526', 'Electronics', 3, 'Available', '2026-04-14 02:04:48', '2026-04-14 02:04:48', NULL, 1825, 100, 'Low', 0, NULL);
+(522, NULL, 'Keyboard', 'a4Tech', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN28880511', 'MSN28880526', 'Electronics', 3, 'Available', '2026-04-14 02:04:48', '2026-04-14 02:04:48', NULL, 1825, 100, 'Low', 0, NULL),
+(523, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1663043', 'MSN1663055', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(524, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1663545', 'MSN1663511', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(525, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1663788', 'MSN1663720', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(526, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1663862', 'MSN1663815', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(527, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1663920', 'MSN1663911', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(528, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664117', 'MSN1664133', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(529, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664226', 'MSN1664285', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(530, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664342', 'MSN1664392', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(531, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664594', 'MSN1664564', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(532, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664665', 'MSN1664611', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(533, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664745', 'MSN1664736', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(534, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1664854', 'MSN1664871', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(535, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665031', 'MSN1665065', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(536, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665181', 'MSN1665152', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(537, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665243', 'MSN1665233', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(538, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665330', 'MSN1665386', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(539, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665447', 'MSN1665424', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(540, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665619', 'MSN1665676', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(541, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665790', 'MSN1665734', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(542, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1665957', 'MSN1665958', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(543, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666049', 'MSN1666044', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(544, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666181', 'MSN1666180', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(545, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666274', 'MSN1666289', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(546, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666316', 'MSN1666355', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(547, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666439', 'MSN1666475', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(548, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666529', 'MSN1666528', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(549, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666635', 'MSN1666676', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(550, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666783', 'MSN1666760', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(551, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666836', 'MSN1666850', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(552, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1666988', 'MSN1666991', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(553, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667184', 'MSN1667151', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(554, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667265', 'MSN1667217', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(555, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667336', 'MSN1667316', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(556, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667485', 'MSN1667420', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(557, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667531', 'MSN1667562', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(558, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667787', 'MSN1667711', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(559, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667710', 'MSN1667785', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(560, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1667968', 'MSN1667957', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(561, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668077', 'MSN1668029', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(562, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668155', 'MSN1668243', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(563, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668331', 'MSN1668371', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(564, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668483', 'MSN1668436', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(565, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668520', 'MSN1668595', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(566, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668513', 'MSN1668577', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(567, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668688', 'MSN1668687', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(568, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1668874', 'MSN1668857', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(569, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669125', 'MSN1669159', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(570, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669299', 'MSN1669210', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(571, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669362', 'MSN1669357', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(572, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669483', 'MSN1669431', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(573, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669521', 'MSN1669590', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(574, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669762', 'MSN1669770', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(575, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669753', 'MSN1669752', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(576, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1669912', 'MSN1669966', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(577, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670088', 'MSN1670091', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(578, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670120', 'MSN1670130', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(579, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670370', 'MSN1670325', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(580, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670499', 'MSN1670410', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(581, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670585', 'MSN1670537', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(582, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670615', 'MSN1670654', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(583, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670766', 'MSN1670799', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(584, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670825', 'MSN1670878', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(585, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1670977', 'MSN1670912', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(586, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671060', 'MSN1671058', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(587, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671149', 'MSN1671142', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(588, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671213', 'MSN1671261', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(589, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671340', 'MSN1671398', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(590, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671563', 'MSN1671593', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(591, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671659', 'MSN1671648', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(592, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671720', 'MSN1671745', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(593, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1671846', 'MSN1671852', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(594, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672064', 'MSN1672086', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(595, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672284', 'MSN1672251', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(596, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672468', 'MSN1672496', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(597, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672557', 'MSN1672546', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(598, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672675', 'MSN1672644', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(599, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672767', 'MSN1672759', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(600, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672812', 'MSN1672839', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(601, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1672925', 'MSN1672920', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(602, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673174', 'MSN1673159', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(603, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673274', 'MSN1673267', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(604, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673472', 'MSN1673478', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(605, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673540', 'MSN1673597', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(606, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673681', 'MSN1673637', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(607, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673710', 'MSN1673784', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(608, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673718', 'MSN1673793', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(609, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1673936', 'MSN1673939', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(610, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674079', 'MSN1674070', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(611, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674126', 'MSN1674184', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(612, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674331', 'MSN1674361', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(613, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674482', 'MSN1674486', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(614, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674533', 'MSN1674579', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(615, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674635', 'MSN1674665', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(616, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674745', 'MSN1674796', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(617, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1674936', 'MSN1674928', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(618, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1675014', 'MSN1675078', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(619, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1675165', 'MSN1675179', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(620, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1675288', 'MSN1675291', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(621, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1675357', 'MSN1675386', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL),
+(622, NULL, 'Monitor', 'Dell', 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN1675472', 'MSN1675474', 'Electronics', 3, 'Available', '2026-04-14 14:46:56', '2026-04-14 14:46:56', NULL, 1825, 100, 'Low', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1047,7 +1180,53 @@ INSERT INTO `inventory_audit_log` (`audit_id`, `entity_type`, `entity_id`, `acti
 (13, 'PC', 20, 'UPDATE', 'date_acquired', '2026-04-13', '2026-04-14', 9, '2026-04-14 09:05:42', NULL, NULL),
 (14, 'PC', 20, 'UPDATE', 'accountable', 'dean', 'Mindalita Ocampo-Cruz, DIT\'', 9, '2026-04-14 09:05:42', NULL, NULL),
 (15, 'PC', 20, 'UPDATE', 'serial_no', 'SN-1776093550382-259759', 'SN-1776128688959-179303', 9, '2026-04-14 09:05:42', NULL, NULL),
-(16, 'PC', 20, 'UPDATE', 'municipal_serial_no', 'MSN-1776093550382-918871', 'MSN-1776128688959-291507', 9, '2026-04-14 09:05:42', NULL, NULL);
+(16, 'PC', 20, 'UPDATE', 'municipal_serial_no', 'MSN-1776093550382-918871', 'MSN-1776128688959-291507', 9, '2026-04-14 09:05:42', NULL, NULL),
+(17, 'PC', 113, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 09:55:19', NULL, NULL),
+(18, 'PC', 93, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 09:57:21', NULL, NULL),
+(19, 'PC', 93, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 09:57:21', NULL, NULL),
+(20, 'DEVICE', 73, 'UPDATE', 'quantity', '1', '0', 9, '2026-04-15 09:57:21', NULL, NULL),
+(21, 'DEVICE', 73, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 09:57:21', NULL, NULL),
+(22, 'DEVICE', 123, 'UPDATE', 'quantity', '1', '0', 9, '2026-04-15 09:57:21', NULL, NULL),
+(23, 'DEVICE', 123, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 09:57:21', NULL, NULL),
+(24, 'DEVICE', 223, 'UPDATE', 'quantity', '1', '0', 9, '2026-04-15 09:57:21', NULL, NULL),
+(25, 'DEVICE', 223, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 09:57:21', NULL, NULL),
+(26, 'DEVICE', 63, 'UPDATE', 'quantity', '1', '0', 9, '2026-04-15 09:57:21', NULL, NULL),
+(27, 'DEVICE', 63, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 09:57:21', NULL, NULL),
+(28, 'PC', 93, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 10:03:29', NULL, NULL),
+(29, 'PC', 93, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 10:03:29', NULL, NULL),
+(30, 'PC', 113, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 10:06:43', NULL, NULL),
+(31, 'PC', 113, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 10:06:43', NULL, NULL),
+(32, 'PC', 113, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 10:11:05', NULL, NULL),
+(33, 'PC', 113, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 10:11:05', NULL, NULL),
+(34, 'PC', 113, 'UPDATE', 'motherboard', 'Asus B650M', 'afawf', 9, '2026-04-15 10:30:11', NULL, NULL),
+(35, 'PC', 113, 'UPDATE', 'location', '25', NULL, 9, '2026-04-15 11:57:08', NULL, NULL),
+(36, 'PC', 113, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 11:57:08', NULL, NULL),
+(37, 'PC', 113, 'UPDATE', 'pcname', 'pc-clc-41', ' pcla', 9, '2026-04-15 12:03:52', NULL, NULL),
+(38, 'PC', 113, 'UPDATE', 'department_id', '25', '30', 9, '2026-04-15 12:03:52', NULL, NULL),
+(39, 'PC', 113, 'UPDATE', 'acquisition_cost', '0.00', '', 9, '2026-04-15 12:03:52', NULL, NULL),
+(40, 'PC', 113, 'UPDATE', 'date_acquired', '2026-04-10', '2026-04-15', 9, '2026-04-15 12:03:52', NULL, NULL),
+(41, 'PC', 113, 'UPDATE', 'serial_no', 'SN-1776131647205-929238', 'SN-1776225771315-492221', 9, '2026-04-15 12:03:52', NULL, NULL),
+(42, 'PC', 113, 'UPDATE', 'municipal_serial_no', 'MSN-1776131647205-168441', 'MSN-1776225771315-596730', 9, '2026-04-15 12:03:52', NULL, NULL),
+(43, 'PC', 113, 'UPDATE', 'monitor', '', 'a4tech', 9, '2026-04-15 12:03:52', NULL, NULL),
+(44, 'PC', 113, 'UPDATE', 'motherboard', 'afawf', 'Asus B650M', 9, '2026-04-15 12:03:52', NULL, NULL),
+(45, 'PC', 113, 'UPDATE', 'gpu', 'Integrated Graphics (Ryzen 5 5600G)', 'INTEL CORE I7', 9, '2026-04-15 12:03:52', NULL, NULL),
+(46, 'PC', 113, 'UPDATE', 'casing', 'DarkFlash DLM21 Micro ATX Case', 'Micro ATX Mini Tower', 9, '2026-04-15 12:03:52', NULL, NULL),
+(47, 'DEVICE', 14, 'UPDATE', 'quantity', '1', '0', 9, '2026-04-15 12:03:52', NULL, NULL),
+(48, 'DEVICE', 14, 'UPDATE', 'status', 'Available', 'IN USE', 9, '2026-04-15 12:03:52', NULL, NULL),
+(49, 'DEVICE', 14, 'UPDATE', 'quantity', '0', '1', 9, '2026-04-15 12:11:21', NULL, NULL),
+(50, 'DEVICE', 14, 'UPDATE', 'status', 'IN USE', 'Available', 9, '2026-04-15 12:11:21', NULL, NULL),
+(51, 'PC', 113, 'UPDATE', 'monitor', 'a4tech', 'Monitor — Dell', 9, '2026-04-15 12:11:21', NULL, NULL),
+(52, 'PC', 113, 'UPDATE', 'motherboard', 'Asus B650M', 'Motherboard — Asus B650M', 9, '2026-04-15 12:11:21', NULL, NULL),
+(53, 'PC', 113, 'UPDATE', 'ram', '8GB DDR4 3200MHz', 'RAM — 8GB DDR4 3200MHz', 9, '2026-04-15 12:11:21', NULL, NULL),
+(54, 'PC', 113, 'UPDATE', 'storage', '512GB SSD', 'Storage (SSD) — 256GB SSD', 9, '2026-04-15 12:11:21', NULL, NULL),
+(55, 'PC', 113, 'UPDATE', 'gpu', 'INTEL CORE I7', 'Graphics Card (GPU) — Integrated Graphics (Ryzen 5 5600G)', 9, '2026-04-15 12:11:21', NULL, NULL),
+(56, 'PC', 113, 'UPDATE', 'psu', '500W 80+ Bronze', 'Power Supply (PSU) — 500W 80+ Bronze', 9, '2026-04-15 12:11:21', NULL, NULL),
+(57, 'PC', 113, 'UPDATE', 'casing', 'Micro ATX Mini Tower', 'Casing — casin300', 9, '2026-04-15 12:11:21', NULL, NULL),
+(58, 'PC', 113, 'UPDATE', 'other_parts', 'wifi dangle', 'wifi dangle, Mouse — a4Tech, Keyboard — a4Tech', 9, '2026-04-15 12:11:21', NULL, NULL),
+(59, 'PC', 113, 'UPDATE', 'mouse', NULL, 'Mouse — a4Tech', 9, '2026-04-15 12:20:55', NULL, NULL),
+(60, 'PC', 113, 'UPDATE', 'keyboard', NULL, 'Keyboard — a4Tech', 9, '2026-04-15 12:20:55', NULL, NULL),
+(61, 'DEVICE', 14, 'UPDATE', 'quantity', '1', '0', 1, '2026-04-15 12:47:06', NULL, NULL),
+(62, 'DEVICE', 14, 'UPDATE', 'status', 'Available', 'IN USE', 1, '2026-04-15 12:47:06', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1422,7 +1601,9 @@ INSERT INTO `maintenance_history` (`id`, `pcid`, `asset_type`, `asset_id`, `acti
 (346, NULL, 'Device', 48, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-04-12 05:38:05'),
 (347, 101, 'PC', 101, 'Bulk surrender', 'Bulk surrendered', 'System', 'Available', 'Surrendered', 'Low', NULL, '2026-04-13 03:24:29'),
 (348, 100, 'PC', 100, 'Bulk surrender', 'Bulk surrendered', 'System', 'Available', 'Surrendered', 'Low', NULL, '2026-04-13 03:24:37'),
-(349, 87, 'PC', 87, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-04-13 03:34:40');
+(349, 87, 'PC', 87, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-04-13 03:34:40'),
+(350, 93, 'PC', 93, 'Bulk marked as damaged', 'Bulk marked as damaged', 'System', 'Available', 'Damaged', 'High', 100, '2026-04-15 01:56:06'),
+(351, 93, 'PC', 93, 'Bulk inspection completed', 'Bulk marked as checked', 'System', 'Damaged', 'Available', 'Low', 100, '2026-04-15 01:56:15');
 
 -- --------------------------------------------------------
 
@@ -1774,7 +1955,9 @@ INSERT INTO `maintenance_logs` (`id`, `asset_type`, `asset_id`, `previous_status
 (292, 'DEVICE', 48, 'Damaged', 'Available', 'High', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-04-12 05:38:05'),
 (293, 'PC', 101, 'Available', 'Surrendered', 'Low', 'Low', 'Bulk surrender', NULL, NULL, '2026-04-13 03:24:29'),
 (294, 'PC', 100, 'Available', 'Surrendered', 'Low', 'Low', 'Bulk surrender', NULL, NULL, '2026-04-13 03:24:37'),
-(295, 'PC', 87, 'Damaged', 'Available', 'High', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-04-13 03:34:40');
+(295, 'PC', 87, 'Damaged', 'Available', 'High', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-04-13 03:34:40'),
+(296, 'PC', 93, 'Available', 'Damaged', 'Low', 'High', 'Bulk marked as damaged', NULL, NULL, '2026-04-15 01:56:06'),
+(297, 'PC', 93, 'Damaged', 'Available', 'High', 'Low', 'Bulk inspection completed', NULL, NULL, '2026-04-15 01:56:15');
 
 -- --------------------------------------------------------
 
@@ -1833,126 +2016,128 @@ CREATE TABLE `pcinfofull` (
   `health_score` int(11) DEFAULT 100,
   `risk_level` varchar(20) DEFAULT 'Low',
   `is_archived` tinyint(1) DEFAULT 0,
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  `mouse` text DEFAULT NULL,
+  `keyboard` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pcinfofull`
 --
 
-INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`, `is_archived`, `deleted_at`) VALUES
-(1, 'pc-clb-01', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550372-490436', 'MSN-1776093550372-787857', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(2, 'pc-clb-02', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-799561', 'MSN-1776093550374-250363', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(3, 'pc-clb-03', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-472134', 'MSN-1776093550374-325154', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(4, 'pc-clb-04', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-709961', 'MSN-1776093550374-598718', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(5, 'pc-clb-05', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550375-724466', 'MSN-1776093550375-242096', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(6, 'pc-clb-06', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550375-743900', 'MSN-1776093550375-575053', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(7, 'pc-clb-07', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550376-471939', 'MSN-1776093550376-241200', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(8, 'pc-clb-08', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550376-790632', 'MSN-1776093550376-388991', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(9, 'pc-clb-09', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550377-748699', 'MSN-1776093550377-652861', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(10, 'pc-clb-10', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550377-349049', 'MSN-1776093550377-503958', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(11, 'pc-clb-11', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550378-898513', 'MSN-1776093550378-248886', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(12, 'pc-clb-12', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-861458', 'MSN-1776093550379-833222', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(13, 'pc-clb-13', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-678272', 'MSN-1776093550379-542022', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(14, 'pc-clb-14', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-628391', 'MSN-1776093550379-775734', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(15, 'pc-clb-15', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550380-293098', 'MSN-1776093550380-191138', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(16, 'pc-clb-16', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550380-154153', 'MSN-1776093550380-626415', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(17, 'pc-clb-17', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-520963', 'MSN-1776093550381-845124', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(18, 'pc-clb-18', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-677038', 'MSN-1776093550381-458541', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(19, 'pc-clb-19', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-763796', 'MSN-1776093550381-476228', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL),
-(21, 'pc-cla-01', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-395319', 'MSN-1776129003625-274978', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(22, 'pc-cla-02', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-677425', 'MSN-1776129003625-226234', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(23, 'pc-cla-03', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-435065', 'MSN-1776129003625-198385', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(24, 'pc-cla-04', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-139476', 'MSN-1776129003625-266822', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(25, 'pc-cla-05', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-488989', 'MSN-1776129003625-154082', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(26, 'pc-cla-06', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-961764', 'MSN-1776129003625-862560', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(27, 'pc-cla-07', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-229534', 'MSN-1776129003625-298388', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(28, 'pc-cla-08', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-390205', 'MSN-1776129003625-909758', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(29, 'pc-cla-09', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-363183', 'MSN-1776129003625-289009', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(30, 'pc-cla-10', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-385337', 'MSN-1776129003625-740633', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(31, 'pc-cla-11', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-131825', 'MSN-1776129003625-711763', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(32, 'pc-cla-12', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-834994', 'MSN-1776129003625-628990', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(33, 'pc-cla-13', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-899452', 'MSN-1776129003625-613543', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(34, 'pc-cla-14', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-763418', 'MSN-1776129003625-363722', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(35, 'pc-cla-15', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-673285', 'MSN-1776129003625-628680', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(36, 'pc-cla-16', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-611063', 'MSN-1776129003625-978609', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(37, 'pc-cla-17', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-704581', 'MSN-1776129003625-943778', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(38, 'pc-cla-18', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-680462', 'MSN-1776129003625-757109', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(39, 'pc-cla-19', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-903473', 'MSN-1776129003625-749927', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(40, 'pc-cla-20', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-386922', 'MSN-1776129003625-307727', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(41, 'pc-cla-21', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-668324', 'MSN-1776129003625-924162', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(42, 'pc-cla-22', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-451110', 'MSN-1776129003625-990382', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(43, 'pc-cla-23', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-891080', 'MSN-1776129003625-562110', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(44, 'pc-cla-24', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-771782', 'MSN-1776129003625-840466', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(45, 'pc-cla-25', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-497224', 'MSN-1776129003626-626779', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(46, 'pc-cla-26', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-596524', 'MSN-1776129003626-553912', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(47, 'pc-cla-27', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-315798', 'MSN-1776129003626-234911', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(48, 'pc-cla-28', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-313475', 'MSN-1776129003626-622983', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(49, 'pc-cla-29', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-270337', 'MSN-1776129003626-970173', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(50, 'pc-cla-30', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-470090', 'MSN-1776129003626-966437', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(51, 'pc-cla-31', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-334299', 'MSN-1776129003626-561623', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(52, 'pc-cla-32', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-911224', 'MSN-1776129003626-658282', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(53, 'pc-cla-33', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-469240', 'MSN-1776129003626-884261', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(54, 'pc-cla-34', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-752397', 'MSN-1776129003626-779204', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(55, 'pc-cla-35', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-638352', 'MSN-1776129003626-601559', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(56, 'pc-do-01', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-426437', 'MSN-1776131078988-938942', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(57, 'pc-do-02', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-365987', 'MSN-1776131078988-790541', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(58, 'pc-do-03', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-555828', 'MSN-1776131078988-637499', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(59, 'pc-do-04', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-258640', 'MSN-1776131078988-597721', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(60, 'Clinic Pc', 32, NULL, 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN-1776131110341-321514', 'MSN-1776131110341-231657', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1050 Ti', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:46:45', '2026-04-14 01:46:45', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(61, 'pc-mis-office-01', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-715063', 'MSN-1776131298657-579346', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(62, 'pc-mis-office-02', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-240109', 'MSN-1776131298657-750552', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(63, 'pc-mis-office-03', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-153609', 'MSN-1776131298657-305531', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(64, 'pc-mis-office-04', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-411359', 'MSN-1776131298657-781884', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(65, 'pc-registar-01', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-625421', 'MSN-1776131535999-963468', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(66, 'pc-registar-02', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-830166', 'MSN-1776131535999-797003', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(67, 'pc-registar-03', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-679651', 'MSN-1776131535999-640322', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(68, 'pc-registar-04', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-573862', 'MSN-1776131535999-405694', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(69, 'pc-registar-05', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-899319', 'MSN-1776131535999-637784', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(70, 'pc-registar-06', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-420359', 'MSN-1776131535999-831225', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(71, 'pc-registar-07', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-537280', 'MSN-1776131535999-976036', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(72, 'pc-registar-08', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-586839', 'MSN-1776131535999-272328', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(73, 'pc-clc-01', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-533943', 'MSN-1776131647204-602381', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(74, 'pc-clc-02', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-834230', 'MSN-1776131647204-282444', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(75, 'pc-clc-03', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-233776', 'MSN-1776131647204-283156', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(76, 'pc-clc-04', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-363543', 'MSN-1776131647204-601806', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(77, 'pc-clc-05', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-178310', 'MSN-1776131647204-197767', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(78, 'pc-clc-06', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-811543', 'MSN-1776131647204-821996', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(79, 'pc-clc-07', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-875342', 'MSN-1776131647204-225178', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(80, 'pc-clc-08', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-161032', 'MSN-1776131647204-538867', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(81, 'pc-clc-09', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-714231', 'MSN-1776131647204-403112', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(82, 'pc-clc-10', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-525837', 'MSN-1776131647204-557314', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(83, 'pc-clc-11', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-119423', 'MSN-1776131647205-560578', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(84, 'pc-clc-12', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-561742', 'MSN-1776131647205-902145', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(85, 'pc-clc-13', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-667232', 'MSN-1776131647205-897184', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(86, 'pc-clc-14', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-767252', 'MSN-1776131647205-457608', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(87, 'pc-clc-15', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-920704', 'MSN-1776131647205-137697', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(88, 'pc-clc-16', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-291608', 'MSN-1776131647205-857475', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(89, 'pc-clc-17', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-418382', 'MSN-1776131647205-246068', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(90, 'pc-clc-18', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-295332', 'MSN-1776131647205-827902', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(91, 'pc-clc-19', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-894929', 'MSN-1776131647205-380247', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(92, 'pc-clc-20', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-179477', 'MSN-1776131647205-979976', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(93, 'pc-clc-21', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-240628', 'MSN-1776131647205-812476', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(94, 'pc-clc-22', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-752382', 'MSN-1776131647205-787232', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(95, 'pc-clc-23', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-708766', 'MSN-1776131647205-204806', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(96, 'pc-clc-24', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-879880', 'MSN-1776131647205-272244', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(97, 'pc-clc-25', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-745897', 'MSN-1776131647205-366243', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(98, 'pc-clc-26', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-474242', 'MSN-1776131647205-700893', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(99, 'pc-clc-27', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-372569', 'MSN-1776131647205-732741', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(100, 'pc-clc-28', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-319058', 'MSN-1776131647205-622242', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(101, 'pc-clc-29', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-735355', 'MSN-1776131647205-825523', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(102, 'pc-clc-30', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-138824', 'MSN-1776131647205-328095', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(103, 'pc-clc-31', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-792433', 'MSN-1776131647205-681267', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(104, 'pc-clc-32', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-919500', 'MSN-1776131647205-689305', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(105, 'pc-clc-33', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-726703', 'MSN-1776131647205-457314', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(106, 'pc-clc-34', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-801409', 'MSN-1776131647205-734074', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(107, 'pc-clc-35', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-986028', 'MSN-1776131647205-846931', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(108, 'pc-clc-36', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-605055', 'MSN-1776131647205-654686', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(109, 'pc-clc-37', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-600807', 'MSN-1776131647205-414157', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(110, 'pc-clc-38', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-794468', 'MSN-1776131647205-677989', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(111, 'pc-clc-39', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-470068', 'MSN-1776131647205-224141', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(112, 'pc-clc-40', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-786206', 'MSN-1776131647205-680528', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL),
-(113, 'pc-clc-41', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-929238', 'MSN-1776131647205-168441', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL);
+INSERT INTO `pcinfofull` (`pcid`, `pcname`, `department_id`, `location`, `quantity`, `acquisition_cost`, `date_acquired`, `accountable`, `serial_no`, `municipal_serial_no`, `status`, `note`, `monitor`, `motherboard`, `ram`, `storage`, `gpu`, `psu`, `casing`, `other_parts`, `created_at`, `updated_at`, `last_checked`, `maintenance_interval_days`, `health_score`, `risk_level`, `is_archived`, `deleted_at`, `mouse`, `keyboard`) VALUES
+(1, 'pc-clb-01', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550372-490436', 'MSN-1776093550372-787857', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(2, 'pc-clb-02', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-799561', 'MSN-1776093550374-250363', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(3, 'pc-clb-03', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-472134', 'MSN-1776093550374-325154', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(4, 'pc-clb-04', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550374-709961', 'MSN-1776093550374-598718', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(5, 'pc-clb-05', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550375-724466', 'MSN-1776093550375-242096', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(6, 'pc-clb-06', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550375-743900', 'MSN-1776093550375-575053', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(7, 'pc-clb-07', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550376-471939', 'MSN-1776093550376-241200', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(8, 'pc-clb-08', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550376-790632', 'MSN-1776093550376-388991', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(9, 'pc-clb-09', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550377-748699', 'MSN-1776093550377-652861', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(10, 'pc-clb-10', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550377-349049', 'MSN-1776093550377-503958', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(11, 'pc-clb-11', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550378-898513', 'MSN-1776093550378-248886', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(12, 'pc-clb-12', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-861458', 'MSN-1776093550379-833222', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(13, 'pc-clb-13', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-678272', 'MSN-1776093550379-542022', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(14, 'pc-clb-14', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550379-628391', 'MSN-1776093550379-775734', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(15, 'pc-clb-15', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550380-293098', 'MSN-1776093550380-191138', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(16, 'pc-clb-16', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550380-154153', 'MSN-1776093550380-626415', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(17, 'pc-clb-17', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-520963', 'MSN-1776093550381-845124', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(18, 'pc-clb-18', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-677038', 'MSN-1776093550381-458541', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(19, 'pc-clb-19', 29, 'Computer Lab B', 1, 35000.00, '2026-04-13', 'dean', 'SN-1776093550381-763796', 'MSN-1776093550381-476228', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-13 15:19:10', '2026-04-13 15:19:10', '2026-04-13', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(21, 'pc-cla-01', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-395319', 'MSN-1776129003625-274978', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(22, 'pc-cla-02', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-677425', 'MSN-1776129003625-226234', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(23, 'pc-cla-03', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-435065', 'MSN-1776129003625-198385', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(24, 'pc-cla-04', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-139476', 'MSN-1776129003625-266822', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(25, 'pc-cla-05', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-488989', 'MSN-1776129003625-154082', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(26, 'pc-cla-06', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-961764', 'MSN-1776129003625-862560', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(27, 'pc-cla-07', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-229534', 'MSN-1776129003625-298388', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(28, 'pc-cla-08', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-390205', 'MSN-1776129003625-909758', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(29, 'pc-cla-09', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-363183', 'MSN-1776129003625-289009', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(30, 'pc-cla-10', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-385337', 'MSN-1776129003625-740633', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(31, 'pc-cla-11', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-131825', 'MSN-1776129003625-711763', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(32, 'pc-cla-12', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-834994', 'MSN-1776129003625-628990', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(33, 'pc-cla-13', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-899452', 'MSN-1776129003625-613543', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(34, 'pc-cla-14', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-763418', 'MSN-1776129003625-363722', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(35, 'pc-cla-15', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-673285', 'MSN-1776129003625-628680', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(36, 'pc-cla-16', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-611063', 'MSN-1776129003625-978609', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(37, 'pc-cla-17', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-704581', 'MSN-1776129003625-943778', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(38, 'pc-cla-18', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-680462', 'MSN-1776129003625-757109', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(39, 'pc-cla-19', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-903473', 'MSN-1776129003625-749927', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(40, 'pc-cla-20', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-386922', 'MSN-1776129003625-307727', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(41, 'pc-cla-21', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-668324', 'MSN-1776129003625-924162', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(42, 'pc-cla-22', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-451110', 'MSN-1776129003625-990382', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(43, 'pc-cla-23', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-891080', 'MSN-1776129003625-562110', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(44, 'pc-cla-24', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003625-771782', 'MSN-1776129003625-840466', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(45, 'pc-cla-25', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-497224', 'MSN-1776129003626-626779', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(46, 'pc-cla-26', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-596524', 'MSN-1776129003626-553912', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(47, 'pc-cla-27', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-315798', 'MSN-1776129003626-234911', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(48, 'pc-cla-28', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-313475', 'MSN-1776129003626-622983', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(49, 'pc-cla-29', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-270337', 'MSN-1776129003626-970173', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(50, 'pc-cla-30', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-470090', 'MSN-1776129003626-966437', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(51, 'pc-cla-31', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-334299', 'MSN-1776129003626-561623', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(52, 'pc-cla-32', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-911224', 'MSN-1776129003626-658282', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(53, 'pc-cla-33', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-469240', 'MSN-1776129003626-884261', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(54, 'pc-cla-34', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-752397', 'MSN-1776129003626-779204', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(55, 'pc-cla-35', 30, '30', 1, 35000.00, '2026-04-14', 'Mindalita Ocampo-Cruz, DIT\'', 'SN-1776129003626-638352', 'MSN-1776129003626-601559', 'Available', '', NULL, 'gigabyte a320m', 'ramsta 8gb RAM', 'ramsta 500gb SSD', 'GTX 1050 Ti', 'Corsair 500W', 'CoolerMaster', 'wifi dongle', '2026-04-14 01:10:05', '2026-04-14 01:10:05', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(56, 'pc-do-01', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-426437', 'MSN-1776131078988-938942', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(57, 'pc-do-02', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-365987', 'MSN-1776131078988-790541', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(58, 'pc-do-03', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-555828', 'MSN-1776131078988-637499', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(59, 'pc-do-04', 1, '1', 1, 0.00, '2026-04-14', 'dean', 'SN-1776131078988-258640', 'MSN-1776131078988-597721', 'Available', '', NULL, 'Asus B650M-AYW WIFI Motherboard', '8GB DDR4 3200MHz', '256GB SSD', 'GTX 1650', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:44:46', '2026-04-14 01:44:46', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(60, 'Clinic Pc', 32, NULL, 1, 0.00, '2026-04-14', 'Sir Aurum', 'SN-1776131110341-321514', 'MSN-1776131110341-231657', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1050 Ti', '500W 80+ Bronze PSU (Corsair / FSP / Cooler Master)', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:46:45', '2026-04-14 01:46:45', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(61, 'pc-mis-office-01', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-715063', 'MSN-1776131298657-579346', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(62, 'pc-mis-office-02', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-240109', 'MSN-1776131298657-750552', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(63, 'pc-mis-office-03', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-153609', 'MSN-1776131298657-305531', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(64, 'pc-mis-office-04', 3, '3', 1, 0.00, '2026-04-09', 'Sir Aurum', 'SN-1776131298657-411359', 'MSN-1776131298657-781884', 'Available', '', NULL, 'ASUS PRIME B450', '8GB DDR4 3200MHz', '512GB SSD', 'GTX 1650', 'Corsair 500W', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:48:18', '2026-04-14 01:48:18', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(65, 'pc-registar-01', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-625421', 'MSN-1776131535999-963468', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(66, 'pc-registar-02', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-830166', 'MSN-1776131535999-797003', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(67, 'pc-registar-03', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-679651', 'MSN-1776131535999-640322', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(68, 'pc-registar-04', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-573862', 'MSN-1776131535999-405694', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(69, 'pc-registar-05', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-899319', 'MSN-1776131535999-637784', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(70, 'pc-registar-06', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-420359', 'MSN-1776131535999-831225', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(71, 'pc-registar-07', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-537280', 'MSN-1776131535999-976036', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(72, 'pc-registar-08', 31, '31', 1, 0.00, '2026-04-15', 'dean', 'SN-1776131535999-586839', 'MSN-1776131535999-272328', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '256GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21', 'wifi dangle', '2026-04-14 01:52:16', '2026-04-14 01:52:16', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(73, 'pc-clc-01', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-533943', 'MSN-1776131647204-602381', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(74, 'pc-clc-02', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-834230', 'MSN-1776131647204-282444', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(75, 'pc-clc-03', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-233776', 'MSN-1776131647204-283156', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(76, 'pc-clc-04', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-363543', 'MSN-1776131647204-601806', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(77, 'pc-clc-05', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-178310', 'MSN-1776131647204-197767', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(78, 'pc-clc-06', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-811543', 'MSN-1776131647204-821996', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(79, 'pc-clc-07', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-875342', 'MSN-1776131647204-225178', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(80, 'pc-clc-08', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-161032', 'MSN-1776131647204-538867', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(81, 'pc-clc-09', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-714231', 'MSN-1776131647204-403112', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(82, 'pc-clc-10', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647204-525837', 'MSN-1776131647204-557314', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(83, 'pc-clc-11', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-119423', 'MSN-1776131647205-560578', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(84, 'pc-clc-12', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-561742', 'MSN-1776131647205-902145', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(85, 'pc-clc-13', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-667232', 'MSN-1776131647205-897184', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(86, 'pc-clc-14', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-767252', 'MSN-1776131647205-457608', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(87, 'pc-clc-15', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-920704', 'MSN-1776131647205-137697', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(88, 'pc-clc-16', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-291608', 'MSN-1776131647205-857475', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(89, 'pc-clc-17', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-418382', 'MSN-1776131647205-246068', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(90, 'pc-clc-18', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-295332', 'MSN-1776131647205-827902', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(91, 'pc-clc-19', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-894929', 'MSN-1776131647205-380247', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(92, 'pc-clc-20', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-179477', 'MSN-1776131647205-979976', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(93, 'pc-clc-21', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-240628', 'MSN-1776131647205-812476', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-15 01:56:15', '2026-04-15', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(94, 'pc-clc-22', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-752382', 'MSN-1776131647205-787232', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(95, 'pc-clc-23', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-708766', 'MSN-1776131647205-204806', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(96, 'pc-clc-24', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-879880', 'MSN-1776131647205-272244', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(97, 'pc-clc-25', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-745897', 'MSN-1776131647205-366243', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(98, 'pc-clc-26', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-474242', 'MSN-1776131647205-700893', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(99, 'pc-clc-27', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-372569', 'MSN-1776131647205-732741', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(100, 'pc-clc-28', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-319058', 'MSN-1776131647205-622242', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(101, 'pc-clc-29', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-735355', 'MSN-1776131647205-825523', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(102, 'pc-clc-30', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-138824', 'MSN-1776131647205-328095', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(103, 'pc-clc-31', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-792433', 'MSN-1776131647205-681267', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(104, 'pc-clc-32', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-919500', 'MSN-1776131647205-689305', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(105, 'pc-clc-33', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-726703', 'MSN-1776131647205-457314', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(106, 'pc-clc-34', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-801409', 'MSN-1776131647205-734074', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(107, 'pc-clc-35', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-986028', 'MSN-1776131647205-846931', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(108, 'pc-clc-36', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-605055', 'MSN-1776131647205-654686', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(109, 'pc-clc-37', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-600807', 'MSN-1776131647205-414157', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(110, 'pc-clc-38', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-794468', 'MSN-1776131647205-677989', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(111, 'pc-clc-39', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-470068', 'MSN-1776131647205-224141', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(112, 'pc-clc-40', 25, '25', 1, 0.00, '2026-04-10', 'Sir Aurum', 'SN-1776131647205-786206', 'MSN-1776131647205-680528', 'Available', '', NULL, 'Asus B650M', '8GB DDR4 3200MHz', '512GB SSD', 'Integrated Graphics (Ryzen 5 5600G)', '500W 80+ Bronze', 'DarkFlash DLM21 Micro ATX Case', 'wifi dangle', '2026-04-14 01:54:07', '2026-04-14 01:54:07', '2026-04-14', 1825, 100, 'Low', 0, NULL, NULL, NULL),
+(113, ' pcla', 30, NULL, 1, 0.00, '2026-04-15', 'Sir Aurum', 'SN-1776225771315-492221', 'MSN-1776225771315-596730', 'IN USE', '', 'Monitor — Dell', 'Motherboard — Asus B650M', 'RAM — 8GB DDR4 3200MHz', 'Storage (SSD) — 256GB SSD', 'Graphics Card (GPU) — Integrated Graphics (Ryzen 5 5600G)', 'Power Supply (PSU) — 500W 80+ Bronze', 'Casing — casin300', 'wifi dangle, Mouse — a4Tech, Keyboard — a4Tech', '2026-04-14 01:54:07', '2026-04-15 04:20:55', '2026-04-14', 1825, 100, 'Low', 0, NULL, 'Mouse — a4Tech', 'Keyboard — a4Tech');
 
 --
 -- Triggers `pcinfofull`
@@ -3298,106 +3483,386 @@ INSERT INTO `user_activity_log` (`log_id`, `user_id`, `username`, `role`, `actio
 (1200, 9, 'admin', 'Admin', 'Add Item', 'Item Management', 'POST /manage_inventory/add-device -> 302', 'POST', '/manage_inventory/add-device', '127.0.0.1', '2026-04-14 02:04:48'),
 (1201, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:04:49'),
 (1202, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?department_id=&status=&accountable=&serial_no=&item_name=Mouse&brand_model=&device_type=&date_from=&date_to=&section=items&ui_section=item', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:05:31'),
-(1203, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKl5hleHRuA2FlbQIxMABicmlkETEydGhVWE5jS2JxamRJbzZhc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHr5ya8tR-V5goID8I_E0UsS16D7l7jZ4VLMNmTN90K8eO_e1pTZZHc9y50Be_aem_7zgMUYXoyui94-QwqvUoeQ', 'GET', '/', '127.0.0.1', '2026-04-14 03:45:13'),
-(1204, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 03:45:30'),
-(1205, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 03:45:31'),
-(1206, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 03:45:40'),
-(1207, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKpqFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR7RDyQetyEuCwWfPlUOiXD_z1YCwxCIFJRuR4dw-F3Hu07etrLmXq-9O-AFhw_aem_xC6ZjoRTw5ANlIGv2oz6Sg', 'GET', '/', '127.0.0.1', '2026-04-14 04:49:22'),
-(1208, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKp55leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR5FnyI1huibhye6edJGfTfwDl73ZKyc40NrbZ1yE-B_LFZmh8kRer7V3_htYw_aem_f8ObYXOR_x2ZYXTX84d10Q', 'GET', '/', '127.0.0.1', '2026-04-14 04:53:35'),
-(1209, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 04:53:52'),
-(1210, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 04:53:53'),
-(1211, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 04:54:46'),
-(1212, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 04:54:47'),
-(1213, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 04:55:03'),
-(1214, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-14 04:55:35'),
-(1215, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-14 04:55:52'),
-(1216, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-14 04:56:02'),
-(1217, 9, 'admin', 'Admin', 'View Page', 'Archive', 'Visited /archive', 'GET', '/archive', '127.0.0.1', '2026-04-14 04:56:10'),
-(1218, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKqjpleHRuA2FlbQIxMABicmlkETF1dWxHRGFkNDFWeXo2cmlTc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHhRheTFGJaa5wpc6BsVz7U0EkpfnlDAbRsx4NxMHUqfd8QOc_31CZ6_pVA1N_aem_9DBKBlQotxcJsm_dgehe9w', 'GET', '/', '127.0.0.1', '2026-04-14 05:04:43'),
-(1219, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:04:48'),
-(1220, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:04:48'),
-(1221, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:04:58'),
-(1222, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:05:02'),
-(1223, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:05:19'),
-(1224, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:05:29'),
-(1225, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:05:57'),
-(1226, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=10&item_page=2', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:07:12'),
-(1227, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=10&item_page=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:08:30'),
-(1228, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=10&item_page=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:09:13'),
-(1229, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:09:31'),
-(1230, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:09:31'),
-(1231, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:13:39'),
-(1232, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:14:00'),
-(1233, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:14:24'),
-(1234, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:26:26'),
-(1235, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:26:35'),
-(1236, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:26:44'),
-(1237, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:27:50'),
-(1238, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 05:27:58'),
-(1239, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:28:02'),
-(1240, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:28:03'),
-(1241, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:28:07'),
-(1242, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:32:16'),
-(1243, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:33:01'),
-(1244, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-14 05:33:40'),
-(1245, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:34:04'),
-(1246, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:34:08'),
-(1247, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:34:33'),
-(1248, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:36:07'),
-(1249, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=5', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:36:41'),
-(1250, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:37:33'),
-(1251, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:39:14'),
-(1252, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:39:17'),
-(1253, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:40:04'),
-(1254, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:41:05'),
-(1255, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:41:16'),
-(1256, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:50:58'),
-(1257, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:51:01'),
-(1258, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:51:25'),
-(1259, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKtTZleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR61-UMCOSynWpITxcDnp9tqJiNl3GqmQod5G-XNc3qrkYTKpyWus0jXtY7Tfw_aem_laHlCL0YPZR5SaNbSGnRMw', 'GET', '/', '127.0.0.1', '2026-04-14 05:51:35'),
-(1260, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:51:53'),
-(1261, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:51:53'),
-(1262, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 05:58:59'),
-(1263, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:59:02'),
-(1264, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:01:29'),
-(1265, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 06:02:48'),
-(1266, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 06:04:13'),
-(1267, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:04:16'),
-(1268, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:05:07'),
-(1269, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-14 06:06:04'),
-(1270, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-14 06:09:45'),
-(1271, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:09:50'),
-(1272, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory/pc-filter-modal', 'GET', '/manage_inventory/pc-filter-modal', '127.0.0.1', '2026-04-14 06:10:25'),
-(1273, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?department_id=&status=&accountable=&serial_no=&item_name=&brand_model=&device_type=&date_from=&date_to=&section=items&ui_section=item', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:11:00'),
-(1274, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?department_id=&status=&accountable=&serial_no=&item_name=&brand_model=&device_type=&date_from=&date_to=&section=item&ui_section=item&item_page=1&per_page=50&search=Aurum', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:15:18'),
-(1275, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?department_id=&status=&accountable=&serial_no=&item_name=&brand_model=&device_type=&date_from=&date_to=&section=pc&ui_section=item&item_page=1&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:15:45'),
-(1276, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKvyFleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR5q41Fq4recOpXDy_hukM2B77w3HrrbRLhS2SNn9sQ-LngoP-5W_AccTDhgGA_aem_hO9miuiQOqwnzHfed2mvAw', 'GET', '/', '127.0.0.1', '2026-04-14 06:33:53'),
-(1277, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 06:36:06'),
-(1278, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 06:36:06'),
-(1279, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 06:36:19'),
-(1280, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-14 06:36:37'),
-(1281, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:37:56'),
-(1282, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-14 06:41:35'),
-(1283, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:41:46'),
-(1284, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-14 06:42:54'),
-(1285, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:44:34'),
-(1286, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-14 06:45:19'),
-(1287, 9, 'admin', 'Admin', 'Export File', 'Reports', 'GET /export-reports?name=&category=all&department=all&status=all&date_from=&date_to= -> 200', 'GET', '/export-reports', '127.0.0.1', '2026-04-14 06:45:24'),
-(1288, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:47:18'),
-(1289, 9, 'admin', 'Admin', 'View Page', 'Archive', 'Visited /archive', 'GET', '/archive', '127.0.0.1', '2026-04-14 06:51:32'),
-(1290, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-14 06:51:48'),
-(1291, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-14 06:51:51'),
-(1292, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:52:30'),
-(1293, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:54:11'),
-(1294, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-14 06:54:14'),
-(1295, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-14 06:55:15'),
-(1296, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 06:56:10'),
-(1297, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?department_id=&status=&accountable=&serial_no=&item_name=&brand_model=&device_type=&date_from=&date_to=&section=item&ui_section=item&item_page=1&per_page=50', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 07:37:58'),
-(1298, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 07:39:19'),
-(1299, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /?fbclid=IwY2xjawRKzvFleHRuA2FlbQIxMQBicmlkETFkV3FBZHRIWjZpMk1iemZTc3J0YwZhcHBfaWQBMAABHpxdw5Uo4iQexXpIX-uVlO0y_asxCJEYbtYfnJjWWSYfjrV82EjKw0VGFThe_aem_nssOmJ-U12bPijNJcLE6fw', 'GET', '/', '127.0.0.1', '2026-04-14 07:41:22'),
-(1300, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 07:41:25'),
-(1301, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 07:41:26'),
-(1302, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 07:41:31');
+(1203, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 02:25:49'),
+(1204, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 02:25:54'),
+(1205, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 02:25:55'),
+(1206, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:26:01'),
+(1207, 9, 'admin', 'Admin', 'View Page', 'Damage Report', 'Visited /damage-report', 'GET', '/damage-report', '127.0.0.1', '2026-04-14 02:26:04'),
+(1208, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:26:20'),
+(1209, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:39:14'),
+(1210, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-14 02:39:43'),
+(1211, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-14 02:40:07'),
+(1212, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-14 02:40:26'),
+(1213, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-14 02:40:27'),
+(1214, 9, 'admin', 'Admin', 'View Page', 'Activity Log', 'Visited /activity-log', 'GET', '/activity-log', '127.0.0.1', '2026-04-14 02:40:29'),
+(1215, 9, 'admin', 'Admin', 'View Page', 'Maintenance', 'Visited /maintenance/history', 'GET', '/maintenance/history', '127.0.0.1', '2026-04-14 02:40:36'),
+(1216, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transaction_history', 'GET', '/transaction_history', '127.0.0.1', '2026-04-14 02:40:39'),
+(1217, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 02:41:02'),
+(1218, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 05:11:15'),
+(1219, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 05:12:43'),
+(1220, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:12:46'),
+(1221, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:12:47'),
+(1222, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:12:53'),
+(1223, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 05:13:57'),
+(1224, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:13:59'),
+(1225, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:14:00'),
+(1226, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:14:04'),
+(1227, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-14 05:14:48'),
+(1228, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-14 05:18:46'),
+(1229, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:19:15'),
+(1230, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-14 05:19:27'),
+(1231, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 05:21:29'),
+(1232, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-14 05:21:29'),
+(1233, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 05:25:42'),
+(1234, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 05:25:42'),
+(1235, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:25:51'),
+(1236, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:26:22'),
+(1237, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=2&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:29:36'),
+(1238, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=10&item_page=3', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:36:38'),
+(1239, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=50&item_page=3&search=113', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:38:47'),
+(1240, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=50&item_page=3', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 05:39:15'),
+(1241, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 08:02:45'),
+(1242, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 08:09:34'),
+(1243, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 08:09:36'),
+(1244, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 08:09:37'),
+(1245, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:09:41'),
+(1246, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:23:14'),
+(1247, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:25:57'),
+(1248, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:39:10'),
+(1249, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 08:39:12'),
+(1250, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:39:17'),
+(1251, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&item_page=8&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:47:14'),
+(1252, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:50:56'),
+(1253, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=1&per_page=50&search=Mouse', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:52:09'),
+(1254, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 08:52:53'),
+(1255, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 08:52:55'),
+(1256, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 08:52:56'),
+(1257, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 08:53:00'),
+(1258, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=4&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 09:16:37'),
+(1259, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=1&per_page=10&search=Mouse', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 09:18:36'),
+(1260, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 10:18:25'),
+(1261, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&item_page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 10:18:58'),
+(1262, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-14 13:51:09'),
+(1263, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-14 13:51:36'),
+(1264, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-14 13:51:37'),
+(1265, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:03:16'),
+(1266, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=50&search=mouse&item_page=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:20:29'),
+(1267, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=50&item_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:24:27'),
+(1268, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=50&item_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:32:29'),
+(1269, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=50&item_page=9', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:35:46'),
+(1270, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=50&item_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:44:48'),
+(1271, 9, 'admin', 'Admin', 'Add Item', 'Item Management', 'POST /manage_inventory/add-device -> 302', 'POST', '/manage_inventory/add-device', '127.0.0.1', '2026-04-14 14:46:56'),
+(1272, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:46:56'),
+(1273, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item&page=1&per_page=50&item_page=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-14 14:55:26'),
+(1274, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-14 14:55:35'),
+(1275, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 00:26:58'),
+(1276, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 00:27:03'),
+(1277, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 00:27:04'),
+(1278, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 00:27:10'),
+(1279, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=item', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 00:33:31'),
+(1280, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 00:43:37'),
+(1281, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 01:54:59'),
+(1282, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 01:55:02'),
+(1283, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 01:55:03'),
+(1284, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 01:55:10'),
+(1285, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 01:55:19'),
+(1286, 9, 'admin', 'Admin', 'Submit', 'Manage Inventory', 'POST /inventory/pc/bulk-damaged -> 200', 'POST', '/inventory/pc/bulk-damaged', '127.0.0.1', '2026-04-15 01:56:06'),
+(1287, 9, 'admin', 'Admin', 'Submit', 'Manage Inventory', 'POST /inventory/pc/bulk-check -> 200', 'POST', '/inventory/pc/bulk-check', '127.0.0.1', '2026-04-15 01:56:15'),
+(1288, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 01:57:11'),
+(1289, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 01:57:21'),
+(1290, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:03:21'),
+(1291, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 02:03:29'),
+(1292, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=3&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:03:36'),
+(1293, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 02:06:26'),
+(1294, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 02:06:28'),
+(1295, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 02:06:29'),
+(1296, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:06:35'),
+(1297, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 02:06:44'),
+(1298, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:10:58'),
+(1299, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 02:11:05'),
+(1300, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:11:13'),
+(1301, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:12:07'),
+(1302, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:17:04'),
+(1303, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 02:24:30'),
+(1304, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:25:00'),
+(1305, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:29:09'),
+(1306, 9, 'admin', 'Admin', 'Submit', 'Manage Pc', 'POST /replace-pc-part -> 404', 'POST', '/replace-pc-part', '127.0.0.1', '2026-04-15 02:29:41'),
+(1307, 9, 'admin', 'Admin', 'Submit', 'Manage Pc', 'POST /replace-pc-part -> 200', 'POST', '/replace-pc-part', '127.0.0.1', '2026-04-15 02:30:11'),
+(1308, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:34:48'),
+(1309, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:38:55'),
+(1310, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:38:57'),
+(1311, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 02:39:05'),
+(1312, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:39:07'),
+(1313, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:44:29'),
+(1314, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:52:34');
+INSERT INTO `user_activity_log` (`log_id`, `user_id`, `username`, `role`, `action`, `module`, `details`, `http_method`, `route`, `ip_address`, `created_at`) VALUES
+(1315, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:59:43'),
+(1316, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 02:59:46'),
+(1317, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 03:04:52'),
+(1318, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 03:05:00'),
+(1319, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 03:05:01'),
+(1320, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:05:06'),
+(1321, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:11:24'),
+(1322, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:14:56'),
+(1323, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:16:17'),
+(1324, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:18:45'),
+(1325, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:23:19'),
+(1326, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:23:35'),
+(1327, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:23:43'),
+(1328, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:24:13'),
+(1329, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:33:34'),
+(1330, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:33:41'),
+(1331, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 03:49:07'),
+(1332, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:49:09'),
+(1333, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 03:49:21'),
+(1334, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 03:49:22'),
+(1335, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:49:26'),
+(1336, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:49:37'),
+(1337, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:49:59'),
+(1338, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 500', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:50:42'),
+(1339, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 03:56:59'),
+(1340, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 03:57:08'),
+(1341, 9, 'admin', 'Admin', 'Edit Item', 'PC Management', 'POST /update-pcinfofull -> 200', 'POST', '/update-pcinfofull', '127.0.0.1', '2026-04-15 04:03:52'),
+(1342, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 04:04:02'),
+(1343, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 04:04:37'),
+(1344, 9, 'admin', 'Admin', 'Submit', 'Manage Pc', 'POST /replace-pc-part -> 400', 'POST', '/replace-pc-part', '127.0.0.1', '2026-04-15 04:04:57'),
+(1345, 9, 'admin', 'Admin', 'Submit', 'Manage Pc', 'POST /replace-pc-part -> 200', 'POST', '/replace-pc-part', '127.0.0.1', '2026-04-15 04:11:21'),
+(1346, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc&page=1&per_page=10', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 04:20:33'),
+(1347, 9, 'admin', 'Admin', 'Submit', 'Manage Pc', 'POST /replace-pc-part -> 200', 'POST', '/replace-pc-part', '127.0.0.1', '2026-04-15 04:20:55'),
+(1348, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 04:21:21'),
+(1349, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 04:26:13'),
+(1350, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 04:26:57'),
+(1351, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 04:33:58'),
+(1352, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 04:36:37'),
+(1353, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 04:36:51'),
+(1354, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 04:37:00'),
+(1355, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 04:57:43'),
+(1356, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:00:52'),
+(1357, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:03:11'),
+(1358, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-15 05:03:19'),
+(1359, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-15 05:03:20'),
+(1360, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-15 05:03:21'),
+(1361, 9, 'admin', 'Admin', 'View Page', 'Archive', 'Visited /archive', 'GET', '/archive', '127.0.0.1', '2026-04-15 05:03:22'),
+(1362, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transaction_history', 'GET', '/transaction_history', '127.0.0.1', '2026-04-15 05:03:24'),
+(1363, 9, 'admin', 'Admin', 'View Page', 'Archive', 'Visited /archive', 'GET', '/archive', '127.0.0.1', '2026-04-15 05:03:25'),
+(1364, 9, 'admin', 'Admin', 'View Page', 'Maintenance', 'Visited /maintenance/history', 'GET', '/maintenance/history', '127.0.0.1', '2026-04-15 05:03:26'),
+(1365, 9, 'admin', 'Admin', 'View Page', 'Damage Report', 'Visited /damage-report', 'GET', '/damage-report', '127.0.0.1', '2026-04-15 05:03:27'),
+(1366, 9, 'admin', 'Admin', 'View Page', 'Report', 'Visited /reportgenerator', 'GET', '/reportgenerator', '127.0.0.1', '2026-04-15 05:03:28'),
+(1367, 9, 'admin', 'Admin', 'View Page', 'Activity Log', 'Visited /activity-log', 'GET', '/activity-log', '127.0.0.1', '2026-04-15 05:03:28'),
+(1368, 9, 'admin', 'Admin', 'View Page', 'Manage Department', 'Visited /manage-department', 'GET', '/manage-department', '127.0.0.1', '2026-04-15 05:03:29'),
+(1369, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-15 05:03:30'),
+(1370, 9, 'admin', 'Admin', 'View Page', 'Manage User', 'Visited /manage-user', 'GET', '/manage-user', '127.0.0.1', '2026-04-15 05:06:06'),
+(1371, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 05:06:08'),
+(1372, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:06:08'),
+(1373, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-15 05:06:08'),
+(1374, 9, 'admin', 'Admin', 'View Page', 'Stock Room', 'Visited /stock_room/stock-room', 'GET', '/stock_room/stock-room', '127.0.0.1', '2026-04-15 05:07:13'),
+(1375, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-15 05:07:15'),
+(1376, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-15 05:07:18'),
+(1377, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 05:13:10'),
+(1378, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 05:13:12'),
+(1379, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 05:13:13'),
+(1380, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-15 05:13:16'),
+(1381, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /transactions', 'GET', '/transactions', '127.0.0.1', '2026-04-15 05:17:02'),
+(1382, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?open_usage=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:17:04'),
+(1383, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:17:10'),
+(1384, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?open_usage=1', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:17:11'),
+(1385, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?open_usage=1&section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 05:23:29'),
+(1386, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 05:23:33'),
+(1387, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 05:50:53'),
+(1388, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 05:51:33'),
+(1389, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 05:51:35'),
+(1390, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 05:51:43'),
+(1391, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 05:52:59'),
+(1392, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:03:48'),
+(1393, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:04:13'),
+(1394, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:16:18'),
+(1395, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:23:55'),
+(1396, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:30:06'),
+(1397, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:42:48'),
+(1398, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:51:04'),
+(1399, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:54:50'),
+(1400, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 06:57:08'),
+(1401, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:00:00'),
+(1402, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:04:44'),
+(1403, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:11:14'),
+(1404, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:19:07'),
+(1405, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:26:04'),
+(1406, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:26:06'),
+(1407, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:26:07'),
+(1408, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:26:19'),
+(1409, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:30:46'),
+(1410, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:30:48'),
+(1411, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:30:50'),
+(1412, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:30:51'),
+(1413, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:31:18'),
+(1414, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:34:26'),
+(1415, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:34:28'),
+(1416, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:34:29'),
+(1417, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:34:31'),
+(1418, 9, 'admin', 'Admin', 'View Page', 'Manage Inventory', 'Visited /manage_inventory?section=pc', 'GET', '/manage_inventory', '127.0.0.1', '2026-04-15 07:35:58'),
+(1419, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:36:14'),
+(1420, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:38:33'),
+(1421, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 302', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 07:39:46'),
+(1422, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:39:46'),
+(1423, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:42:42'),
+(1424, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:49:00'),
+(1425, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:59:39'),
+(1426, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 302', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 07:59:55'),
+(1427, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 07:59:55'),
+(1428, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:07:48'),
+(1429, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 302', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:08:03'),
+(1430, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:08:03'),
+(1431, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:11:05'),
+(1432, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/return -> 415', 'POST', '/consumables/return', '127.0.0.1', '2026-04-15 08:11:20'),
+(1433, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:11:27'),
+(1434, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:13:00'),
+(1435, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/return -> 400', 'POST', '/consumables/return', '127.0.0.1', '2026-04-15 08:13:09'),
+(1436, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:13:11'),
+(1437, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:13:20'),
+(1438, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/return -> 400', 'POST', '/consumables/return', '127.0.0.1', '2026-04-15 08:13:36'),
+(1439, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:13:41'),
+(1440, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:13:53'),
+(1441, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:14:12'),
+(1442, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:18:12'),
+(1443, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:20:57'),
+(1444, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:21:21'),
+(1445, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:24:38'),
+(1446, 9, 'admin', 'Admin', 'View Page', 'Qrcode', 'Visited /qrcodegenerator', 'GET', '/qrcodegenerator', '127.0.0.1', '2026-04-15 08:24:44'),
+(1447, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:24:48'),
+(1448, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:32:35'),
+(1449, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:32:42'),
+(1450, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:32:44'),
+(1451, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:34:50'),
+(1452, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:34:58'),
+(1453, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:35:08'),
+(1454, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:35:17'),
+(1455, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:35:50'),
+(1456, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:37:33'),
+(1457, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 200', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:37:41'),
+(1458, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:37:57'),
+(1459, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:10'),
+(1460, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:12'),
+(1461, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:12'),
+(1462, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:12'),
+(1463, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:12'),
+(1464, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:12'),
+(1465, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:13'),
+(1466, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:13'),
+(1467, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:13'),
+(1468, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:13'),
+(1469, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:13'),
+(1470, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:14'),
+(1471, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:14'),
+(1472, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:14'),
+(1473, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:14'),
+(1474, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:17'),
+(1475, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:38:18'),
+(1476, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:27'),
+(1477, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:27'),
+(1478, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:27'),
+(1479, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:38:28'),
+(1480, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 08:39:20'),
+(1481, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 08:39:23'),
+(1482, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 08:39:23'),
+(1483, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:39:30'),
+(1484, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:39:42'),
+(1485, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:39:43'),
+(1486, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:39:43'),
+(1487, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:40:57'),
+(1488, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 200', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:41:03'),
+(1489, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:43:39'),
+(1490, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:43:51'),
+(1491, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:02'),
+(1492, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:02'),
+(1493, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:03'),
+(1494, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:44:04'),
+(1495, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:12'),
+(1496, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:12'),
+(1497, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:12'),
+(1498, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:12'),
+(1499, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:12'),
+(1500, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:44:13'),
+(1501, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:47:14'),
+(1502, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:19'),
+(1503, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:20'),
+(1504, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:20'),
+(1505, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:20'),
+(1506, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:21'),
+(1507, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:21'),
+(1508, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:47:37'),
+(1509, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:44'),
+(1510, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:44'),
+(1511, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:45'),
+(1512, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:45'),
+(1513, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:45'),
+(1514, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:45'),
+(1515, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 08:47:45'),
+(1516, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 08:52:50'),
+(1517, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 09:06:14'),
+(1518, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 09:14:28'),
+(1519, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 09:15:55'),
+(1520, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 09:15:58'),
+(1521, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 09:15:58'),
+(1522, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:16:02'),
+(1523, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:19:26'),
+(1524, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:19:34'),
+(1525, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:19:37'),
+(1526, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:19:38'),
+(1527, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:20:49'),
+(1528, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:21:00'),
+(1529, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:21:00'),
+(1530, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:21:01'),
+(1531, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:21:01'),
+(1532, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:23:23'),
+(1533, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:23:37'),
+(1534, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:23:38'),
+(1535, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:23:38'),
+(1536, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:25:57'),
+(1537, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:26:10'),
+(1538, 9, 'admin', 'Admin', 'View Page', 'Index', 'Visited /', 'GET', '/', '127.0.0.1', '2026-04-15 09:26:52'),
+(1539, 9, 'admin', 'Admin', 'Login', 'Authentication', 'User signed in successfully', 'POST', '/login/', '127.0.0.1', '2026-04-15 09:26:54'),
+(1540, 9, 'admin', 'Admin', 'View Page', 'Dashboard', 'Visited /dashboardload', 'GET', '/dashboardload', '127.0.0.1', '2026-04-15 09:26:54'),
+(1541, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:26:59'),
+(1542, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:27:11'),
+(1543, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:27:12'),
+(1544, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:27:12'),
+(1545, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:27:12'),
+(1546, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:40:02'),
+(1547, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:40:28'),
+(1548, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:40:35'),
+(1549, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:40:35'),
+(1550, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:40:36'),
+(1551, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:40:36'),
+(1552, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:40:36'),
+(1553, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:40:37'),
+(1554, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 09:45:31'),
+(1555, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:41'),
+(1556, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1557, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1558, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1559, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1560, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1561, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1562, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:42'),
+(1563, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:43'),
+(1564, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:43'),
+(1565, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:43'),
+(1566, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:43'),
+(1567, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 09:45:43'),
+(1568, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 10:00:54'),
+(1569, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:01:04'),
+(1570, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:01:05'),
+(1571, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:01:05'),
+(1572, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:01:05'),
+(1573, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 10:01:09'),
+(1574, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 10:09:36'),
+(1575, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:09:44'),
+(1576, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:09:44'),
+(1577, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:09:44'),
+(1578, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:09:45'),
+(1579, 9, 'admin', 'Admin', 'Submit', 'Transaction', 'POST /consumables/use -> 400', 'POST', '/consumables/use', '127.0.0.1', '2026-04-15 10:09:45'),
+(1580, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 10:09:46'),
+(1581, 9, 'admin', 'Admin', 'View Page', 'Transaction', 'Visited /consumable-usage', 'GET', '/consumable-usage', '127.0.0.1', '2026-04-15 10:10:50');
 
 --
 -- Indexes for dumped tables
@@ -3448,6 +3913,12 @@ ALTER TABLE `consumables`
 ALTER TABLE `consumable_transactions`
   ADD PRIMARY KEY (`transaction_id`),
   ADD KEY `accession_id` (`accession_id`);
+
+--
+-- Indexes for table `consumable_usage`
+--
+ALTER TABLE `consumable_usage`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `damage_reports`
@@ -3630,13 +4101,19 @@ ALTER TABLE `consumables`
 -- AUTO_INCREMENT for table `consumable_transactions`
 --
 ALTER TABLE `consumable_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+
+--
+-- AUTO_INCREMENT for table `consumable_usage`
+--
+ALTER TABLE `consumable_usage`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `damage_reports`
 --
 ALTER TABLE `damage_reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `damage_types`
@@ -3660,7 +4137,7 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `devices_full`
 --
 ALTER TABLE `devices_full`
-  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=523;
+  MODIFY `accession_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=623;
 
 --
 -- AUTO_INCREMENT for table `devices_units`
@@ -3678,7 +4155,7 @@ ALTER TABLE `device_damage_reports`
 -- AUTO_INCREMENT for table `inventory_audit_log`
 --
 ALTER TABLE `inventory_audit_log`
-  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `audit_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- AUTO_INCREMENT for table `inventory_settings`
@@ -3696,7 +4173,7 @@ ALTER TABLE `inventory_status_logs`
 -- AUTO_INCREMENT for table `maintenance_history`
 --
 ALTER TABLE `maintenance_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=350;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=352;
 
 --
 -- AUTO_INCREMENT for table `maintenance_history_backfill_20260402`
@@ -3708,7 +4185,7 @@ ALTER TABLE `maintenance_history_backfill_20260402`
 -- AUTO_INCREMENT for table `maintenance_logs`
 --
 ALTER TABLE `maintenance_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=296;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=298;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -3738,7 +4215,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_activity_log`
 --
 ALTER TABLE `user_activity_log`
-  MODIFY `log_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1303;
+  MODIFY `log_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1582;
 
 --
 -- Constraints for dumped tables
@@ -3770,58 +4247,10 @@ ALTER TABLE `consumable_transactions`
   ADD CONSTRAINT `consumable_transactions_ibfk_1` FOREIGN KEY (`accession_id`) REFERENCES `consumables` (`accession_id`);
 
 --
--- Constraints for table `damage_reports`
---
-ALTER TABLE `damage_reports`
-  ADD CONSTRAINT `damage_reports_ibfk_1` FOREIGN KEY (`pcid`) REFERENCES `pcinfofull` (`pcid`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Constraints for table `devices`
 --
 ALTER TABLE `devices`
   ADD CONSTRAINT `devices_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
-
---
--- Constraints for table `devices_full`
---
-ALTER TABLE `devices_full`
-  ADD CONSTRAINT `fk_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE SET NULL;
-
---
--- Constraints for table `devices_units`
---
-ALTER TABLE `devices_units`
-  ADD CONSTRAINT `devices_units_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`device_id`);
-
---
--- Constraints for table `device_damage_reports`
---
-ALTER TABLE `device_damage_reports`
-  ADD CONSTRAINT `device_damage_reports_ibfk_1` FOREIGN KEY (`accession_id`) REFERENCES `devices_full` (`accession_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `maintenance_history`
---
-ALTER TABLE `maintenance_history`
-  ADD CONSTRAINT `fk_maintenance_pc` FOREIGN KEY (`pcid`) REFERENCES `pcinfofull` (`pcid`) ON DELETE CASCADE;
-
---
--- Constraints for table `pcinfofull`
---
-ALTER TABLE `pcinfofull`
-  ADD CONSTRAINT `pcinfofull_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`);
-
---
--- Constraints for table `pcparts`
---
-ALTER TABLE `pcparts`
-  ADD CONSTRAINT `pcparts_ibfk_1` FOREIGN KEY (`pcid`) REFERENCES `pcs` (`pcid`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `pcs`
---
-ALTER TABLE `pcs`
-  ADD CONSTRAINT `pcs_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
