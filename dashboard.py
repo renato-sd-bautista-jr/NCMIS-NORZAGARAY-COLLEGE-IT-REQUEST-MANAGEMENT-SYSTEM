@@ -489,8 +489,8 @@ def department_analytics_data():
                     COUNT(DISTINCT pcf.pcid) as pc_count,
                     (COUNT(DISTINCT df.accession_id) + COUNT(DISTINCT pcf.pcid)) as total_assets,
                     COALESCE(SUM(df.acquisition_cost), 0) + COALESCE(SUM(pcf.acquisition_cost), 0) as total_cost,
-                    COUNT(DISTINCT CASE WHEN df.status = 'In Used' THEN df.accession_id END) +
-                    COUNT(DISTINCT CASE WHEN pcf.status = 'In Used' THEN pcf.pcid END) as in_use_count,
+                    COUNT(DISTINCT CASE WHEN LOWER(COALESCE(df.status, '')) IN ('in used','in use','in-used','inuse') THEN df.accession_id END) +
+                    COUNT(DISTINCT CASE WHEN LOWER(COALESCE(pcf.status, '')) IN ('in used','in use','in-used','inuse') THEN pcf.pcid END) as in_use_count,
                     COUNT(DISTINCT CASE WHEN df.status = 'Available' THEN df.accession_id END) +
                     COUNT(DISTINCT CASE WHEN pcf.status = 'Available' THEN pcf.pcid END) as available_count
                 FROM departments d
@@ -763,10 +763,10 @@ def dashboard_load():
 
             available_items = available_devices + available_pc
 
-            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE status = 'In Used' {dev_arch_clause}")
+            cur.execute(f"SELECT COUNT(*) AS total FROM devices_full WHERE LOWER(COALESCE(status, '')) IN ('in used','in use','in-used','inuse') {dev_arch_clause}")
             in_use_devices = _get_num(cur.fetchone(), 'total', 0)
 
-            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE status = 'In Used' {pc_arch_clause}")
+            cur.execute(f"SELECT COUNT(*) AS total FROM pcinfofull WHERE LOWER(COALESCE(status, '')) IN ('in used','in use','in-used','inuse') {pc_arch_clause}")
             in_use_pcs = _get_num(cur.fetchone(), 'total', 0)
 
             in_use_items = in_use_devices + in_use_pcs
@@ -791,8 +791,16 @@ def dashboard_load():
             cur.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_transactions WHERE action = 'RECEIVE'")
             total_received_items = _get_num(cur.fetchone(), 'total', 0)
 
+            # Include returns recorded in the dedicated `consumable_usage` table
             cur.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_transactions WHERE action = 'RETURN'")
-            total_return_items = _get_num(cur.fetchone(), 'total', 0)
+            total_return_tx = _get_num(cur.fetchone(), 'total', 0)
+            try:
+                cur.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_usage")
+                total_return_usage = _get_num(cur.fetchone(), 'total', 0)
+            except Exception:
+                total_return_usage = 0
+
+            total_return_items = int(total_return_tx) + int(total_return_usage)
 
             # 🔹 Total Departments Count
             cur.execute("SELECT COUNT(*) AS total FROM departments")

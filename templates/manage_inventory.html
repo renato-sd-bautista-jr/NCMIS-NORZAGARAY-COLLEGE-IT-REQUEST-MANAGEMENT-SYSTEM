@@ -11,7 +11,7 @@
       --toast-duration: 5000ms;
       --modal-border: #dbe4f2;
       --modal-surface: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-    }
+    } 
 
     .quick-search-card {
       border: 1px solid #d7e4f3;
@@ -880,6 +880,39 @@
     #inventorySection .pc-btn-red {
       background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
       box-shadow: 0 10px 18px -12px rgba(220, 38, 38, 0.85);
+    }
+
+    #inventorySection .pc-btn-indigo {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      box-shadow: 0 10px 18px -12px rgba(79, 70, 229, 0.85);
+    }
+
+    #inventorySection .pc-btn-indigo:hover {
+      filter: brightness(1.04);
+    }
+
+    /* Small replace-part button used in rows and mobile cards */
+    #inventorySection .replace-part-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 0.6rem;
+      padding: 0.32rem 0.6rem;
+      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 14px -12px rgba(79, 70, 229, 0.78);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      font-weight: 700;
+    }
+
+    #inventorySection .replace-part-btn i[data-lucide] {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+
+    #inventorySection .replace-part-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
     }
 
     #inventorySection .pc-io-card {
@@ -1802,6 +1835,24 @@
   {% include 'delete_modal.html' %}
   {% include 'partials/filter_device_modal.html' %}
   {% include 'consumableeditmodal.html' %}
+  {% if request.args.get('open_usage') == '1' %}
+    {% include 'consumable_usage_modal.html' %}
+  {% endif %}
+  <script>window.CURRENT_USER_ID = {{ (session.get('user').get('user_id') if session.get('user') else None) | tojson }};</script>
+  {% if request.args.get('open_usage') == '1' %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var attemptOpenUsage = function () {
+        if (typeof openConsumableUsageModal === 'function') {
+          openConsumableUsageModal();
+        } else {
+          setTimeout(attemptOpenUsage, 150);
+        }
+      };
+      attemptOpenUsage();
+    });
+  </script>
+  {% endif %}
   <!-- Overlay for mobile -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
 
@@ -1831,6 +1882,7 @@
           {% include 'pceditmodal.html' %}
           {% include 'itemeditmodal.html' %}  
         </div>
+        <script src="{{ url_for('static', filename='js/replace_part.js') }}"></script>
       </div>
     </div>
 
@@ -1963,6 +2015,13 @@ Surrendered Item
             <i data-lucide="alert-triangle" class="w-5 h-5"></i> Mark as Damaged
           </button>
 
+          <button id="bulkReplaceBtn"
+            type="button"
+            onclick="openReplacePartModal()"
+            class="pc-btn pc-btn-indigo">
+            <i data-lucide="repeat" class="w-5 h-5"></i> Replace Part
+          </button>
+
           {% endif %}
           </div>
 
@@ -2055,7 +2114,17 @@ Surrendered Item
                
                 <tbody id="pcTableBody" data-can-edit="{{ 1 if permissions.get('inventory', {}).get('edit', False) else 0 }}">
                 {% for pc in pc_list %}
-                <tr class="hover:bg-gray-100 transition">
+                <tr class="hover:bg-gray-100 transition"
+                  data-monitor="{{ pc.monitor|e }}"
+                  data-motherboard="{{ pc.motherboard|e }}"
+                  data-ram="{{ pc.ram|e }}"
+                  data-storage="{{ pc.storage|e }}"
+                  data-gpu="{{ pc.gpu|e }}"
+                  data-psu="{{ pc.psu|e }}"
+                  data-casing="{{ pc.casing|e }}"
+                  data-mouse="{{ pc.mouse|e }}"
+                  data-keyboard="{{ pc.keyboard|e }}"
+                  data-other-parts="{{ pc.other_parts|e }}">
                   <td class="px-4 py-2 border-b">
                     <input type="checkbox"
                           class="pc-checkbox"
@@ -2071,9 +2140,9 @@ Surrendered Item
                   <td class="px-4 py-2 border-b">{{ pc.municipal_serial_no }}</td>   
                   <!-- STATUS -->
                   <td class="px-4 py-2 border-b font-medium
-                      {% if pc.status == 'Available' %}text-green-600
-                      {% elif pc.status == 'In Used' %}text-blue-600
-                      {% elif pc.status == 'Inactive' %}text-gray-500
+                      {% if (pc.status or '')|trim|lower == 'available' %}text-green-600
+                      {% elif (pc.status or '')|trim|lower in ['in used','in use','in-used','inuse'] %}text-blue-600
+                      {% elif (pc.status or '')|trim|lower == 'inactive' %}text-gray-500
                       {% else %}text-red-600{% endif %}">
                     {{ pc.status }}
 
@@ -2113,6 +2182,9 @@ Surrendered Item
                       <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
                         <i data-lucide="pencil" class="w-3 h-3"></i> Edit
                       </button>
+                      <button onclick="openReplacePartModal({{ pc.pcid }}, this)" class="replace-part-btn bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
+                        <i data-lucide="repeat" class="w-3 h-3"></i> Replace Part
+                      </button>
                       <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
                         <i data-lucide="trash-2" class="w-3 h-3"></i> Archive
                       </button>
@@ -2146,13 +2218,13 @@ Surrendered Item
                   <h4 class="font-semibold text-gray-900">{{ pc.pcname }}</h4>
                   <p class="text-sm text-gray-600">ID: {{ pc.pcid }}</p>
                 </div>
-                <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                      {% if pc.status == 'Available' %}bg-green-100 text-green-600
-                      {% elif pc.status == 'In Used' %}bg-blue-100 text-blue-600
-                      {% elif pc.status == 'Inactive' %}bg-gray-100 text-gray-500
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                      {% if (pc.status or '')|trim|lower == 'available' %}bg-green-100 text-green-600
+                      {% elif (pc.status or '')|trim|lower in ['in used','in use','in-used','inuse'] %}bg-blue-100 text-blue-600
+                      {% elif (pc.status or '')|trim|lower == 'inactive' %}bg-gray-100 text-gray-500
                       {% else %}bg-red-100 text-red-600{% endif %}">
                       {{ pc.status }}
-                </span>
+                    </span>
               </div>
               
               <div class="space-y-1 text-sm text-gray-600 mb-3">
@@ -2188,6 +2260,9 @@ Surrendered Item
                 {% if permissions.get('inventory', {}).get('edit', False) %}
                 <button onclick="openPcModalById({{ pc.pcid }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
                   <i data-lucide="pencil" class="w-3 h-3"></i> Edit
+                </button>
+                <button onclick="openReplacePartModal({{ pc.pcid }}, this)" class="replace-part-btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                  <i data-lucide="repeat" class="w-3 h-3"></i> Replace Part
                 </button>
                 <button type="button" onclick="openDeleteModal('{{ url_for('manage_pc_bp.delete_pc', pcid=pc.pcid) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
                   <i data-lucide="trash-2" class="w-3 h-3"></i> Archive
@@ -2930,7 +3005,12 @@ Surrendered Item
                           value="{{ item.accession_id }}">
                   </td>
   <td class="px-4 py-2 border-b">{{ item.accession_id }}</td>
-  <td class="px-4 py-2 border-b">{{ item.item_name }}</td>
+  <td class="px-4 py-2 border-b">
+    {{ item.item_name }}
+    {% if item_status_key in ['in used','in use','in-used','inuse'] %}
+      <span class="ml-2 inline-block bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ item.status }}</span>
+    {% endif %}
+  </td>
   <td class="px-4 py-2 border-b">{{ item.brand_model or '—' }}</td>
   <td class="px-4 py-2 border-b">{{ item.serial_no or '—' }}</td>
   <td class="px-4 py-2 border-b">{{ item.municipal_serial_no or '—' }}</td>
@@ -2942,9 +3022,9 @@ Surrendered Item
 
   <!-- STATUS -->
   <td class="px-4 py-2 border-b font-medium
-      {% if item.status == 'Available' %}text-green-600
-      {% elif item.status == 'In Used' %}text-blue-600
-      {% elif item.status == 'Inactive' %}text-gray-500
+      {% if (item.status or '')|trim|lower == 'available' %}text-green-600
+      {% elif (item.status or '')|trim|lower in ['in used','in use','in-used','inuse'] %}text-blue-600
+      {% elif (item.status or '')|trim|lower == 'inactive' %}text-gray-500
       {% else %}text-red-600{% endif %}">
     {{ item.status }}
   </td>
@@ -3020,17 +3100,22 @@ Surrendered Item
         <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
           {% set item_mobile_status_key = (item.status or '')|trim|lower %}
           {% set item_mobile_effective_risk = 'High' if item_mobile_status_key in ['damaged', 'damage', 'unusable'] else (item.risk_level or '--') %}
-          <div class="flex justify-between items-start mb-3">
+                <div class="flex justify-between items-start mb-3">
             <div>
-              <h4 class="font-semibold text-gray-900">{{ item.item_name }}</h4>
+              <h4 class="font-semibold text-gray-900">
+                {{ item.item_name }}
+                {% if item_mobile_status_key in ['in used','in use','in-used','inuse'] %}
+                  <span class="ml-2 inline-block bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ item.status }}</span>
+                {% endif %}
+              </h4>
               <p class="text-sm text-gray-600">ID: {{ item.accession_id }}</p>
             </div>
             <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                  {% if item.status == 'Available' %}bg-green-100 text-green-600
-                  {% elif item.status == 'In Used' %}bg-blue-100 text-blue-600
-                  {% elif item.status == 'Inactive' %}bg-gray-100 text-gray-500
-                  {% else %}bg-red-100 text-red-600{% endif %}">
-                  {{ item.status }}
+              {% if (item.status or '')|trim|lower == 'available' %}bg-green-100 text-green-600
+              {% elif (item.status or '')|trim|lower in ['in used','in use','in-used','inuse'] %}bg-blue-100 text-blue-600
+              {% elif (item.status or '')|trim|lower == 'inactive' %}bg-gray-100 text-gray-500
+              {% else %}bg-red-100 text-red-600{% endif %}">
+              {{ item.status }}
             </span>
           </div>
           <div class="space-y-1 text-sm text-gray-600 mb-3">
@@ -3431,7 +3516,7 @@ Surrendered Item
               </div>
               <span class="px-2 py-1 text-xs font-semibold rounded-full 
                     {% if item.status == 'Available' %}bg-green-100 text-green-600
-                    {% elif item.status == 'In Used' %}bg-blue-100 text-blue-600
+                    {% elif (item.status or '')|trim|lower in ['in used','in use','in-used','inuse'] %}bg-blue-100 text-blue-600
                     {% elif item.status == 'Inactive' %}bg-gray-100 text-gray-500
                     {% else %}bg-red-100 text-red-600{% endif %}">
                     {{ item.status }}

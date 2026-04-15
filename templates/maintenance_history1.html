@@ -568,8 +568,8 @@
           <span class="mh-filter-chip" data-filter="status:available">
             <span class="mh-filter-chip-dot" style="background:#22c55e"></span>Available
           </span>
-          <span class="mh-filter-chip" data-filter="status:in used">
-            <span class="mh-filter-chip-dot" style="background:#3b82f6"></span>In Used
+          <span class="mh-filter-chip" data-filter="status:in use">
+            <span class="mh-filter-chip-dot" style="background:#3b82f6"></span>IN USE
           </span>
           <span class="mh-filter-chip" data-filter="status:damaged">
             <span class="mh-filter-chip-dot" style="background:#ef4444"></span>Damaged
@@ -660,7 +660,7 @@
               {% set row_new_status_key = (row.new_status or '')|trim|lower %}
               <span class="mh-chip
                 {% if row_new_status_key == 'available' %}mh-chip-available
-                {% elif row_new_status_key == 'in used' %}mh-chip-inused
+                {% elif row_new_status_key in ['in used','in use','in-used','inuse'] %}mh-chip-inused
                 {% elif row_new_status_key == 'inactive' %}mh-chip-inactive
                 {% else %}mh-chip-damaged{% endif %}">
                 <span class="mh-chip-dot"></span>

@@ -13,6 +13,604 @@ from notification import add_notification
 
 manage_pc_bp = Blueprint('manage_pc_bp', __name__)
 
+
+def _existing_pc_part_columns(cur):
+    """Return list of existing part column names on `pcinfofull` preserving canonical order.
+
+    Uses the provided cursor to query information_schema; returns an ordered
+    subset of the known part columns that actually exist in the table.
+    """
+    parts = ['monitor', 'motherboard', 'ram', 'storage', 'gpu', 'psu', 'casing', 'mouse', 'keyboard', 'other_parts']
+    try:
+        placeholders = ','.join(['%s'] * len(parts))
+        cur.execute(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pcinfofull' AND COLUMN_NAME IN ({placeholders})", parts)
+        rows = cur.fetchall()
+        found = set()
+        for r in rows:
+            if isinstance(r, dict):
+                found.add(r.get('COLUMN_NAME'))
+            else:
+                found.add(r[0])
+        return [p for p in parts if p in found]
+    except Exception:
+        # If anything goes wrong, conservatively assume common part columns
+        # except `mouse` which may be missing on older schemas.
+        return [p for p in parts if p != 'mouse']
+
+def _parse_tokens(value):
+    if not value:
+        return set()
+    return set(t.strip() for t in re.split(r"[,;\n]+", str(value)) if t and t.strip())
+
+
+def _mark_device_values_in_use(cur, value, performed_by=None):
+    """Mark devices referenced by `value` as IN USE.
+    Supports accession_id, exact serials, and partial case-insensitive name/brand matches.
+    """
+    if not value:
+        return
+
+    tokens = _parse_tokens(value)
+    for token in tokens:
+        try:
+            print(f"[mark_in_use] token={token!r}")
+        except Exception:
+            pass
+        # try accession id (exact)
+        try:
+            acc_id = int(token)
+        except Exception:
+            acc_id = None
+
+        if acc_id is not None:
+            cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE accession_id = %s", (acc_id,))
+            row = cur.fetchone()
+            if row:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                old_status = row.get('status') if isinstance(row, dict) else row[1]
+                old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+                try:
+                    cur_qty = int(old_qty) if old_qty is not None else None
+                except Exception:
+                    cur_qty = None
+
+                # If quantity is known, decrement by 1; otherwise mark as IN USE
+                if cur_qty is None:
+                    if old_status != 'IN USE':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[mark_in_use] updated accession_id={aid} {old_status!r} -> 'IN USE'")
+                        except Exception:
+                            pass
+                else:
+                    if cur_qty > 0:
+                        new_qty = max(cur_qty - 1, 0)
+                        cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                        except Exception:
+                            pass
+                        if new_qty == 0 and old_status != 'IN USE':
+                            cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                            try:
+                                log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                            except Exception:
+                                pass
+                        try:
+                            print(f"[mark_in_use] accession_id={aid} quantity {cur_qty} -> {new_qty}")
+                        except Exception:
+                            pass
+                    else:
+                        if old_status != 'IN USE':
+                            cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                            try:
+                                log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                            except Exception:
+                                pass
+                            try:
+                                print(f"[mark_in_use] accession_id={aid} set to 'IN USE' (quantity already 0)")
+                            except Exception:
+                                pass
+            else:
+                try:
+                    print(f"[mark_in_use] accession_id {acc_id} not found")
+                except Exception:
+                    pass
+            continue
+
+        # exact serial / municipal serial (may match multiple rows)
+        cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE serial_no = %s OR municipal_serial_no = %s", (token, token))
+        rows = cur.fetchall()
+        if rows:
+            try:
+                matched = [(r.get('accession_id') if isinstance(r, dict) else r[0]) for r in rows]
+                print(f"[mark_in_use] serial match token={token!r} matched_accession_ids={matched}")
+            except Exception:
+                pass
+            for row in rows:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                old_status = row.get('status') if isinstance(row, dict) else row[1]
+                old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+                try:
+                    cur_qty = int(old_qty) if old_qty is not None else None
+                except Exception:
+                    cur_qty = None
+
+                if cur_qty is None:
+                    if old_status != 'IN USE':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[mark_in_use] updated accession_id={aid} {old_status!r} -> 'IN USE'")
+                        except Exception:
+                            pass
+                else:
+                    if cur_qty > 0:
+                        new_qty = max(cur_qty - 1, 0)
+                        cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                        except Exception:
+                            pass
+                        if new_qty == 0 and old_status != 'IN USE':
+                            cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                            try:
+                                log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                            except Exception:
+                                pass
+                        try:
+                            print(f"[mark_in_use] accession_id={aid} quantity {cur_qty} -> {new_qty}")
+                        except Exception:
+                            pass
+                    else:
+                        if old_status != 'IN USE':
+                            cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                            try:
+                                log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                            except Exception:
+                                pass
+                            try:
+                                print(f"[mark_in_use] accession_id={aid} set to 'IN USE' (quantity already 0)")
+                            except Exception:
+                                pass
+            continue
+
+        # partial, case-insensitive match on item_name or brand_model — pick one representative row
+        like = f"%{token.lower()}%"
+        cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE LOWER(item_name) LIKE %s OR LOWER(brand_model) LIKE %s ORDER BY accession_id LIMIT 1", (like, like))
+        row = cur.fetchone()
+        if row:
+            try:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                print(f"[mark_in_use] partial-name match token={token!r} matched_accession_id={aid}")
+            except Exception:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+            old_status = row.get('status') if isinstance(row, dict) else row[1]
+            old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+            try:
+                cur_qty = int(old_qty) if old_qty is not None else None
+            except Exception:
+                cur_qty = None
+
+            if cur_qty is None:
+                if old_status != 'IN USE':
+                    cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                    except Exception:
+                        pass
+                    try:
+                        print(f"[mark_in_use] updated accession_id={aid} {old_status!r} -> 'IN USE'")
+                    except Exception:
+                        pass
+            else:
+                if cur_qty > 0:
+                    new_qty = max(cur_qty - 1, 0)
+                    cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                    except Exception:
+                        pass
+                    if new_qty == 0 and old_status != 'IN USE':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                        except Exception:
+                            pass
+                    try:
+                        print(f"[mark_in_use] accession_id={aid} quantity {cur_qty} -> {new_qty}")
+                    except Exception:
+                        pass
+                else:
+                    if old_status != 'IN USE':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('IN USE', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'IN USE', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[mark_in_use] accession_id={aid} set to 'IN USE' (quantity already 0)")
+                        except Exception:
+                            pass
+        continue
+
+
+def _is_token_referenced_elsewhere(cur, token, exclude_pcid=None):
+    parts = _existing_pc_part_columns(cur)
+    if not parts:
+        return False
+    ex = exclude_pcid or 0
+    placeholders = ' OR '.join([f"{p} LIKE %s" for p in parts])
+    like = f"%{token}%"
+    params = [ex] + [like] * len(parts)
+    # Try including is_archived guard if available, fall back if DB lacks the column
+    try:
+        cur.execute(f"SELECT COUNT(*) AS cnt FROM pcinfofull WHERE pcid != %s AND COALESCE(is_archived, 0) = 0 AND ({placeholders})", params)
+    except Exception:
+        cur.execute(f"SELECT COUNT(*) AS cnt FROM pcinfofull WHERE pcid != %s AND ({placeholders})", params)
+    row = cur.fetchone()
+    cnt = row.get('cnt') if isinstance(row, dict) else (row[0] if row else 0)
+    return int(cnt or 0) > 0
+
+
+def _release_device_values_if_unreferenced(cur, value, exclude_pcid=None, performed_by=None):
+    """Release devices referenced by `value` back to Available if no other active PC references them."""
+    if not value:
+        return
+
+    tokens = _parse_tokens(value)
+    for token in tokens:
+        try:
+            print(f"[release] token={token!r}")
+        except Exception:
+            pass
+
+        # try accession id
+        try:
+            aid = int(token)
+        except Exception:
+            aid = None
+
+        if aid is not None:
+            cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE accession_id = %s", (aid,))
+            row = cur.fetchone()
+            if not row:
+                try:
+                    print(f"[release] accession_id {aid} not found")
+                except Exception:
+                    pass
+                continue
+            old_status = row.get('status') if isinstance(row, dict) else row[1]
+            old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+            try:
+                cur_qty = int(old_qty) if old_qty is not None else None
+            except Exception:
+                cur_qty = None
+
+            if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                try:
+                    print(f"[release] accession_id={aid} still referenced elsewhere; skipping")
+                except Exception:
+                    pass
+                continue
+
+            if cur_qty is None:
+                if old_status != 'Available':
+                    cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                    except Exception:
+                        pass
+                    try:
+                        print(f"[release] updated accession_id={aid} {old_status!r} -> 'Available'")
+                    except Exception:
+                        pass
+            else:
+                new_qty = cur_qty + 1
+                cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                try:
+                    log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                except Exception:
+                    pass
+                if old_status != 'Available':
+                    cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                    except Exception:
+                        pass
+                try:
+                    print(f"[release] accession_id={aid} quantity {cur_qty} -> {new_qty} and status -> 'Available'")
+                except Exception:
+                    pass
+            continue
+
+
+def _mark_device_values_damaged(cur, value, exclude_pcid=None, performed_by=None):
+    """Mark devices referenced by `value` as Damaged and return them to Manage Item list.
+
+    Behavior:
+      - For single accession rows (quantity is NULL) set `status = 'Damaged'`.
+      - For stock/quantity rows (quantity is NOT NULL) increment `quantity` by 1
+        (do not change overall row status to avoid marking entire stock as damaged).
+      - Skip tokens that are still referenced by other active PCs.
+    """
+    if not value:
+        return
+
+    tokens = _parse_tokens(value)
+    for token in tokens:
+        try:
+            print(f"[mark_damaged] token={token!r}")
+        except Exception:
+            pass
+
+        # try accession id
+        try:
+            aid = int(token)
+        except Exception:
+            aid = None
+
+        if aid is not None:
+            cur.execute("SELECT accession_id, status, quantity FROM devices_full WHERE accession_id = %s", (aid,))
+            row = cur.fetchone()
+            if not row:
+                try:
+                    print(f"[mark_damaged] accession_id {aid} not found")
+                except Exception:
+                    pass
+                continue
+
+            old_status = row.get('status') if isinstance(row, dict) else row[1]
+            old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+            try:
+                cur_qty = int(old_qty) if old_qty is not None else None
+            except Exception:
+                cur_qty = None
+
+            if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                try:
+                    print(f"[mark_damaged] accession_id={aid} still referenced elsewhere; skipping")
+                except Exception:
+                    pass
+                continue
+
+            if cur_qty is None:
+                # single device -> mark Damaged
+                if old_status != 'Damaged':
+                    cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Damaged', aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Damaged', performed_by)
+                    except Exception:
+                        pass
+                    try:
+                        print(f"[mark_damaged] accession_id={aid} {old_status!r} -> 'Damaged'")
+                    except Exception:
+                        pass
+            else:
+                # stock item -> increment quantity but do not change status for the row
+                new_qty = cur_qty + 1
+                cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                try:
+                    log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                except Exception:
+                    pass
+                try:
+                    print(f"[mark_damaged] accession_id={aid} quantity {cur_qty} -> {new_qty} (marked as returned damaged)")
+                except Exception:
+                    pass
+            continue
+
+        # serial / municipal serial matches
+        cur.execute("SELECT accession_id, status, quantity FROM devices_full WHERE serial_no = %s OR municipal_serial_no = %s", (token, token))
+        rows = cur.fetchall()
+        if rows:
+            try:
+                matched = [(r.get('accession_id') if isinstance(r, dict) else r[0]) for r in rows]
+                print(f"[mark_damaged] serial match token={token!r} matched_accession_ids={matched}")
+            except Exception:
+                pass
+            for row in rows:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                old_status = row.get('status') if isinstance(row, dict) else row[1]
+                old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+                try:
+                    cur_qty = int(old_qty) if old_qty is not None else None
+                except Exception:
+                    cur_qty = None
+
+                if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                    try:
+                        print(f"[mark_damaged] accession_id={aid} still referenced elsewhere; skipping")
+                    except Exception:
+                        pass
+                    continue
+
+                if cur_qty is None:
+                    if old_status != 'Damaged':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Damaged', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Damaged', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[mark_damaged] accession_id={aid} {old_status!r} -> 'Damaged'")
+                        except Exception:
+                            pass
+                else:
+                    new_qty = cur_qty + 1
+                    cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                    except Exception:
+                        pass
+                    try:
+                        print(f"[mark_damaged] accession_id={aid} quantity {cur_qty} -> {new_qty} (marked as returned damaged)")
+                    except Exception:
+                        pass
+            continue
+
+        # partial name/brand matches - pick representative row
+        like = f"%{token.lower()}%"
+        cur.execute("SELECT accession_id, status, quantity FROM devices_full WHERE LOWER(item_name) LIKE %s OR LOWER(brand_model) LIKE %s ORDER BY accession_id LIMIT 1", (like, like))
+        row = cur.fetchone()
+        if row:
+            try:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                print(f"[mark_damaged] partial-name match token={token!r} matched_accession_id={aid}")
+            except Exception:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+            old_status = row.get('status') if isinstance(row, dict) else row[1]
+            old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+            try:
+                cur_qty = int(old_qty) if old_qty is not None else None
+            except Exception:
+                cur_qty = None
+
+            if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                try:
+                    print(f"[mark_damaged] accession_id={aid} still referenced elsewhere; skipping")
+                except Exception:
+                    pass
+            else:
+                if cur_qty is None:
+                    if old_status != 'Damaged':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Damaged', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Damaged', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[mark_damaged] accession_id={aid} {old_status!r} -> 'Damaged'")
+                        except Exception:
+                            pass
+                else:
+                    new_qty = cur_qty + 1
+                    cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                    except Exception:
+                        pass
+                    try:
+                        print(f"[mark_damaged] accession_id={aid} quantity {cur_qty} -> {new_qty} (marked as returned damaged)")
+                    except Exception:
+                        pass
+        continue
+
+        # serial / municipal serial matches
+        cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE serial_no = %s OR municipal_serial_no = %s", (token, token))
+        rows = cur.fetchall()
+        if rows:
+            try:
+                matched = [(r.get('accession_id') if isinstance(r, dict) else r[0]) for r in rows]
+                print(f"[release] serial/municipal match token={token!r} matched_accession_ids={matched}")
+            except Exception:
+                pass
+            for row in rows:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                old_status = row.get('status') if isinstance(row, dict) else row[1]
+                old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+                try:
+                    cur_qty = int(old_qty) if old_qty is not None else None
+                except Exception:
+                    cur_qty = None
+
+                if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                    try:
+                        print(f"[release] accession_id={aid} still referenced elsewhere; skipping")
+                    except Exception:
+                        pass
+                    continue
+
+                if cur_qty is None:
+                    if old_status != 'Available':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[release] updated accession_id={aid} {old_status!r} -> 'Available'")
+                        except Exception:
+                            pass
+                else:
+                    new_qty = cur_qty + 1
+                    cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                    except Exception:
+                        pass
+                    if old_status != 'Available':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                        except Exception:
+                            pass
+                    try:
+                        print(f"[release] accession_id={aid} quantity {cur_qty} -> {new_qty} and status -> 'Available'")
+                    except Exception:
+                        pass
+            continue
+
+        # partial name/brand matches
+        like = f"%{token.lower()}%"
+        # For partial-name releases pick one representative row (likely the consumable row)
+        cur.execute("SELECT accession_id, status, quantity, device_type FROM devices_full WHERE LOWER(item_name) LIKE %s OR LOWER(brand_model) LIKE %s ORDER BY accession_id LIMIT 1", (like, like))
+        row = cur.fetchone()
+        if row:
+            try:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+                print(f"[release] partial-name match token={token!r} matched_accession_id={aid}")
+            except Exception:
+                aid = row.get('accession_id') if isinstance(row, dict) else row[0]
+            old_status = row.get('status') if isinstance(row, dict) else row[1]
+            old_qty = row.get('quantity') if isinstance(row, dict) else row[2]
+            try:
+                cur_qty = int(old_qty) if old_qty is not None else None
+            except Exception:
+                cur_qty = None
+
+            if _is_token_referenced_elsewhere(cur, token, exclude_pcid):
+                try:
+                    print(f"[release] accession_id={aid} still referenced elsewhere; skipping")
+                except Exception:
+                    pass
+            else:
+                if cur_qty is None:
+                    if old_status != 'Available':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                        except Exception:
+                            pass
+                        try:
+                            print(f"[release] updated accession_id={aid} {old_status!r} -> 'Available'")
+                        except Exception:
+                            pass
+                else:
+                    new_qty = cur_qty + 1
+                    cur.execute("UPDATE devices_full SET quantity = %s WHERE accession_id = %s", (new_qty, aid))
+                    try:
+                        log_inventory_action('DEVICE', aid, 'UPDATE', 'quantity', cur_qty, new_qty, performed_by)
+                    except Exception:
+                        pass
+                    if old_status != 'Available':
+                        cur.execute("UPDATE devices_full SET status = %s WHERE accession_id = %s", ('Available', aid))
+                        try:
+                            log_inventory_action('DEVICE', aid, 'UPDATE', 'status', old_status, 'Available', performed_by)
+                        except Exception:
+                            pass
+                    try:
+                        print(f"[release] accession_id={aid} quantity {cur_qty} -> {new_qty} and status -> 'Available'")
+                    except Exception:
+                        pass
+
    
 
 @manage_pc_bp.route("/delete-pc/<int:pcid>", methods=["POST"])
@@ -20,8 +618,34 @@ def delete_pc(pcid):
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     conn = get_db_connection()
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Fetch only existing part columns so we can release referenced devices after archiving
+            parts = _existing_pc_part_columns(cur)
+            if parts:
+                cols = ', '.join(parts)
+                cur.execute(f"SELECT {cols} FROM pcinfofull WHERE pcid = %s", (pcid,))
+                pc_row = cur.fetchone()
+            else:
+                pc_row = {}
+
+            # Soft-archive the PC first so subsequent reference checks exclude it
             cur.execute("UPDATE pcinfofull SET is_archived = 1, deleted_at = NOW() WHERE pcid = %s", (pcid,))
+
+            # Release referenced device items if they are not referenced by any other active PC
+            performed_by = None
+            try:
+                performed_by = session.get('user', {}).get('user_id')
+            except Exception:
+                performed_by = None
+
+            parts_to_check = parts
+            if pc_row:
+                for field in parts_to_check:
+                    try:
+                        _release_device_values_if_unreferenced(cur, pc_row.get(field), exclude_pcid=pcid, performed_by=performed_by)
+                    except Exception:
+                        pass
+
             conn.commit()
             print(f"PC with ID {pcid} archived (soft deleted).")
         if is_ajax:
@@ -74,7 +698,18 @@ def filter_pcs():
         except Exception:
             has_is_arch = False
 
-        query = """
+        # Build list of existing part columns and construct the SELECT dynamically
+        try:
+            with conn.cursor() as _cur:
+                parts = _existing_pc_part_columns(_cur)
+        except Exception:
+            parts = []
+
+        parts_select = ''
+        if parts:
+            parts_select = ',\n                ' + ',\n                '.join([f"p.{p}" for p in parts])
+
+        query = f"""
             SELECT 
                 p.pcid,
                 p.pcname,
@@ -94,16 +729,8 @@ def filter_pcs():
                 p.health_score,
                 CASE WHEN LOWER(TRIM(p.status)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE p.risk_level END AS risk_level,
                 p.last_checked,
-                p.maintenance_interval_days,
-
-                -- parts
-                p.motherboard,
-                p.ram,
-                p.storage,
-                p.gpu,
-                p.psu,
-                p.casing,
-                p.other_parts
+                p.maintenance_interval_days
+                {parts_select}
 
             FROM pcinfofull p
             LEFT JOIN departments d ON p.department_id = d.department_id
@@ -112,7 +739,6 @@ def filter_pcs():
 
         if has_is_arch:
             query += " AND COALESCE(p.is_archived, 0) = 0"
-        
 
         params = []
         # Normalize status parameter and default to excluding surrendered PCs
@@ -189,16 +815,9 @@ def filter_pcs():
             query += " AND p.status = 'Needs Checking'"
 
         if search:
-            query += """
-                AND (
-                    p.pcname LIKE %s
-                    OR p.motherboard LIKE %s
-                    OR p.ram LIKE %s
-                    OR p.storage LIKE %s
-                    OR p.gpu LIKE %s
-                )
-            """
-            params.extend([f"%{search}%"] * 5)
+            search_cols = ['p.pcname'] + ([f"p.{p}" for p in parts] if parts else [])
+            query += " AND (\n" + "\n OR ".join([f"{col} LIKE %s" for col in search_cols]) + "\n)\n"
+            params.extend([f"%{search}%"] * len(search_cols))
 
         query += " ORDER BY p.pcid DESC"
 
@@ -333,35 +952,64 @@ def add_pcinfofull():
                     if reusable_numbers:
                         data['pcname'] = f"{base_pcname}-{reusable_numbers[0]:02d}"
 
-            # 🔹 Insert new PC
-            cur.execute("""
-                INSERT INTO pcinfofull 
-                (pcname, department_id, location, quantity, acquisition_cost, date_acquired, accountable, serial_no, municipal_serial_no, status, note,maintenance_interval_days,
-                motherboard, ram, storage, gpu, psu, casing, other_parts,
-                last_checked, health_score, risk_level)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, CURDATE(), 100, 'Low')
-            """, (
+            try:
+                dept_assigned = bool(department_id)
+            except Exception:
+                dept_assigned = False
+
+            # Do not override explicit status choices from the form.
+
+
+            # 🔹 Insert new PC (only include existing part columns)
+            parts = _existing_pc_part_columns(cur)
+            base_cols = [
+                'pcname', 'department_id', 'location', 'quantity', 'acquisition_cost',
+                'date_acquired', 'accountable', 'serial_no', 'municipal_serial_no', 'status',
+                'note', 'maintenance_interval_days'
+            ]
+            cols = base_cols + parts + ['last_checked', 'health_score', 'risk_level']
+            placeholders = ','.join(['%s'] * (len(base_cols) + len(parts))) + ", CURDATE(), 100, 'Low'"
+            sql = f"INSERT INTO pcinfofull ({', '.join(cols)}) VALUES ({placeholders})"
+            params = [
                 data.get('pcname'), data.get('department_id'), data.get('location'), data.get('quantity'),
                 data.get('acquisition_cost'), data.get('date_acquired'), data.get('accountable'),
-                serial, municipal, data.get('status'), data.get('note'), data.get('maintenance_interval_days'),
-                data.get('motherboard'), data.get('ram'), data.get('storage'),
-                data.get('gpu'), data.get('psu'), data.get('casing'), data.get('other_parts')
-            ))
+                serial, municipal, data.get('status'), data.get('note'), data.get('maintenance_interval_days')
+            ] + [data.get(p) for p in parts]
+
+            cur.execute(sql, params)
 
             # Ensure DB defaults/triggers can't leave the newly created PC in an incorrect state
             new_pcid = cur.lastrowid
+
+            # Decide final status for the newly inserted PC (respect explicit choices)
+            status_to_set = data.get('status')
+            if not status_to_set or str(status_to_set).strip() == '':
+                status_to_set = 'IN USE' if dept_assigned else 'Available'
+
+            # Persist canonical defaults for last_checked/health/risk and chosen status
             cur.execute("""
                 UPDATE pcinfofull
                 SET
-                    status = 'Available',
+                    status = %s,
                     last_checked = CURDATE(),
                     health_score = 100,
                     risk_level = 'Low'
                 WHERE pcid = %s
-            """, (new_pcid,))
+            """, (status_to_set, new_pcid))
+            # Reflect canonical status back into data for downstream logic
+            data['status'] = status_to_set
+            # After committing the new PC, mark any referenced device items as IN USE
+            performed_by = None
+            try:
+                performed_by = session.get('user', {}).get('user_id')
+            except Exception:
+                performed_by = None
+
+            parts_to_check = parts
+            for part_field in parts_to_check:
+                _mark_device_values_in_use(cur, data.get(part_field), performed_by)
+
             conn.commit()
-
-
 
         return jsonify({"success": True, "message": "PC added successfully!"})
 
@@ -385,6 +1033,8 @@ def update_pcinfofull():
     conn = get_db_connection()
     data = request.form
     user_id = session['user']['user_id']
+    # Ensure status_param is defined early to avoid UnboundLocalError
+    status_param = (data.get('status') or '').strip()
 
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
@@ -393,6 +1043,12 @@ def update_pcinfofull():
             serial = (data.get('serial_no') or '').strip() or None
             municipal = (data.get('municipal_serial_no') or '').strip() or None
             pcid = data.get('pcid')
+
+            # Debug: log incoming identifiers and requested status
+            try:
+                print(f"[update_pc] incoming pcid={pcid!r} status_raw={repr(data.get('status'))} department_id={repr(data.get('department_id'))}")
+            except Exception:
+                pass
 
             if not serial and not municipal:
                 return jsonify({"success": False, "error": "Provide at least Serial No or Municipal Serial No."}), 400
@@ -415,30 +1071,38 @@ def update_pcinfofull():
                 return jsonify({"success": False, "error": "PC not found"}), 404
 
             # 🔹 3. Perform UPDATE
-            cur.execute("""
-                UPDATE pcinfofull SET
-                    pcname=%s,
-                    department_id=%s,
-                    location=%s,
-                    quantity=%s,
-                    acquisition_cost=%s,
-                    date_acquired=%s,
-                    accountable=%s,
-                    serial_no=%s,
-                    municipal_serial_no=%s,
-                    status=%s,
-                    risk_level=CASE WHEN LOWER(TRIM(%s)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE risk_level END,
-                    note=%s,
-                    maintenance_interval_days=%s,
-                    motherboard=%s,
-                    ram=%s,
-                    storage=%s,
-                    gpu=%s,
-                    psu=%s,
-                    casing=%s,
-                    other_parts=%s
-                WHERE pcid=%s
-            """, (
+            # Determine effective status: only derive when status is not provided.
+            status_param = (data.get('status') or '').strip()
+            dept_param = data.get('department_id')
+            try:
+                print(f"[update_pc] before derive status_raw={repr(data.get('status'))} dept_param={repr(dept_param)}")
+            except Exception:
+                pass
+            if not status_param:
+                status_param = 'IN USE' if dept_param else 'Available'
+            try:
+                print(f"[update_pc] derived status_param={repr(status_param)}")
+            except Exception:
+                pass
+
+            # Build dynamic update including only existing part columns
+            parts = _existing_pc_part_columns(cur)
+            update_fields = [
+                "pcname=%s",
+                "department_id=%s",
+                "location=%s",
+                "quantity=%s",
+                "acquisition_cost=%s",
+                "date_acquired=%s",
+                "accountable=%s",
+                "serial_no=%s",
+                "municipal_serial_no=%s",
+                "status=%s",
+                "risk_level=CASE WHEN LOWER(TRIM(%s)) IN ('damaged', 'damage', 'unusable') THEN 'High' ELSE risk_level END",
+                "note=%s",
+                "maintenance_interval_days=%s",
+            ]
+            params = [
                 data.get('pcname'),
                 data.get('department_id'),
                 data.get('location'),
@@ -448,33 +1112,35 @@ def update_pcinfofull():
                 data.get('accountable'),
                 serial,
                 municipal,
-                data.get('status'),
-                data.get('status'),
+                status_param,
+                status_param,
                 data.get('note'),
-                data.get('maintenance_interval_days'),  # ⭐
-                data.get('motherboard'),
-                data.get('ram'),
-                data.get('storage'),
-                data.get('gpu'),
-                data.get('psu'),
-                data.get('casing'),
-                data.get('other_parts'),
-                data.get('pcid')
-            ))
+                data.get('maintenance_interval_days')
+            ]
+
+            for p in parts:
+                update_fields.append(f"{p}=%s")
+                params.append(data.get(p))
+
+            params.append(data.get('pcid'))
+            sql = "UPDATE pcinfofull SET\n                " + ",\n                ".join(update_fields) + "\n            WHERE pcid=%s"
+            cur.execute(sql, params)
 
             # 🔹 4. AUDIT LOGGING
             tracked_fields = [
                 'pcname', 'department_id', 'location', 'quantity',
                 'acquisition_cost', 'date_acquired', 'accountable',
                 'serial_no', 'municipal_serial_no', 'status', 'note',
-                'maintenance_interval_days',  # ⭐ ADD
-                'motherboard', 'ram', 'storage', 'gpu',
-                'psu', 'casing', 'other_parts'
-            ]
+                'maintenance_interval_days'
+            ] + parts
 
             for field in tracked_fields:
                 old_value = old_pc.get(field)
-                new_value = data.get(field)
+                # Use derived status_param for accurate audit if status was inferred
+                if field == 'status':
+                    new_value = status_param
+                else:
+                    new_value = data.get(field)
 
                 # Normalize dates
                 if isinstance(old_value, date):
@@ -495,6 +1161,50 @@ def update_pcinfofull():
                         performed_by=user_id
                     )
 
+            # Release any previously assigned parts that are no longer present, then mark new ones as IN USE
+            parts_to_check = parts
+
+            # Build token sets
+            old_tokens = set()
+            for f in parts_to_check:
+                try:
+                    old_tokens.update(_parse_tokens(old_pc.get(f)))
+                except Exception:
+                    pass
+
+            new_tokens = set()
+            for f in parts_to_check:
+                try:
+                    new_tokens.update(_parse_tokens(data.get(f)))
+                except Exception:
+                    pass
+
+            # Tokens removed in the update -> consider releasing them
+            tokens_to_release = old_tokens - new_tokens
+            for token in tokens_to_release:
+                try:
+                    _release_device_values_if_unreferenced(cur, token, exclude_pcid=pcid, performed_by=user_id)
+                except Exception:
+                    pass
+
+            # Mark new/assigned tokens as IN USE
+            for part_field in parts_to_check:
+                try:
+                    _mark_device_values_in_use(cur, data.get(part_field), user_id)
+                except Exception:
+                    pass
+
+            # After performing updates, fetch current DB status for logging/verification
+            try:
+                cur.execute("SELECT status FROM pcinfofull WHERE pcid = %s", (data.get('pcid'),))
+                _new = cur.fetchone()
+                try:
+                    print(f"[update_pc] DB status after update: {(_new.get('status') if _new else None)!r}")
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
             conn.commit()
 
         return jsonify({"success": True, "message": "PC updated successfully!"})
@@ -505,6 +1215,181 @@ def update_pcinfofull():
 
     finally:
         conn.close()
+@manage_pc_bp.route('/replace-pc-part', methods=['POST'])
+def replace_pc_part():
+    if 'user' not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+    # Accept JSON or form data; support single-part legacy or multiple replacements
+    data = request.get_json(silent=True) or request.form
+    pcid = data.get('pcid')
+    replacements = {}
+
+    # If JSON provided with 'replacements' map
+    if isinstance(data, dict) and data.get('replacements'):
+        replacements = data.get('replacements') or {}
+    else:
+        # Fall back to single-part legacy parameters
+        part = data.get('part')
+        new_value = data.get('new_value') if data.get('new_value') is not None else ''
+        if part:
+            replacements = {part: new_value}
+
+    allowed_parts = ['monitor', 'motherboard', 'ram', 'storage', 'gpu', 'psu', 'casing', 'mouse', 'keyboard', 'other_parts']
+    if not pcid or not replacements:
+        return jsonify({"success": False, "error": "Invalid request parameters"}), 400
+
+    # Validate replacement keys
+    for p in list(replacements.keys()):
+        if p not in allowed_parts:
+            return jsonify({"success": False, "error": f"Invalid part: {p}"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            # Determine which part columns actually exist in the DB for this install
+            existing_parts = _existing_pc_part_columns(cur)
+
+            # Determine requested parts that are not present in the DB schema.
+            # Attempt to create missing columns automatically (only for
+            # allowed part names) so replacements persist in dedicated cols.
+            missing_parts = [p for p in list(replacements.keys()) if p not in existing_parts]
+            if missing_parts:
+                for p in list(missing_parts):
+                    # Only add columns for known/allowed part names
+                    if p not in allowed_parts:
+                        continue
+                    try:
+                        cur.execute(f"ALTER TABLE pcinfofull ADD COLUMN `{p}` TEXT")
+                        try:
+                            print(f"[replace_pc_part] Added missing column `{p}` to pcinfofull")
+                        except Exception:
+                            pass
+                    except Exception as e:
+                        try:
+                            print(f"[replace_pc_part] Could not add column `{p}`: {e}")
+                        except Exception:
+                            pass
+
+                # Refresh list of existing parts after attempted ALTERs
+                existing_parts = _existing_pc_part_columns(cur)
+
+            # Recompute missing after potential schema changes; if still
+            # missing and there's no `other_parts` column to fall back to,
+            # return an error for the first unsupported part.
+            missing_parts = [p for p in list(replacements.keys()) if p not in existing_parts]
+            if missing_parts and 'other_parts' not in existing_parts:
+                return jsonify({"success": False, "error": f"Part not supported by current schema: {missing_parts[0]}"}), 400
+
+            # Fetch current values for only the existing parts
+            if existing_parts:
+                cols = ', '.join(existing_parts)
+                cur.execute(f"SELECT {cols} FROM pcinfofull WHERE pcid = %s", (pcid,))
+                row = cur.fetchone()
+            else:
+                row = {}
+
+            if not row:
+                return jsonify({"success": False, "error": "PC not found"}), 404
+
+            performed_by = None
+            try:
+                performed_by = session.get('user', {}).get('user_id')
+            except Exception:
+                performed_by = None
+
+            # If the caller requested replacements for part columns that do
+            # not exist, merge their new-values into `other_parts` (if present)
+            if missing_parts:
+                tokens_to_add = []
+                for p in missing_parts:
+                    v = replacements.pop(p, '')
+                    if v:
+                        tokens_to_add.append(str(v).strip())
+
+                base_other = ''
+                try:
+                    base_other = (replacements.get('other_parts') or row.get('other_parts') or '')
+                    base_other = str(base_other).strip()
+                except Exception:
+                    base_other = ''
+
+                if tokens_to_add:
+                    if base_other:
+                        combined = base_other + ', ' + ', '.join(tokens_to_add)
+                    else:
+                        combined = ', '.join(tokens_to_add)
+                    replacements['other_parts'] = combined
+
+            # Build sets of tokens to release: only release tokens that are
+            # present in the old values but not present in the new values.
+            parts_to_check = [p for p in list(replacements.keys()) if p in existing_parts]
+            old_tokens = set()
+            for f in parts_to_check:
+                try:
+                    old_tokens.update(_parse_tokens(row.get(f)))
+                except Exception:
+                    pass
+
+            new_tokens = set()
+            for f in parts_to_check:
+                try:
+                    new_tokens.update(_parse_tokens(replacements.get(f)))
+                except Exception:
+                    pass
+
+            tokens_to_release = old_tokens - new_tokens
+            for token in tokens_to_release:
+                try:
+                    # When replacing a part, the removed/old part should be marked
+                    # as Damaged and returned to the Manage Item list instead of
+                    # being marked Available. Use specialized helper.
+                    _mark_device_values_damaged(cur, token, exclude_pcid=pcid, performed_by=performed_by)
+                except Exception:
+                    pass
+
+            # Build UPDATE statement for all replacements
+            set_clauses = []
+            params = []
+            for part, new_value in replacements.items():
+                # Skip if new value equals current value to avoid no-op
+                old_value = row.get(part)
+                if (old_value is None and (new_value is None or new_value == '')) or str(old_value) == str(new_value):
+                    continue
+                set_clauses.append(f"{part} = %s")
+                params.append(new_value)
+
+            if set_clauses:
+                sql = "UPDATE pcinfofull SET " + ", ".join(set_clauses) + " WHERE pcid = %s"
+                params.append(pcid)
+                cur.execute(sql, params)
+
+            # Audit and mark new values as IN USE
+            for part, new_value in replacements.items():
+                old_value = row.get(part)
+                try:
+                    if str(old_value) != str(new_value):
+                        try:
+                            log_inventory_action('PC', pcid, 'UPDATE', part, old_value, new_value, performed_by)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+
+                try:
+                    _mark_device_values_in_use(cur, new_value, performed_by)
+                except Exception:
+                    pass
+
+            conn.commit()
+        return jsonify({"success": True, "message": "Part(s) replaced successfully."})
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+    finally:
+        conn.close()
+
 
 @manage_pc_bp.route('/batch_add_pcinfofull', methods=['POST'])
 def batch_add_pcinfofull():
@@ -680,23 +1565,28 @@ def batch_add_pcinfofull():
                 active_numbers.add(assigned_number)
                 pc['pcname'] = f"{base_pcname}-{assigned_number:02d}"
 
-                cur.execute("""
-                    INSERT INTO pcinfofull (
-                        pcname, department_id, location, quantity, acquisition_cost,
-                        date_acquired, accountable, serial_no, municipal_serial_no, status, note,maintenance_interval_days,
-                         motherboard, ram, storage, gpu, psu, casing, other_parts,
-                        last_checked, health_score, risk_level,
-                        created_at, updated_at
-                    )
-                    VALUES (
-                        %(pcname)s, %(department_id)s, %(department_id)s, %(quantity)s, %(acquisition_cost)s,
-                        %(date_acquired)s, %(accountable)s, %(serial_no)s, %(municipal_serial_no)s,
-                        %(status)s, %(note)s, %(maintenance_interval_days)s, %(motherboard)s, %(ram)s, %(storage)s,
-                        %(gpu)s, %(psu)s, %(casing)s, %(other_parts)s,
-                        CURDATE(), 100, 'Low',
-                        NOW(), NOW()
-                    )
-                """, pc)
+                # Insert using only existing part columns
+                parts = _existing_pc_part_columns(cur)
+                base_cols = [
+                    'pcname', 'department_id', 'location', 'quantity', 'acquisition_cost',
+                    'date_acquired', 'accountable', 'serial_no', 'municipal_serial_no', 'status',
+                    'note', 'maintenance_interval_days'
+                ]
+                cols = base_cols + parts + ['last_checked', 'health_score', 'risk_level', 'created_at', 'updated_at']
+                placeholders = ','.join(['%s'] * (len(base_cols) + len(parts))) + ", CURDATE(), 100, 'Low', NOW(), NOW()"
+                sql = f"INSERT INTO pcinfofull ({', '.join(cols)}) VALUES ({placeholders})"
+                params = [pc.get(c) for c in base_cols] + [pc.get(p) for p in parts]
+                cur.execute(sql, params)
+                # mark referenced device items as IN USE for this pc
+                performed_by = None
+                try:
+                    performed_by = session.get('user', {}).get('user_id')
+                except Exception:
+                    performed_by = None
+
+                for part_field in parts:
+                    _mark_device_values_in_use(cur, pc.get(part_field), performed_by)
+
                 inserted += 1
 
         conn.commit()

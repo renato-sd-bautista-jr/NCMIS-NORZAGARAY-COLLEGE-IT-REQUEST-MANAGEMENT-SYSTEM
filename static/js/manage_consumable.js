@@ -255,6 +255,184 @@ function closeConsumableModal() {
   }, CONSUMABLE_MODAL_ANIMATION_MS);
 }
 
+// ---------- USAGE MODAL HELPERS ----------
+function openConsumableUsageModal(accessionId, itemName) {
+  const modal = document.getElementById('consumableUsageModal');
+  const form = document.getElementById('consumableUsageForm');
+  if (!modal || !form) return;
+  form.reset();
+  const accessionInput = document.getElementById('usage_accession_id');
+  accessionInput.value = accessionId || '';
+  const itemSelect = document.getElementById('usage_item_select');
+  const display = document.getElementById('usage_item_name_display');
+
+  // Populate items into select (non-blocking)
+    if (itemSelect) {
+    itemSelect.innerHTML = '<option value="">Select item...</option>';
+    fetch('/get-consumables')
+      .then(r => r.json())
+      .then(data => {
+        const rows = Array.isArray(data) ? data : ((data && data.consumables) ? data.consumables : []);
+        rows.forEach(row => {
+          const opt = document.createElement('option');
+          opt.value = row.accession_id;
+          const name = String(row.item_name || '').trim();
+          const qtyLabel = (row.quantity !== undefined && row.quantity !== null) ? ` — ${row.quantity}${row.unit ? ' ' + String(row.unit).trim() : ''}` : '';
+          opt.textContent = name + qtyLabel;
+          if (accessionId && String(row.accession_id) === String(accessionId)) opt.selected = true;
+          itemSelect.appendChild(opt);
+        });
+
+        // If no accessionId supplied, clear accession input; otherwise ensure it's set
+        if (!accessionId) {
+          accessionInput.value = '';
+          if (display) display.textContent = '';
+        } else {
+          const sel = itemSelect.options[itemSelect.selectedIndex];
+          accessionInput.value = sel && sel.value ? sel.value : accessionInput.value;
+          if (display) display.textContent = sel && sel.text ? sel.text : (itemName || '');
+        }
+
+      }).catch(() => {
+        // ignore
+      });
+
+    itemSelect.onchange = function () {
+      const sel = itemSelect.options[itemSelect.selectedIndex];
+      console.debug('usage select changed', { value: sel?.value, text: sel?.text });
+      accessionInput.value = sel && sel.value ? sel.value : '';
+      if (display) display.textContent = sel && sel.text ? sel.text : '';
+    };
+  } else {
+    if (display) display.textContent = itemName || '';
+  }
+
+  // populate departments (non-blocking)
+  const deptSelect = document.getElementById('usage_department_id');
+  if (deptSelect) {
+    deptSelect.innerHTML = '<option value="">(optional)</option>';
+    fetch('/get-departments').then(r => r.json()).then(depts => {
+      depts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.department_id;
+        opt.textContent = d.department_name;
+        deptSelect.appendChild(opt);
+      });
+    }).catch(() => {});
+  }
+
+  if (modal._hideTimer) {
+    window.clearTimeout(modal._hideTimer);
+    modal._hideTimer = null;
+  }
+  modal.classList.remove('hidden');
+  window.requestAnimationFrame(() => modal.classList.add('modal-open'));
+}
+
+function closeConsumableUsageModal() {
+  const modal = document.getElementById('consumableUsageModal');
+  if (!modal || modal.classList.contains('hidden')) return;
+  modal.classList.remove('modal-open');
+  if (modal._hideTimer) window.clearTimeout(modal._hideTimer);
+  modal._hideTimer = window.setTimeout(() => {
+    modal.classList.add('hidden');
+    modal._hideTimer = null;
+  }, CONSUMABLE_MODAL_ANIMATION_MS);
+}
+
+window.openConsumableUsageModal = openConsumableUsageModal;
+window.closeConsumableUsageModal = closeConsumableUsageModal;
+
+function populateConsumableUsageSelect(selectedAccessionId) {
+  const itemSelect = document.getElementById('usage_item_select');
+  const accessionInput = document.getElementById('usage_accession_id');
+  const display = document.getElementById('usage_item_name_display');
+  if (!itemSelect) return Promise.resolve();
+
+  itemSelect.innerHTML = '<option value="">Select item...</option>';
+
+  return fetch('/get-consumables', { credentials: 'same-origin' })
+    .then(response => {
+      if (!response.ok) throw new Error('Unable to load consumables');
+      return response.json();
+    })
+    .then(data => {
+      const rows = Array.isArray(data) ? data : ((data && data.consumables) ? data.consumables : []);
+      console.debug('populateConsumableUsageSelect fetched rows', rows.length, rows);
+      rows.forEach(row => {
+        const opt = document.createElement('option');
+        opt.value = row.accession_id;
+        const name = String(row.item_name || '').trim();
+        const qtyText = (row.quantity !== undefined && row.quantity !== null) ? String(row.quantity) : '';
+        const unitText = row.unit ? ` ${String(row.unit).trim()}` : '';
+        opt.textContent = name + (qtyText ? ` — ${qtyText}${unitText}` : '');
+        if (selectedAccessionId && String(row.accession_id) === String(selectedAccessionId)) opt.selected = true;
+        itemSelect.appendChild(opt);
+      });
+
+      const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+      if (selectedAccessionId) {
+        accessionInput.value = selectedOption && selectedOption.value ? selectedOption.value : '';
+        if (display) display.textContent = selectedOption && selectedOption.text ? selectedOption.text : '';
+      } else {
+        accessionInput.value = '';
+        if (display) display.textContent = '';
+      }
+    })
+    .catch(error => {
+      console.error('Consumable select refresh failed', error);
+    });
+}
+
+function refreshConsumableUsageSelect(selectedAccessionId) {
+  return populateConsumableUsageSelect(selectedAccessionId);
+}
+
+function showConsumableUsageResultModal(type, title, message, details = '') {
+  const modal = document.getElementById('consumableUsageResultModal');
+  const iconWrapper = document.getElementById('consumableUsageResultIcon');
+  const titleEl = document.getElementById('consumableUsageResultTitle');
+  const messageEl = document.getElementById('consumableUsageResultMessage');
+  const detailsEl = document.getElementById('consumableUsageResultDetails');
+  const closeBtn = document.getElementById('consumableUsageResultClose');
+  if (!modal) return;
+
+  const styleMap = {
+    success: { icon: 'check-circle', color: 'text-green-600' },
+    error: { icon: 'x-circle', color: 'text-red-600' },
+    warning: { icon: 'alert-triangle', color: 'text-amber-600' }
+  };
+  const style = styleMap[type] || styleMap.warning;
+
+  if (iconWrapper) {
+    iconWrapper.innerHTML = `<i data-lucide="${style.icon}" class="w-8 h-8 ${style.color}"></i>`;
+  }
+  if (titleEl) titleEl.textContent = title || '';
+  if (messageEl) messageEl.textContent = message || '';
+  if (detailsEl) {
+    detailsEl.textContent = details || '';
+    detailsEl.classList.toggle('hidden', !details);
+  }
+  if (closeBtn) closeBtn.textContent = 'OK';
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+}
+
+function closeConsumableUsageResultModal() {
+  const modal = document.getElementById('consumableUsageResultModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+document.addEventListener('click', function (event) {
+  if (event.target.closest('#consumableUsageResultClose') || event.target.id === 'consumableUsageResultModal') {
+    closeConsumableUsageResultModal();
+  }
+});
+
 // Expose for inline onclick handlers in templates
 window.openConsumableModal = openConsumableModal;
 window.closeConsumableModal = closeConsumableModal;
@@ -282,62 +460,236 @@ document.addEventListener('DOMContentLoaded', function () {
   initConsumableExcelImportControls();
 
   const form = document.getElementById('consumableForm');
-  if (!form) return;
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
+      const formData = new URLSearchParams(new FormData(form));
+      const itemName = document.getElementById('item_name').value;
+      const category = document.getElementById('category').value;
+      const isEdit = form.action.includes('update');
+      
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
 
-    const formData = new URLSearchParams(new FormData(form));
-    const itemName = document.getElementById('item_name').value;
-    const category = document.getElementById('category').value;
-    const isEdit = form.action.includes('update');
-    
-    try {
-      const res = await fetch(form.action, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: formData
-      });
-
-      const result = await res.json();
-      if (result && result.success) {
-        // Show specialized toast for save action
-        if (typeof showSaveConsumableToast === 'function') {
-          showSaveConsumableToast({
-            itemName: itemName,
-            action: isEdit ? 'Updated' : 'Added',
-            category: category
-          });
-        } else {
-          showToast(result.message || 'Saved successfully', 'success');
+        const result = await res.json();
+        if (result && result.success) {
+          // Show specialized toast for save action
+          if (typeof showSaveConsumableToast === 'function') {
+            showSaveConsumableToast({
+              itemName: itemName,
+              action: isEdit ? 'Updated' : 'Added',
+              category: category
+            });
+          } else {
+            showToast(result.message || 'Saved successfully', 'success');
+          }
+          
+          // Close modal and reload after a short delay
+          closeConsumableModal();
+          refreshConsumableTableWithoutReload();
+          return;
         }
-        
-        // Close modal and reload after a short delay
-        closeConsumableModal();
-        refreshConsumableTableWithoutReload();
-        return;
-      }
 
-      // Show error
-      const errorMsg = (result && result.message) ? result.message : 'Failed to save consumable.';
-      if (typeof showToast === 'function') {
-        showToast(errorMsg, 'error');
-      } else {
-        notifyUser(errorMsg);
+        // Show error
+        const errorMsg = (result && result.message) ? result.message : 'Failed to save consumable.';
+        if (typeof showToast === 'function') {
+          showToast(errorMsg, 'error');
+        } else {
+          notifyUser(errorMsg);
+        }
+      } catch (err) {
+        console.error(err);
+        if (typeof showToast === 'function') {
+          showToast('Error submitting form.', 'error');
+        } else {
+          notifyUser('Error submitting form.');
+        }
       }
-    } catch (err) {
-      console.error(err);
-      if (typeof showToast === 'function') {
-        showToast('Error submitting form.', 'error');
+    });
+  }
+
+    // ---------- Usage form submit handler (records consumption via transactions API) ----------
+    const usageForm = document.getElementById('consumableUsageForm');
+    if (usageForm) {
+      // If this form is configured to use normal POST (server-side redirect), skip AJAX handling.
+      if (usageForm.dataset.noAjax === 'true') {
+        // Let the browser submit the form normally so the server can redirect back.
       } else {
-        notifyUser('Error submitting form.');
+        usageForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          let accession_id = Number(document.getElementById('usage_accession_id').value) || null;
+          const qty = Number(document.getElementById('usage_quantity').value) || 0;
+          const department_id = document.getElementById('usage_department_id').value || null;
+          const notesField = (document.getElementById('usage_notes').value || '').trim();
+
+          // Fallback: if the hidden accession input wasn't populated, read the select directly
+          try {
+            const itemSelectEl = document.getElementById('usage_item_select');
+            if ((!accession_id || accession_id === null) && itemSelectEl && itemSelectEl.value) {
+              accession_id = Number(itemSelectEl.value) || null;
+              // Mirror into hidden input so non-AJAX submits still work
+              const accessionInput = document.getElementById('usage_accession_id');
+              if (accessionInput) accessionInput.value = accession_id || '';
+            }
+          } catch (e) {
+            console.debug('accession fallback failed', e);
+          }
+
+          // Debug: log values before sending
+          try { console.debug('Submitting usage', { accession_id, qty, department_id, performed_by: window.CURRENT_USER_ID || null, notes: notesField }); } catch (e) {}
+
+          if (!accession_id || qty <= 0) {
+            if (typeof showToast === 'function') showToast('Invalid item or quantity', 'error');
+            return;
+          }
+
+          // Prefer explicit current user JS var, fall back to hidden form input.
+          let performed_by = null;
+          try {
+            const hid = document.getElementById('usage_performed_by');
+            const hidVal = hid && hid.value ? Number(hid.value) : null;
+            const winVal = (typeof window.CURRENT_USER_ID !== 'undefined' && window.CURRENT_USER_ID !== null) ? Number(window.CURRENT_USER_ID) : null;
+            performed_by = Number.isFinite(winVal) && winVal > 0 ? winVal : (Number.isFinite(hidVal) && hidVal > 0 ? hidVal : null);
+          } catch (e) {
+            performed_by = null;
+          }
+
+          if (!performed_by) {
+            if (typeof showToast === 'function') showToast('No current user', 'error');
+            return;
+          }
+
+          const payload = {
+            accession_id: accession_id,
+            quantity: qty,
+            performed_by: performed_by,
+            reason: 'Used',
+            notes: notesField || null,
+            department_id: department_id || null
+          };
+
+          const toastId = typeof showToast === 'function' ? showToast('Recording usage...', 'loading') : null;
+          try {
+            // Prefer the form's action (server-generated). If missing, default
+            // to the modern "/consumables/use" endpoint (not the legacy "return" path).
+            const endpoint = (usageForm && usageForm.getAttribute && usageForm.getAttribute('action')) ? usageForm.getAttribute('action') : '/consumables/use';
+
+            // Send as form-encoded data and include credentials so session cookies are sent.
+            const formBody = new URLSearchParams();
+            formBody.set('accession_id', String(accession_id));
+            formBody.set('quantity', String(qty));
+            if (performed_by) formBody.set('performed_by', String(performed_by));
+            formBody.set('reason', 'Used');
+            if (notesField) formBody.set('notes', notesField);
+            if (department_id) formBody.set('department_id', department_id);
+
+            console.debug('Usage submit endpoint:', endpoint);
+            console.debug('Usage submit payload:', formBody.toString());
+
+            const res = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+              credentials: 'same-origin',
+              body: formBody.toString()
+            });
+
+            // Try to parse JSON response; if non-JSON, capture raw text for debugging
+            let data = {};
+            try {
+              data = await res.json();
+            } catch (err) {
+              try {
+                const txt = await res.text();
+                console.debug('Non-JSON response from /consumables/use:', txt);
+              } catch (e) { /* ignore */ }
+              data = {};
+            }
+
+            if (toastId && typeof hideToast === 'function') hideToast(toastId);
+
+            console.debug('Usage submit response', { status: res.status, ok: res.ok, data });
+
+            if (res.ok && data && data.success) {
+              const message = (data && data.message) ? data.message : 'Usage recorded';
+              if (typeof showToast === 'function') showToast(message, 'success');
+              if (typeof showConsumableUsageResultModal === 'function') {
+                showConsumableUsageResultModal('success', 'Usage Recorded', message, data.remaining_stock ? `Remaining stock: ${data.remaining_stock}` : '');
+              }
+
+              refreshConsumableUsageSelect(accession_id);
+              closeConsumableUsageModal();
+              refreshConsumableTableWithoutReload();
+
+              const currentPerPage = Number(document.getElementById('usagePerPageSelect')?.value) || 25;
+
+              // If server returned the created transaction, prepend it for immediate feedback,
+              // then schedule a full refresh to keep pagination counts accurate.
+              try {
+                const tbody = document.getElementById('consumableUsageTableBody');
+                if (tbody) {
+                  // Use server-returned transaction when available, otherwise
+                  // construct a temporary row from the user's submitted values so
+                  // the UI reflects what the user entered immediately.
+                  const tx = data.transaction || {
+                    item_name: (document.getElementById('usage_item_name_display')?.textContent || '').trim() || (document.getElementById('usage_item_select')?.selectedOptions[0]?.text || ''),
+                    quantity_change: qty,
+                    notes: notesField || '',
+                    office: (document.getElementById('usage_department_id')?.selectedOptions[0]?.text || ''),
+                    facility: '',
+                    performed_at: new Date().toLocaleString(),
+                    performed_by: (window.CURRENT_USER_ID ? String(window.CURRENT_USER_ID) : (document.getElementById('usage_performed_by')?.value || ''))
+                  };
+
+                  const tr = document.createElement('tr');
+                  tr.className = 'hover:bg-gray-50';
+                  tr.innerHTML = `
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.item_name || '')}</td>
+                    <td class="px-4 py-2 border-b text-right">${escapeConsumableHtml(tx.quantity_change || 0)}</td>
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.notes || tx.reason || '')}</td>
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.office || '')}</td>
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.facility || '')}</td>
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.performed_at || '')}</td>
+                    <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.performed_by || '')}</td>
+                  `;
+
+                  if (tbody.firstChild) tbody.insertBefore(tr, tbody.firstChild);
+                  else tbody.appendChild(tr);
+                }
+              } catch (e) {
+                console.debug('Failed to prepend transaction row', e);
+              }
+
+              // Schedule a refresh to reconcile with server-side pagination/counts
+              setTimeout(() => {
+                if (typeof loadConsumableUsageTransactions === 'function') {
+                  try { loadConsumableUsageTransactions(1, currentPerPage, true); } catch (e) { console.debug('refresh usage list failed', e); }
+                }
+              }, 700);
+            } else {
+              const errorMessage = (data && (data.message || data.error)) || 'Failed to record usage';
+              if (typeof showToast === 'function') showToast(errorMessage, 'error');
+              if (typeof showConsumableUsageResultModal === 'function') showConsumableUsageResultModal('error', 'Usage Failed', errorMessage);
+            }
+
+          } catch (err) {
+            if (toastId && typeof hideToast === 'function') hideToast(toastId);
+            const errorMessage = 'Server error while recording usage';
+            if (typeof showToast === 'function') showToast(errorMessage, 'error');
+            if (typeof showConsumableUsageResultModal === 'function') showConsumableUsageResultModal('error', 'Usage Error', errorMessage);
+          }
+        });
       }
     }
-  });
-});
 
+  });
 function escapeConsumableHtml(value) {
   if (value === null || value === undefined) return '';
 
@@ -611,9 +963,10 @@ function initConsumableExcelImportControls() {
 window.refreshConsumableTableWithoutReload = refreshConsumableTableWithoutReload;
 
 function getConsumableStatusBadgeClass(status) {
-  if (status === 'Available') return 'bg-green-100 text-green-600';
-  if (status === 'In Used') return 'bg-blue-100 text-blue-600';
-  if (status === 'Inactive') return 'bg-gray-100 text-gray-500';
+  const key = String(status || '').trim().toLowerCase();
+  if (key === 'available') return 'bg-green-100 text-green-600';
+  if (['in used','in use','in-used','inuse'].includes(key)) return 'bg-blue-100 text-blue-600';
+  if (key === 'inactive') return 'bg-gray-100 text-gray-500';
   return 'bg-red-100 text-red-600';
 }
 
@@ -664,6 +1017,7 @@ function renderConsumableDesktopRows(consumables, canEdit) {
             <button onclick="openConsumableModalById(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Edit</button>
             <button type="button" data-item-name="${escapeConsumableHtml(item.item_name)}" onclick="archiveConsumableFromEl(this, ${itemId})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Archive</button>
             <button onclick="markChecked('CONSUMABLE', ${itemId})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">Mark Checked</button>
+            <button onclick='openConsumableUsageModal(${itemId}, ${JSON.stringify(item.item_name)})' class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded text-xs font-medium transition shadow whitespace-nowrap">Record Usage</button>
             <button onclick="openMaintenanceLog(${itemId}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs shadow whitespace-nowrap">History</button>
           </div>
         </td>
@@ -717,6 +1071,7 @@ function renderConsumableMobileCards(consumables, canEdit) {
         <button onclick="editConsumable(${itemId})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium transition">Edit</button>
         <button type="button" data-item-name="${escapeConsumableHtml(item.item_name)}" onclick="archiveConsumableFromEl(this, ${itemId})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition">Archive</button>
         <button onclick="markChecked('CONSUMABLE', ${itemId})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium transition">Mark Checked</button>
+        <button onclick='openConsumableUsageModal(${itemId}, ${JSON.stringify(item.item_name)})' class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded text-xs font-medium transition shadow whitespace-nowrap">Record Usage</button>
         <button onclick="openMaintenanceLog(${itemId}, 'CONSUMABLE')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs font-medium transition">History</button>
       </div>
       `
@@ -955,3 +1310,148 @@ if (document.readyState === 'loading') {
 } else {
   initConsumableAjaxPagination();
 }
+
+// ---------- Consumable Usage Transactions Listing ----------
+function loadConsumableUsageTransactions(page = 1, perPage = 25, preserve = false) {
+  const tbody = document.getElementById('consumableUsageTableBody');
+  const paginationEl = document.getElementById('consumableUsagePagination');
+  if (!tbody) return Promise.resolve();
+
+  if (!preserve) {
+    tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-gray-500">Loading...</td></tr>';
+  }
+
+  return fetch(`/transactions/api?filter=return&page=${encodeURIComponent(page)}&per_page=${encodeURIComponent(perPage)}`, { cache: 'no-store' })
+    .then((r) => {
+      if (r.status === 403) {
+        throw new Error('forbidden');
+      }
+      if (!r.ok) throw new Error('Network response was not ok');
+      const ct = (r.headers.get && r.headers.get('content-type')) || '';
+      if (!ct.includes('application/json')) {
+        // Non-JSON response (likely login page or error HTML)
+        return r.text().then((txt) => { throw new Error('non-json:' + (txt || '').slice(0, 512)); });
+      }
+      return r.json();
+    })
+    .then((data) => {
+      const txs = Array.isArray(data.transactions) ? data.transactions : [];
+      tbody.innerHTML = '';
+
+      if (!txs.length) {
+        const noRow = document.createElement('tr');
+        noRow.innerHTML = '<td colspan="7" class="py-4 text-center text-gray-500">No usage records.</td>';
+        tbody.appendChild(noRow);
+      } else {
+        txs.forEach((tx) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-gray-50';
+          tr.innerHTML = `
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.item_name || '')}</td>
+            <td class="px-4 py-2 border-b text-right">${escapeConsumableHtml(tx.quantity_change || 0)}</td>
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.notes || tx.reason || '')}</td>
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.office || tx.department_name || '')}</td>
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.facility || tx.department_category || '')}</td>
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.performed_at || '')}</td>
+            <td class="px-4 py-2 border-b">${escapeConsumableHtml(tx.performed_by || '')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (paginationEl && data.pagination) {
+        const pag = data.pagination;
+        paginationEl.innerHTML = '';
+        paginationEl.className = 'mt-4 flex items-center justify-between';
+
+        // Info
+        const info = document.createElement('div');
+        info.className = 'text-sm text-gray-600';
+        info.textContent = `Page ${pag.page} of ${pag.total_pages} — ${pag.total} record(s)`;
+
+        // Controls
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-2';
+
+        // Prev button
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.dataset.usagePage = String(Math.max(1, pag.page - 1));
+        prevBtn.disabled = !pag.has_prev;
+        prevBtn.className = 'px-3 py-1 rounded bg-gray-100';
+        prevBtn.textContent = 'Prev';
+        controls.appendChild(prevBtn);
+
+        // Page number buttons (window)
+        const totalPages = Number(pag.total_pages) || 1;
+        let startPage = Math.max(1, pag.page - 2);
+        let endPage = Math.min(totalPages, pag.page + 2);
+        if (pag.page <= 2) endPage = Math.min(totalPages, 5);
+        if (pag.page >= totalPages - 1) startPage = Math.max(1, totalPages - 4);
+
+        for (let p = startPage; p <= endPage; p++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.dataset.usagePage = String(p);
+          btn.className = p === pag.page ? 'w-8 h-8 flex items-center justify-center text-sm font-medium rounded bg-green-600 text-white' : 'w-8 h-8 flex items-center justify-center text-sm rounded border bg-white hover:bg-gray-50';
+          btn.textContent = String(p);
+          controls.appendChild(btn);
+        }
+
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.dataset.usagePage = String(Math.min(totalPages, pag.page + 1));
+        nextBtn.disabled = !pag.has_next;
+        nextBtn.className = 'px-3 py-1 rounded bg-gray-100';
+        nextBtn.textContent = 'Next';
+        controls.appendChild(nextBtn);
+
+        // Per-page select
+        const perPageSelect = document.createElement('select');
+        perPageSelect.id = 'usagePerPageSelect';
+        perPageSelect.className = 'px-2 py-1 border rounded bg-white text-sm';
+        [10, 25, 50].forEach((optVal) => {
+          const opt = document.createElement('option');
+          opt.value = optVal;
+          opt.textContent = `${optVal}/page`;
+          if (Number(pag.per_page) === optVal) opt.selected = true;
+          perPageSelect.appendChild(opt);
+        });
+        controls.appendChild(perPageSelect);
+
+        paginationEl.appendChild(info);
+        paginationEl.appendChild(controls);
+
+        // Event handling (delegated)
+        paginationEl.onclick = function (e) {
+          const btn = e.target.closest('button[data-usage-page]');
+          if (!btn) return;
+          const targetPage = Number(btn.dataset.usagePage) || 1;
+          const currentPerPage = Number(document.getElementById('usagePerPageSelect')?.value) || Number(pag.per_page) || 25;
+          if (targetPage === pag.page) return;
+          loadConsumableUsageTransactions(targetPage, currentPerPage);
+        };
+
+        perPageSelect.onchange = function () {
+          const newPerPage = Number(this.value) || 25;
+          loadConsumableUsageTransactions(1, newPerPage);
+        };
+      }
+
+    }).catch((err) => {
+      console.error('Usage list load error:', err);
+      let message = 'Failed to load usage records.';
+      if (String(err.message).toLowerCase().includes('forbidden')) {
+        message = 'You do not have permission to view usage records (403).';
+      } else if (String(err.message).startsWith('non-json:')) {
+        message = 'Server returned non-JSON response (are you logged in?).';
+      }
+
+      if (!preserve) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-red-500">${message}</td></tr>`;
+      }
+    });
+}
+
+window.loadConsumableUsageTransactions = loadConsumableUsageTransactions;

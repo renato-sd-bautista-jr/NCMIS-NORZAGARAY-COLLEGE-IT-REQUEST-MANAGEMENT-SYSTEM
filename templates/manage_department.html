@@ -975,6 +975,10 @@
         <button type="button" class="closeModal modal-premium-close" aria-label="Close add modal"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="addDepartmentForm" class="modal-premium-body" autocomplete="off" novalidate>
+        <label class="modal-premium-label">Copy From Existing (optional)</label>
+        <select id="departmentTemplateSelect" class="modal-premium-control mb-4">
+          <option value="">Use blank template</option>
+        </select>
         <label class="modal-premium-label">Office/Facility Name</label>
         <input type="text" name="department_name" placeholder="Enter office/facility name" required class="modal-premium-control mb-4" aria-required="true">
         <label class="modal-premium-label">Category</label>
@@ -1286,7 +1290,8 @@
         return { label: status || 'Status Recorded', tone: 'info', icon: 'info' };
       }
 
-      function openAddDepartmentModal() {
+      async function openAddDepartmentModal() {
+        await populateDepartmentTemplateSelect();
         openModal(addModal);
         setTimeout(() => {
           const firstInput = addModal?.querySelector('input[name="department_name"]');
@@ -1411,6 +1416,26 @@
           console.error('Could not populate delete department select', err);
         }
       }
+
+        async function populateDepartmentTemplateSelect() {
+          try {
+            const response = await fetch('/get-departments');
+            const departments = await response.json();
+            const tpl = document.getElementById('departmentTemplateSelect');
+            if (!tpl) return;
+            tpl.innerHTML = '<option value="">Use blank template</option>';
+            departments.forEach(dept => {
+              const option = document.createElement('option');
+              option.value = dept.department_id;
+              option.textContent = `${dept.department_name} - ${getCategoryDisplay(dept.category)}`;
+              option.dataset.category = dept.category || '';
+              option.dataset.maxPcAllowed = dept.max_pc_allowed ?? 0;
+              tpl.appendChild(option);
+            });
+          } catch (err) {
+            console.error('Could not populate template select', err);
+          }
+        }
 
       async function fetchDepartmentPcRows(departmentId) {
         const endpoints = [
@@ -1719,6 +1744,19 @@
           showError('Error adding office/facility. Please try again.', { autoHide: false });
         }
       });
+
+        // When a template is selected, pre-fill the add form fields
+        const departmentTemplateSelectEl = document.getElementById('departmentTemplateSelect');
+        departmentTemplateSelectEl?.addEventListener('change', (e) => {
+          const opt = departmentTemplateSelectEl.options[departmentTemplateSelectEl.selectedIndex];
+          if (!opt || !opt.value) {
+            addForm.category.value = '';
+            addForm.max_pc_allowed.value = '';
+            return;
+          }
+          addForm.category.value = opt.dataset.category || '';
+          addForm.max_pc_allowed.value = opt.dataset.maxPcAllowed || '0';
+        });
 
       const editForm = document.getElementById('editDepartmentForm');
       editForm?.addEventListener('submit', async (e) => {

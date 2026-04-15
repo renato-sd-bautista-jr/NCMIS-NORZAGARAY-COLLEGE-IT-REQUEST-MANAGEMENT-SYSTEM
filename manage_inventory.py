@@ -40,6 +40,7 @@ def inventory_load():
     device_type = request.args.get('device_type')
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
+    search = request.args.get('search')
     
     pc_filters = _get_pc_filters(request.args)
 
@@ -57,10 +58,10 @@ def inventory_load():
     )
     
     # Check if we have filter parameters for devices
-    if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]):
+    if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]) or search:
         item_list, item_total, item_pages, item_page = get_filtered_item_list_paginated(
             item_page, per_page, department_id, status, accountable, serial_no, 
-            item_name, brand_model, device_type, date_from, date_to
+            item_name, brand_model, device_type, date_from, date_to, search
         )
     else:
         item_list, item_total, item_pages, item_page = get_item_list_paginated(item_page, per_page)
@@ -75,7 +76,8 @@ def inventory_load():
         item_name=item_name,
         brand_model=brand_model,
         date_from=date_from,
-        date_to=date_to
+        date_to=date_to,
+        search=search
     )
     
     # Load departments for filters
@@ -462,10 +464,15 @@ def items_paged():
     request_source = request.headers.get('X-Request-Source', 'none')
     request_key = request.headers.get('X-Page-Request', 'none')
 
-    if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]):
+    search = request.args.get('search')
+
+    # If any filter is present, or a free-text search term was provided,
+    # use the filtered paginated loader which supports search across key
+    # device columns. Otherwise fall back to the unfiltered paged loader.
+    if any([department_id, status, accountable, serial_no, item_name, brand_model, device_type, date_from, date_to]) or search:
         items, total_items, total_pages, page = get_filtered_item_list_paginated(
-            page, per_page, department_id, status, accountable, serial_no,
-            item_name, brand_model, device_type, date_from, date_to
+            page, per_page, department_id, status, accountable, serial_no, 
+            item_name, brand_model, device_type, date_from, date_to, search
         )
     else:
         items, total_items, total_pages, page = get_item_list_paginated(page, per_page)
@@ -531,6 +538,8 @@ def consumables_paged():
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
 
+    search = request.args.get('search')
+
     consumables, total_items, total_pages, page = get_consumables_list_paginated(
         page=page,
         per_page=per_page,
@@ -540,7 +549,8 @@ def consumables_paged():
         item_name=item_name,
         brand_model=brand_model,
         date_from=date_from,
-        date_to=date_to
+        date_to=date_to,
+        search=search
     )
 
     return jsonify({
@@ -570,9 +580,77 @@ def get_departments():
     finally:
         conn.close()
 
+
+@manage_inventory_bp.route('/part-suggestions')
+def part_suggestions():
+    """Return a short list of device/items that match a requested PC part or free-text query.
+
+    Query params:
+      - part: name of the PC part (e.g. 'motherboard', 'ram')
+      - q: free-text query to filter results
+    """
+    part = (request.args.get('part') or '').strip().lower()
+    q = (request.args.get('q') or '').strip().lower()
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            params = []
+            where_clauses = ["COALESCE(df.is_archived, 0) = 0"]
+            search_clauses = []
+
+            if part:
+                search_clauses.append("(LOWER(df.item_name) LIKE %s OR LOWER(df.device_type) LIKE %s OR LOWER(df.brand_model) LIKE %s)")
+                params.extend([f"%{part}%"] * 3)
+
+            if q:
+                # if query is numeric, allow exact accession_id match
+                if q.isdigit():
+                    search_clauses.append("df.accession_id = %s")
+                    params.append(int(q))
+
+                search_clauses.append("(LOWER(df.item_name) LIKE %s OR LOWER(df.device_type) LIKE %s OR LOWER(df.brand_model) LIKE %s OR LOWER(df.serial_no) LIKE %s)")
+                params.extend([f"%{q}%"] * 4)
+
+            if search_clauses:
+                where_clauses.append("(" + " OR ".join(search_clauses) + ")")
+
+            where_sql = " AND ".join(where_clauses)
+
+            sql = f"""
+                SELECT df.accession_id, df.item_name, df.brand_model, df.serial_no
+                FROM devices_full df
+                WHERE {where_sql}
+                ORDER BY df.accession_id DESC
+                LIMIT 30
+            """
+
+            cur.execute(sql, params)
+            rows = cur.fetchall()
+
+            results = []
+            for r in rows:
+                name = (r.get('item_name') or '').strip()
+                brand = (r.get('brand_model') or '').strip()
+                label = name or str(r.get('accession_id'))
+                if brand:
+                    label = f"{label} — {brand}"
+                results.append({
+                    'accession_id': r.get('accession_id'),
+                    'label': label
+                })
+
+        return jsonify(success=True, results=results)
+
+    except Exception as e:
+        print(f"❌ Error fetching part suggestions: {e}")
+        return jsonify(success=False, results=[]), 500
+    finally:
+        conn.close()
+
 def get_consumables_list_paginated(page=1, per_page=10, department_id=None, status=None,
                                   accountable=None, item_name=None, brand_model=None,
-                                  date_from=None, date_to=None):
+                                  date_from=None, date_to=None, search=None):
     page = _normalize_page(page)
     per_page = _normalize_per_page(per_page)
     conn = get_db_connection()
@@ -621,6 +699,11 @@ def get_consumables_list_paginated(page=1, per_page=10, department_id=None, stat
         if date_from and date_to:
             where_sql += " AND c.date_added BETWEEN %s AND %s"
             params.extend([date_from, date_to])
+
+        # Broad free-text search across common consumable columns
+        if search:
+            where_sql += " AND (c.accession_id LIKE %s OR c.item_name LIKE %s OR c.brand LIKE %s OR c.location LIKE %s OR dep.department_name LIKE %s OR c.description LIKE %s)"
+            params.extend([f"%{search}%"] * 6)
 
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute(
@@ -1575,7 +1658,7 @@ def get_item_list_paginated(page=1, per_page=10):
 
 def get_filtered_item_list_paginated(page=1, per_page=10, department_id=None, status=None, 
                                    accountable=None, serial_no=None, item_name=None, 
-                                   brand_model=None, device_type=None, date_from=None, date_to=None):
+                                   brand_model=None, device_type=None, date_from=None, date_to=None, search=None):
     """
     Fetch paginated and filtered devices from devices_full.
     Returns:
@@ -1641,6 +1724,11 @@ def get_filtered_item_list_paginated(page=1, per_page=10, department_id=None, st
             if date_from and date_to:
                 query += " AND df.date_acquired BETWEEN %s AND %s"
                 params.extend([date_from, date_to])
+
+            # Broad free-text search across common item columns
+            if search:
+                query += " AND (df.accession_id LIKE %s OR df.item_name LIKE %s OR df.brand_model LIKE %s OR df.serial_no LIKE %s OR dep.department_name LIKE %s OR df.accountable LIKE %s)"
+                params.extend([f"%{search}%"] * 6)
 
             # Get total count with same filters (subquery is safer than string replacements)
             count_query = f"SELECT COUNT(*) AS total FROM ({query}) AS filtered_items"

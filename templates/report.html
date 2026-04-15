@@ -288,10 +288,12 @@
           <table class="report-table min-w-[1080px] w-full text-left border-collapse">
             <thead class="text-[11px] uppercase tracking-wide text-slate-600">
             <tr>
+              <th class="px-3 py-3 border-b border-slate-200">ID</th>
               <th class="px-3 py-3 border-b border-slate-200">Item / PC Name</th>
               <th class="px-3 py-3 border-b border-slate-200">Category</th>
               <th class="px-3 py-3 border-b border-slate-200">Facilities</th>
-              <th class="px-3 py-3 border-b border-slate-200">Location</th>
+              <th class="px-3 py-3 border-b border-slate-200">Municipal Serial No</th>
+              <th class="px-3 py-3 border-b border-slate-200">NC Serial No</th>
               <th class="px-3 py-3 border-b border-slate-200">Accountable</th>
               <th class="px-3 py-3 border-b border-slate-200">Status</th>
               <th class="px-3 py-3 border-b border-slate-200">Acquisition Cost</th>
@@ -418,7 +420,7 @@
       if (hasSearchTerm && matchCount === 0) {
         const noMatchRow = document.createElement('tr');
         noMatchRow.id = 'report-quick-no-match-row';
-        noMatchRow.innerHTML = '<td colspan="8" class="text-center py-4 text-gray-500">No matching report rows on this page.</td>';
+        noMatchRow.innerHTML = '<td colspan="10" class="text-center py-4 text-gray-500">No matching report rows on this page.</td>';
         tbody.appendChild(noMatchRow);
       }
 
@@ -454,7 +456,7 @@
       tbody.innerHTML = "";
 
       if (result.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">No records found.</td></tr>`;
         updatePaginationControls(null);
         applyReportQuickSearchFilter();
         return;
@@ -475,10 +477,12 @@
 
         tbody.innerHTML += `
           <tr class="hover:bg-blue-50/60 border-b border-slate-100 last:border-b-0 align-top">
+            <td class="px-3 py-2.5 font-semibold text-slate-800">${row.id || '-'}</td>
             <td class="px-3 py-2.5 font-semibold text-slate-800">${row.name || '-'}</td>
             <td class="px-3 py-2.5 text-slate-700">${row.category || '-'}</td>
             <td class="px-3 py-2.5 text-slate-700">${row.department || '-'}</td>
-            <td class="px-3 py-2.5 text-slate-700">${row.location || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.municipal_serial_no || '-'}</td>
+            <td class="px-3 py-2.5 text-slate-700">${row.serial_no || '-'}</td>
             <td class="px-3 py-2.5 text-slate-700">${row.accountable || '-'}</td>
             <td class="px-3 py-2.5"><span class="${statusClass}">${statusText}</span></td>
             <td class="px-3 py-2.5 text-slate-700 whitespace-nowrap">₱${Number(row.acquisition_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>

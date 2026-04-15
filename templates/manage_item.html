@@ -286,7 +286,27 @@
         </div>
       </div>
 
-      <!-- Status & Date Section -->
+        <!-- Consumable Link (shown for Consumable type) -->
+        <div id="consumableRow" class="mb-6 hidden">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <i data-lucide="box" class="w-4 h-4"></i>
+            Consumable Link
+          </h3>
+          <div>
+            <label class="block text-sm font-medium mb-2 text-gray-700">Linked Consumable</label>
+            <div class="relative">
+              <select name="consumable_id" id="consumable_select"
+                      class="w-full border border-gray-300 rounded-xl pl-4 pr-10 py-2.5 bg-white text-gray-800 appearance-none cursor-pointer">
+                <option value="">Select consumable (optional)</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Date Section -->
       <div class="mb-6">
         <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
           <i data-lucide="settings-2" class="w-4 h-4"></i>
@@ -626,6 +646,12 @@
   const quantityInput = document.getElementById('quantity');
 
   function applyItemTypeRules(typeValue) {
+    const isConsumable = String(typeValue || '').trim().toLowerCase() === 'consumable';
+    const consumableRow = document.getElementById('consumableRow');
+    if (consumableRow) {
+      if (isConsumable) consumableRow.classList.remove('hidden'); else consumableRow.classList.add('hidden');
+    }
+
     quantityInput.readOnly = false;
     quantityInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
     quantityInput.classList.add('bg-white');
@@ -643,6 +669,8 @@
       <span>Add New Item</span>
     `;
     submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>Add Item</span>`;
+    // Load consumables so admin can choose when adding a Consumable
+    try { loadConsumables(); } catch (e) { /* ignore */ }
     itemModal.classList.remove('hidden');
     lucide.createIcons();
     
@@ -695,6 +723,21 @@
       document.getElementById('maintenance_duration_unit').value = 'days';
 
       applyItemTypeRules(deviceTypeInput.value);
+      // Load consumables and try to select matching consumable for this item
+      loadConsumables().then(() => {
+        try {
+          const sel = document.getElementById('consumable_select');
+          if (sel) {
+            for (const opt of sel.options) {
+              if (opt.value && opt.dataset.itemName === btn.dataset.name && (opt.dataset.brand || '') === (btn.dataset.brand || '')) {
+                sel.value = opt.value;
+                break;
+              }
+            }
+          }
+        } catch (e) { /* ignore */ }
+      }).catch(() => {});
+
       itemModal.classList.remove('hidden');
       lucide.createIcons();
     });
@@ -702,6 +745,43 @@
 
   deviceTypeInput?.addEventListener('input', (event) => {
     applyItemTypeRules(event.target.value);
+  });
+
+  // Load consumables list and wire selection
+  async function loadConsumables() {
+    try {
+      const res = await fetch('/get-consumables');
+      const data = await res.json();
+      const sel = document.getElementById('consumable_select');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Select consumable (optional)</option>';
+      (Array.isArray(data) ? data : []).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.accession_id;
+        opt.textContent = `${c.item_name}${c.brand ? ' — ' + c.brand : ''}${c.quantity ? ' (' + c.quantity + ')' : ''}`;
+        opt.dataset.itemName = c.item_name || '';
+        opt.dataset.brand = c.brand || '';
+        opt.dataset.quantity = c.quantity ?? '';
+        opt.dataset.departmentId = c.department_id ?? '';
+        sel.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('Failed to load consumables', err);
+    }
+  }
+
+  document.getElementById('consumable_select')?.addEventListener('change', (e) => {
+    const sel = e.target;
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) return;
+    const itemName = opt.dataset.itemName || '';
+    const brand = opt.dataset.brand || '';
+    const qty = opt.dataset.quantity || '';
+    const deptId = opt.dataset.departmentId || '';
+    if (itemName) document.getElementById('item_name').value = itemName;
+    if (brand) document.getElementById('brand_model').value = brand;
+    if (qty) document.getElementById('quantity').value = qty;
+    if (deptId) document.getElementById('department_id').value = deptId;
   });
 
   // Close modal

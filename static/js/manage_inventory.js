@@ -13,6 +13,13 @@ window.refreshItemTableWithoutReload = function () {
     location.reload();
   }
 };
+// Refresh items when inventory updates elsewhere (e.g., part replacement)
+window.addEventListener('inventory-updated', function() {
+  if (typeof window.refreshItemTableWithoutReload === 'function') {
+    try { window.refreshItemTableWithoutReload(); } catch (e) { console.warn('refreshItemTableWithoutReload failed', e); }
+  }
+});
+
 window.currentSection = "pc";
 let inventorySearchObserver = null;
 let inventoryLiveSearchTerm = "";

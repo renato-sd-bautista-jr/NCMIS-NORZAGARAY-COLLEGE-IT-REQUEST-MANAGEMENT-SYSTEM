@@ -30,7 +30,6 @@ def log_inventory_action(
         db.session.add(audit)
         db.session.commit()
 
-
     except Exception as e:
         db.session.rollback()
         print("AUDIT LOG ERROR:", e)

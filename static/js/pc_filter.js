@@ -108,9 +108,9 @@ function renderPcTable(pcs) {
       statusValue === "damaged" ? "text-red-600" :
       statusValue === "critical" ? "text-red-700 font-bold" :
       statusValue === "needs checking" ? "text-yellow-600" :
-      statusValue === "in used" ? "text-blue-600" :
+      (['in used','in use','in-used','inuse'].includes(statusValue) ? 'text-blue-600' :
       statusValue === "inactive" ? "text-gray-500" :
-      "text-green-600";
+      "text-green-600");
 
     tbody.insertAdjacentHTML("beforeend", `
       <tr class="hover:bg-gray-100 transition">

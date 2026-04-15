@@ -35,13 +35,15 @@ def export_reports():
     date_to = request.args.get('date_to', '').strip()
 
     query = """
-        SELECT 
-            d.item_name AS Name,
-            'd.device_type' AS Category,
-            dept.department_name AS Department,
-            '' AS Location,
-            d.accountable AS Accountable,
-            d.status AS Status,
+        SELECT
+            d.accession_id AS `ID`,
+            d.item_name AS `Name`,
+            'Device' AS `Category`,
+            dept.department_name AS `Department`,
+            d.municipal_serial_no AS `Municipal Serial No`,
+            d.serial_no AS `NC Serial No`,
+            d.accountable AS `Accountable`,
+            d.status AS `Status`,
             d.acquisition_cost AS `Acquisition Cost`,
             d.date_acquired AS `Date Acquired`
         FROM devices_full d
@@ -49,13 +51,15 @@ def export_reports():
 
         UNION ALL
 
-        SELECT 
-            p.pcname AS Name,
-            'PC' AS Category,
-            dept.department_name AS Department,
-            p.location AS Location,
-            p.accountable AS Accountable,
-            p.status AS Status,
+        SELECT
+            p.pcid AS `ID`,
+            p.pcname AS `Name`,
+            'PC' AS `Category`,
+            dept.department_name AS `Department`,
+            p.municipal_serial_no AS `Municipal Serial No`,
+            p.serial_no AS `NC Serial No`,
+            p.accountable AS `Accountable`,
+            p.status AS `Status`,
             p.acquisition_cost AS `Acquisition Cost`,
             p.date_acquired AS `Date Acquired`
         FROM pcinfofull p
@@ -245,12 +249,13 @@ def loadReports():
     offset = (page - 1) * per_page
 
     query = """
-        SELECT 
+        SELECT
             d.accession_id AS id,
             d.item_name AS name,
             'Device' AS category,
             dept.department_name AS department,
-            '' AS location,
+            d.municipal_serial_no AS municipal_serial_no,
+            d.serial_no AS serial_no,
             d.accountable,
             d.status,
             d.acquisition_cost,
@@ -260,12 +265,13 @@ def loadReports():
         WHERE d.status = 'Available'
         UNION ALL
 
-        SELECT 
+        SELECT
             p.pcid AS id,
             p.pcname AS name,
             'PC' AS category,
             dept.department_name AS department,
-            p.location,
+            p.municipal_serial_no AS municipal_serial_no,
+            p.serial_no AS serial_no,
             p.accountable,
             p.status,
             p.acquisition_cost,

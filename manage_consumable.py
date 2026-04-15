@@ -145,6 +145,7 @@ def get_consumables():
 
             cur.execute(sql)
             consumables = cur.fetchall()
+            print(f"[DEBUG] /get-consumables returned {len(consumables)} rows")
         return jsonify(consumables)
     finally:
         conn.close()
@@ -334,17 +335,31 @@ def delete_consumable(id):
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT COUNT(*) AS tx_count FROM consumable_transactions WHERE accession_id = %s",
-                (id,)
-            )
-            row = cur.fetchone()
-            if isinstance(row, dict):
-                tx_count = row.get("tx_count", 0)
-            elif isinstance(row, (list, tuple)):
-                tx_count = row[0] if row else 0
-            else:
-                tx_count = 0
+            # Count references in both legacy `consumable_transactions` and the
+            # new `consumable_usage` table to decide whether deletion is allowed.
+            # Perform two separate queries so we can gracefully handle the case
+            # where the `consumable_usage` table does not yet exist.
+            cur.execute("SELECT COUNT(*) AS cnt FROM consumable_transactions WHERE accession_id=%s", (id,))
+            row_tx = cur.fetchone()
+            tx_count_legacy = 0
+            if isinstance(row_tx, dict):
+                tx_count_legacy = int(row_tx.get('cnt', 0) or 0)
+            elif isinstance(row_tx, (list, tuple)):
+                tx_count_legacy = int(row_tx[0] if row_tx else 0)
+
+            tx_count_usage = 0
+            try:
+                cur.execute("SELECT COUNT(*) AS cnt FROM consumable_usage WHERE accession_id=%s", (id,))
+                row_usage = cur.fetchone()
+                if isinstance(row_usage, dict):
+                    tx_count_usage = int(row_usage.get('cnt', 0) or 0)
+                elif isinstance(row_usage, (list, tuple)):
+                    tx_count_usage = int(row_usage[0] if row_usage else 0)
+            except Exception:
+                # If the table doesn't exist yet, treat usage count as zero
+                tx_count_usage = 0
+
+            tx_count = tx_count_legacy + tx_count_usage
 
             if tx_count and int(tx_count) > 0:
                 message = (

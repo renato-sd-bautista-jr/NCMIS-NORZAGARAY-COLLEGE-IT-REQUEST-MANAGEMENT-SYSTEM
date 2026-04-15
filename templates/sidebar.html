@@ -164,6 +164,21 @@
       grid-template-columns: 1fr;
     }
   }
+  /* Consumable Usage nav special styles */
+  .nav-usage .usage-badge {
+    margin-left: auto;
+    padding: .15rem .5rem;
+    font-size: .68rem;
+    font-weight: 700;
+    border-radius: 999px;
+    color: #1d4ed8;
+    background: linear-gradient(90deg,#eff6ff,#e0f2fe);
+    border: 1px solid rgba(59,130,246,0.08);
+  }
+  .nav-usage .icon-accent {
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .nav-usage:hover .icon-accent { transform: translateY(-2px); }
 </style>
 
 {% set current_endpoint = request.endpoint or '' %}
@@ -234,7 +249,7 @@
 {% endif %}
 
 {% if permissions.get('inventory', {}).get('view', False) %}
-{% set is_inventory_active = current_endpoint == 'manage_inventory.inventory_load' %}
+{% set is_inventory_active = current_endpoint == 'manage_inventory.inventory_load' and request.args.get('open_usage') != '1' %}
 <a href="{{ url_for('manage_inventory.inventory_load') }}"
    class="group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200
           {% if is_inventory_active %}
@@ -251,6 +266,27 @@
     <i data-lucide="cpu" class="h-4 w-4"></i>
   </span>
   <span class="leading-tight">Inventory</span>
+</a>
+{% endif %}
+
+{% if is_admin == 1 or permissions.get('transaction', {}).get('view', False) %}
+{% set is_consumable_usage_active = current_endpoint == 'transaction_bp.consumable_usage_page' %}
+<a href="{{ url_for('transaction_bp.consumable_usage_page') }}"
+   class="nav-usage group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200
+          {% if is_consumable_usage_active %}
+            border-blue-300/40 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-950/45
+          {% else %}
+            border-transparent text-slate-200 hover:border-white/15 hover:bg-white/10 hover:text-white
+          {% endif %}">
+  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 transition-all duration-200 icon-accent
+               {% if is_consumable_usage_active %}
+                 bg-white/15 text-white ring-white/30
+               {% else %}
+                  bg-white/5 text-blue-200 ring-white/10 group-hover:bg-blue-500/20 group-hover:text-white group-hover:ring-blue-300/25
+               {% endif %}">
+    <i data-lucide="package-check" class="h-4 w-4"></i>
+  </span>
+  <span class="leading-tight">Consumable Usage</span>  
 </a>
 {% endif %}
 

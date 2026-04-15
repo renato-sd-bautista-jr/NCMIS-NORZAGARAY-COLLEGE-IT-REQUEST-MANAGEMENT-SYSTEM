@@ -1595,6 +1595,13 @@ costFilterButtons.forEach((button) => {
       }
     }
 
+    // Refresh dashboard when inventory updates elsewhere
+    window.addEventListener('inventory-updated', function() {
+      if (typeof refreshData === 'function') {
+        try { refreshData(); } catch (e) { console.warn('refreshData failed', e); }
+      }
+    });
+
     // Show notification
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');

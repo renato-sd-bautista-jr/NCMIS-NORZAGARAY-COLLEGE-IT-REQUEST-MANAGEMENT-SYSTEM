@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, send_file,session, make_response
+from flask import Blueprint, jsonify, request, render_template, send_file,session, make_response, redirect, url_for
 import pymysql
 from db import get_db_connection
 from io import BytesIO
@@ -60,6 +60,7 @@ def transaction_page():
 def transaction_history_page():
     """Render the transaction history page for viewing all transactions."""
     return render_template('transaction_history.html')
+
 
 
 @transaction_bp.route('/get-departments')
@@ -274,6 +275,35 @@ def _ensure_consumables_row(cursor, accession_id, item_name, quantity):
     )
 
 
+def _ensure_consumable_usage_table(cursor):
+    """Create the `consumable_usage` table if it does not exist.
+
+    Many parts of the app read from this table; ensure it exists to avoid
+    operational errors on queries when it hasn't yet been created.
+    """
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS consumable_usage (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                accession_id INT NOT NULL,
+                item_name VARCHAR(255) DEFAULT NULL,
+                quantity INT NOT NULL,
+                previous_stock INT DEFAULT NULL,
+                new_stock INT DEFAULT NULL,
+                reference_no VARCHAR(100) DEFAULT NULL,
+                reason VARCHAR(255) DEFAULT NULL,
+                notes TEXT DEFAULT NULL,
+                performed_by INT DEFAULT NULL,
+                department_id INT DEFAULT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+    except Exception:
+        # If creation fails (permissions/schema), ignore and let callers
+        # handle missing-table errors gracefully.
+        pass
+
+
 def _bootstrap_device_from_consumables(
     cursor,
     accession_id,
@@ -386,6 +416,13 @@ def get_consumables():
     finally:
         cursor.close()
         conn.close()
+
+
+# Load additional consumable routes defined in consumable_sage.py
+try:
+    import consumable_sage  # noqa: F401
+except Exception as _err:
+    print("❌ Failed to import consumable_sage:", _err)
 
 
 @transaction_bp.route('/pc_parts/api', methods=['GET'])
@@ -518,54 +555,144 @@ def get_transactions_api():
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     try:
-        # Build WHERE clauses
-        where_clauses = []
+        # Build query depending on requested filter type. For 'return' we now
+        # read from the dedicated `consumable_usage` table; for 'receive' keep
+        # using `consumable_transactions`. Date filters reference the created_at
+        # column of the chosen source.
+
         params = []
-        
-        # Type filter
+
         if filter_type == 'receive':
-            where_clauses.append("UPPER(TRIM(t.action)) = 'RECEIVE'")
+            # Use consumable_transactions for receives
+            base_query = """
+                SELECT
+                    t.transaction_id,
+                    t.accession_id,
+                    t.item_name,
+                    t.action,
+                    t.quantity,
+                    t.previous_stock,
+                    t.new_stock,
+                    t.reason,
+                    t.notes,
+                    t.created_at,
+                    u.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_transactions t
+                LEFT JOIN users u ON u.user_id = t.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = t.accession_id
+                LEFT JOIN departments d ON d.department_id = df.department_id
+                WHERE UPPER(TRIM(t.action)) = 'RECEIVE'
+            """
+
+            if date_from:
+                base_query += " AND DATE(t.created_at) >= %s"
+                params.append(date_from)
+            if date_to:
+                base_query += " AND DATE(t.created_at) <= %s"
+                params.append(date_to)
+
+            count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as count_table"
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()["total"]
+
+            query = base_query + " ORDER BY t.created_at DESC LIMIT %s OFFSET %s"
+            params_with_pagination = params + [per_page, offset]
+            cursor.execute(query, params_with_pagination)
+            rows = cursor.fetchall()
+
         elif filter_type == 'return':
-            where_clauses.append("UPPER(TRIM(t.action)) = 'RETURN'")
-        
-        # Date range filter
-        if date_from:
-            where_clauses.append("DATE(t.created_at) >= %s")
-            params.append(date_from)
-        if date_to:
-            where_clauses.append("DATE(t.created_at) <= %s")
-            params.append(date_to)
-        
-        # Build WHERE string
-        where_string = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+            # Ensure the usage table exists before querying it (may be created
+            # lazily by usage/return handlers). This avoids SQL errors when the
+            # table is not yet present.
+            try:
+                _ensure_consumable_usage_table(cursor)
+            except Exception:
+                # If ensuring the table fails, we'll let subsequent queries
+                # handle the missing-table scenario.
+                pass
 
-        # Base query
-        base_query = f"""
-            SELECT
-                t.transaction_id,
-                t.item_name,
-                t.action,
-                t.quantity,
-                t.previous_stock,
-                t.new_stock,
-                t.created_at,
-                u.username
-            FROM consumable_transactions t
-            LEFT JOIN users u ON u.user_id = t.performed_by
-            {where_string}
-        """
-        
-        # Get total count for pagination
-        count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as count_table"
-        cursor.execute(count_query, params)
-        total = cursor.fetchone()["total"]
-        
-        # Add ORDER BY, LIMIT and OFFSET for paginated query
-        query = base_query + " ORDER BY t.created_at DESC LIMIT %s OFFSET %s"
-        params_with_pagination = params + [per_page, offset]
+            # Use consumable_usage for usage/returns
+            base_query = """
+                SELECT
+                    u.id AS transaction_id,
+                    u.accession_id,
+                    u.item_name,
+                    'USE' AS action,
+                    u.quantity,
+                    u.previous_stock,
+                    u.new_stock,
+                    u.reason,
+                    u.notes,
+                    u.created_at,
+                    usr.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_usage u
+                LEFT JOIN users usr ON usr.user_id = u.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = u.accession_id
+                LEFT JOIN departments d ON d.department_id = u.department_id
+                WHERE 1=1
+            """
 
-        cursor.execute(query, params_with_pagination)
-        rows = cursor.fetchall()
+            if date_from:
+                base_query += " AND DATE(u.created_at) >= %s"
+                params.append(date_from)
+            if date_to:
+                base_query += " AND DATE(u.created_at) <= %s"
+                params.append(date_to)
+
+            count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as count_table"
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()["total"]
+
+            query = base_query + " ORDER BY u.created_at DESC LIMIT %s OFFSET %s"
+            params_with_pagination = params + [per_page, offset]
+            cursor.execute(query, params_with_pagination)
+            rows = cursor.fetchall()
+
+        else:
+            # Default/backwards-compat: return all transactions from consumable_transactions
+            base_query = """
+                SELECT
+                    t.transaction_id,
+                    t.accession_id,
+                    t.item_name,
+                    t.action,
+                    t.quantity,
+                    t.previous_stock,
+                    t.new_stock,
+                    t.reason,
+                    t.notes,
+                    t.created_at,
+                    u.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_transactions t
+                LEFT JOIN users u ON u.user_id = t.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = t.accession_id
+                LEFT JOIN departments d ON d.department_id = df.department_id
+            """
+
+            if date_from:
+                base_query += " WHERE DATE(t.created_at) >= %s"
+                params.append(date_from)
+                if date_to:
+                    base_query += " AND DATE(t.created_at) <= %s"
+                    params.append(date_to)
+            elif date_to:
+                base_query += " WHERE DATE(t.created_at) <= %s"
+                params.append(date_to)
+
+            count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as count_table"
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()["total"]
+
+            query = base_query + " ORDER BY t.created_at DESC LIMIT %s OFFSET %s"
+            params_with_pagination = params + [per_page, offset]
+            cursor.execute(query, params_with_pagination)
+            rows = cursor.fetchall()
 
         transactions = []
 
@@ -575,11 +702,16 @@ def get_transactions_api():
 
             transactions.append({
                 "id": r["transaction_id"],
-                "type": "receive" if action_value == "RECEIVE" else "return",
+                "type": "receive" if action_value == "RECEIVE" else "use",
                 "item_name": r["item_name"],
                 "quantity_change": qty_change,
                 "performed_by": r["username"],
-                "performed_at": str(r["created_at"])
+                "performed_at": str(r["created_at"]),
+                "notes": r.get("notes"),
+                "reason": r.get("reason"),
+                # department info (may be empty)
+                "office": r.get("department_name"),
+                "facility": r.get("department_category")
             })
         
         # Calculate total pages
@@ -623,17 +755,22 @@ def get_transaction_stats():
 
     try:
 
-        cursor.execute("""
-            SELECT
-                SUM(CASE WHEN action='RECEIVE' THEN quantity ELSE 0 END) AS total_received,
-                SUM(CASE WHEN action='RETURN' THEN quantity ELSE 0 END) AS total_returned
-            FROM consumable_transactions
-        """)
+        # Total received (from consumable_transactions)
+        cursor.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_transactions WHERE action = 'RECEIVE'")
+        total_received = cursor.fetchone().get('total', 0) or 0
 
-        row = cursor.fetchone()
+        # Total returned: include both legacy `consumable_transactions` with
+        # action='RETURN' and dedicated `consumable_usage` entries.
+        cursor.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_transactions WHERE action = 'RETURN'")
+        total_return_tx = cursor.fetchone().get('total', 0) or 0
+        try:
+            cursor.execute("SELECT IFNULL(SUM(quantity), 0) AS total FROM consumable_usage")
+            total_usage_tx = cursor.fetchone().get('total', 0) or 0
+        except Exception:
+            # If the table doesn't exist yet, treat as zero
+            total_usage_tx = 0
 
-        total_received = row["total_received"] or 0
-        total_returned = row["total_returned"] or 0
+        total_returned = int(total_return_tx) + int(total_usage_tx)
 
         return jsonify({
             "total_received": total_received,
@@ -864,9 +1001,57 @@ def receive_consumable():
             performed_by
         ))
 
+        # Capture the inserted transaction and return it so the UI can update immediately
+        inserted_id = cursor.lastrowid
         conn.commit()
 
-        return jsonify({"success": True, "item_name": resolved_item_name, "new_stock": new_stock})
+        # Re-fetch the inserted transaction with related user and department info
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    t.transaction_id,
+                    t.accession_id,
+                    t.item_name,
+                    t.action,
+                    t.quantity,
+                    t.previous_stock,
+                    t.new_stock,
+                    t.reason,
+                    t.notes,
+                    t.created_at,
+                    u.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_transactions t
+                LEFT JOIN users u ON u.user_id = t.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = t.accession_id
+                LEFT JOIN departments d ON d.department_id = df.department_id
+                WHERE t.transaction_id = %s
+                LIMIT 1
+                """,
+                (inserted_id,)
+            )
+            row = cursor.fetchone()
+            transaction = None
+            if row:
+                action_value = str(row.get('action') or '').strip().upper()
+                transaction = {
+                    'id': row.get('transaction_id'),
+                    'type': 'receive' if action_value == 'RECEIVE' else 'return',
+                    'item_name': row.get('item_name'),
+                    'quantity_change': row.get('quantity'),
+                    'performed_by': row.get('username'),
+                    'performed_at': str(row.get('created_at')),
+                    'notes': row.get('notes'),
+                    'reason': row.get('reason'),
+                    'office': row.get('department_name'),
+                    'facility': row.get('department_category')
+                }
+        except Exception:
+            transaction = None
+
+        return jsonify({"success": True, "item_name": resolved_item_name, "new_stock": new_stock, "transaction": transaction})
 
     except Exception as e:
         try:
@@ -884,7 +1069,11 @@ def receive_consumable():
 @check_permission('transaction', 'add')
 def return_consumable():
 
-    data = request.json or {}
+    # Accept either form-encoded POSTs or JSON body (some clients submit forms).
+    data = request.form.to_dict() if request.form else (request.get_json(silent=True) or {})
+    # If the client supplied a department for this usage, capture it so we can
+    # reflect it in the returned transaction payload (does not modify inventory).
+    department_id_submitted = _safe_int(data.get('department_id'))
     accession_id = _safe_int(data.get('accession_id'))
     qty = _safe_int(data.get('quantity'))
     reason = (data.get('reason') or '').strip() or None
@@ -988,11 +1177,34 @@ def return_consumable():
             (new_stock, resolved_item_name, accession_id),
         )
 
-        cursor.execute("""
-            INSERT INTO consumable_transactions
-            (accession_id,item_name,action,quantity,previous_stock,new_stock,reference_no,reason,notes,performed_by)
-            VALUES (%s,%s,'RETURN',%s,%s,%s,%s,%s,%s,%s)
-        """, (
+        # Ensure a dedicated usage table exists and insert usage record there
+        try:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS consumable_usage (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    accession_id INT NOT NULL,
+                    item_name VARCHAR(255) DEFAULT NULL,
+                    quantity INT NOT NULL,
+                    previous_stock INT DEFAULT NULL,
+                    new_stock INT DEFAULT NULL,
+                    reference_no VARCHAR(100) DEFAULT NULL,
+                    reason VARCHAR(255) DEFAULT NULL,
+                    notes TEXT DEFAULT NULL,
+                    performed_by INT DEFAULT NULL,
+                    department_id INT DEFAULT NULL,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """)
+        except Exception:
+            pass
+
+        cursor.execute(
+            """
+            INSERT INTO consumable_usage
+            (accession_id,item_name,quantity,previous_stock,new_stock,reference_no,reason,notes,performed_by,department_id)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """,
+        (
             accession_id,
             resolved_item_name,
             qty,
@@ -1001,12 +1213,73 @@ def return_consumable():
             reference_no,
             reason,
             notes,
-            performed_by
+            performed_by,
+            department_id_submitted
         ))
 
+        inserted_id = cursor.lastrowid
         conn.commit()
 
-        return jsonify({"success": True, "item_name": resolved_item_name, "new_stock": new_stock})
+        # Re-fetch the inserted usage row for immediate client update
+        transaction = None
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    u.id AS transaction_id,
+                    u.accession_id,
+                    u.item_name,
+                    'RETURN' AS action,
+                    u.quantity,
+                    u.previous_stock,
+                    u.new_stock,
+                    u.reason,
+                    u.notes,
+                    u.created_at,
+                    usr.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_usage u
+                LEFT JOIN users usr ON usr.user_id = u.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = u.accession_id
+                LEFT JOIN departments d ON d.department_id = u.department_id
+                WHERE u.id = %s
+                LIMIT 1
+                """,
+                (inserted_id,)
+            )
+            row = cursor.fetchone()
+            if row:
+                action_value = str(row.get('action') or '').strip().upper()
+
+                office = row.get('department_name')
+                facility = row.get('department_category')
+                try:
+                    if department_id_submitted is not None:
+                        cursor.execute("SELECT department_name, category FROM departments WHERE department_id=%s LIMIT 1", (department_id_submitted,))
+                        drow = cursor.fetchone()
+                        if drow:
+                            office = drow.get('department_name') or office
+                            facility = drow.get('category') or facility
+                except Exception:
+                    pass
+
+                transaction = {
+                    'id': row.get('transaction_id'),
+                    'type': 'receive' if action_value == 'RECEIVE' else 'return',
+                    'item_name': row.get('item_name'),
+                    'quantity_change': row.get('quantity'),
+                    'performed_by': row.get('username'),
+                    'performed_at': str(row.get('created_at')),
+                    'notes': row.get('notes'),
+                    'reason': row.get('reason'),
+                    'office': office,
+                    'facility': facility
+                }
+        except Exception:
+            transaction = None
+
+        return jsonify({"success": True, "item_name": resolved_item_name, "new_stock": new_stock, "transaction": transaction})
 
     except Exception as e:
         try:
@@ -1019,8 +1292,12 @@ def return_consumable():
     finally:
         cursor.close()
         conn.close()
+    
 
- 
+
+# /consumables/use moved to consumable_sage.py
+
+
 @transaction_bp.route('/users/list', methods=['GET'])
 @check_permission('transaction', 'view')
 def get_users():

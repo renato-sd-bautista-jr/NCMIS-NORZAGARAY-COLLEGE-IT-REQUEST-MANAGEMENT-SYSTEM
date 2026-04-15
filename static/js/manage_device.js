@@ -775,17 +775,19 @@ function formatDeviceCurrency(value) {
 }
 
 function getDeviceStatusTextClass(status) {
-  if (status === "Available") return "text-green-600";
-  if (status === "In Used") return "text-blue-600";
-  if (status === "Inactive") return "text-gray-500";
-  return "text-red-600";
+  const key = String(status || '').trim().toLowerCase();
+  if (key === 'available') return 'text-green-600';
+  if (key === 'in use' || key === 'in used' || key === 'in-used' || key === 'inuse') return 'text-blue-600';
+  if (key === 'inactive') return 'text-gray-500';
+  return 'text-red-600';
 }
 
 function getDeviceStatusBadgeClass(status) {
-  if (status === "Available") return "bg-green-100 text-green-600";
-  if (status === "In Used") return "bg-blue-100 text-blue-600";
-  if (status === "Inactive") return "bg-gray-100 text-gray-500";
-  return "bg-red-100 text-red-600";
+  const key = String(status || '').trim().toLowerCase();
+  if (key === 'available') return 'bg-green-100 text-green-600';
+  if (key === 'in use' || key === 'in used' || key === 'in-used' || key === 'inuse') return 'bg-blue-100 text-blue-600';
+  if (key === 'inactive') return 'bg-gray-100 text-gray-500';
+  return 'bg-red-100 text-red-600';
 }
 
 function getDeviceRiskTextClass(riskLevel) {
