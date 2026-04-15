@@ -1,8 +1,9 @@
-from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint,g
+from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint, g
 import json
 import os
 
 from login import login_bp
+from utils.auth import init_auth
 from userborrow import userborrow_bp
 from qr_functions import qrcode_bp
 from manage_user import manage_user_bp
@@ -31,6 +32,7 @@ app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.jinja_env.auto_reload = True
+init_auth(app)
 app.register_blueprint(login_bp)
 app.register_blueprint(report_bp)
 app.register_blueprint(userborrow_bp)

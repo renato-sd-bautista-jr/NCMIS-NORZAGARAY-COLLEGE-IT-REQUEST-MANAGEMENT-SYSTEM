@@ -58,6 +58,8 @@ def login():
             'is_admin': bool(user['is_admin']),
             'permissions': permissions
         }
+        session.permanent = True
+        session['last_activity'] = datetime.utcnow().timestamp()
 
         log_user_activity(
             user=session['user'],
