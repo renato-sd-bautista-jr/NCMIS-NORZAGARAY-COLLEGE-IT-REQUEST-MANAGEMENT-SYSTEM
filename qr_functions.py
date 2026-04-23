@@ -161,7 +161,15 @@ def device_qr(accession_id):
 
     # Only encode minimal info for QR
     qr_data = f"DEVICE|{device['accession_id']}|{device['serial_no']}|{device['item_name']}"
-    return send_qr(qr_data, size=200, filename=f"{device['item_name']}_QR.png")
+    # Allow size override via query param ?size=NN
+    size_arg = request.args.get('size')
+    try:
+        size = int(size_arg) if size_arg is not None else 200
+    except (TypeError, ValueError):
+        size = 200
+    # Clamp reasonable bounds
+    size = max(32, min(size, 2000))
+    return send_qr(qr_data, size=size, filename=f"{device['item_name']}_QR.png")
 
 
 
@@ -237,7 +245,14 @@ def pc_qr(pcid):
     safe_filename = f"PC_{pc['pcid']}_QR.png"
     
     try:
-        return send_qr(qr_data, size=200, filename=safe_filename)
+        # Respect optional size parameter from query string
+        size_arg = request.args.get('size')
+        try:
+            size = int(size_arg) if size_arg is not None else 200
+        except (TypeError, ValueError):
+            size = 200
+        size = max(32, min(size, 2000))
+        return send_qr(qr_data, size=size, filename=safe_filename)
     except Exception as e:
         import traceback
         traceback.print_exc()

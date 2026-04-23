@@ -21,7 +21,7 @@ def login():
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT user_id, username, is_admin, password, permissions,is_active FROM users WHERE username=%s",
+                    "SELECT user_id, username, is_admin, role, password, permissions, is_active FROM users WHERE username=%s",
                     (username,)
                 )
                 user = cursor.fetchone()
@@ -52,14 +52,15 @@ def login():
                 permissions = {}
 
         # Save session data
+        # Derive role and admin flag (backwards compatible with older rows)
+        derived_role = user.get('role') or ('admin' if user.get('is_admin') else 'staff')
         session['user'] = {
             'user_id': user['user_id'],
             'username': user['username'],
-            'is_admin': bool(user['is_admin']),
+            'role': derived_role,
+            'is_admin': True if (user.get('is_admin') or derived_role == 'admin') else False,
             'permissions': permissions
         }
-        session.permanent = True
-        session['last_activity'] = datetime.utcnow().timestamp()
 
         log_user_activity(
             user=session['user'],
@@ -68,7 +69,12 @@ def login():
             details='User signed in successfully'
         )
 
-        
+        # Route users with explicit role 'user' to the Submit Ticket page
+        user_role = (session['user'].get('role') or '').strip().lower()
+        if user_role == 'user':
+            return redirect(url_for('submit_ticket_bp.submit_ticket_page'))
+
+        # Default behavior: admins/staff go to dashboard
         return redirect(url_for('dashboard_bp.dashboard_load'))
         # ✅ Handle GET requests here
     return render_template('login.html')

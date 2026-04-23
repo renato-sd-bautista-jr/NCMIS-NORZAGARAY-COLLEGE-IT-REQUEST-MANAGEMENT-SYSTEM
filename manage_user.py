@@ -37,7 +37,7 @@ def manage_user_page():
 
             offset = (page - 1) * per_page
             
-            # Get paginated users
+            # Get paginated users (include role)
             cursor.execute("""
                  SELECT 
                 user_id,
@@ -47,6 +47,7 @@ def manage_user_page():
                 last_name,
                 email,
                 is_admin,
+                role,
                 is_active,
                 permissions,
                 created_at
@@ -86,6 +87,7 @@ def get_users():
                     last_name,
                     email,
                     is_admin,
+                    role,
                     is_active,
                     created_at,
                     updated_at
@@ -112,7 +114,12 @@ def add_or_update_user():
     username = data.get('username', '').strip()
     email = data.get('email', '').strip()
     password = data.get('password', '')
-    is_admin = int(data.get('is_admin', 0))
+    # Read role and derive is_admin for backward compatibility
+    role = (data.get('role') or 'staff').strip().lower()
+    allowed_roles = {'staff', 'technician', 'dept_head', 'admin'}
+    if role not in allowed_roles:
+        role = 'staff'
+    is_admin = 1 if role == 'admin' else 0
     new_password = data.get('new_password', '').strip()
     confirm_password = data.get('confirm_password', '').strip()
     permissions = data.getlist('permissions')
@@ -121,6 +128,8 @@ def add_or_update_user():
     perm_data = {
         "dashboard": {"view": "dashboard_view" in permissions, "edit": "dashboard_edit" in permissions},
         "inventory": {"view": "inventory_view" in permissions, "edit": "inventory_edit" in permissions},
+        "transaction": {"view": "transaction_view" in permissions, "add": "transaction_add" in permissions, "edit": "transaction_edit" in permissions},
+        "submit_ticket": {"view": "submit_ticket_view" in permissions, "add": "submit_ticket_add" in permissions},
         "qrlist": {"view": "qrlist_view" in permissions, "edit": "qrlist_edit" in permissions},
         "report": {"view": "report_view" in permissions, "edit": "report_edit" in permissions},
         "dept": {
@@ -132,7 +141,8 @@ def add_or_update_user():
         "receive_item": {"view": "receive_item_view" in permissions, "edit": "receive_item_edit" in permissions},
         "activity_log": {"view": "activity_log_view" in permissions, "edit": "activity_log_edit" in permissions},
         "manage_user": {"view": "manage_user_view" in permissions, "edit": "manage_user_edit" in permissions},
-        "maintenance": {"view": "maintenance_view" in permissions, "edit": "maintenance_edit" in permissions}
+        "maintenance": {"view": "maintenance_view" in permissions, "edit": "maintenance_edit" in permissions},
+        "stock_room": {"view": "stock_room_view" in permissions, "edit": "stock_room_edit" in permissions}
     }
 
     if not first_name or not last_name or not username or not email:
@@ -172,39 +182,39 @@ def add_or_update_user():
                         UPDATE users
                         SET first_name=%s, middle_name=%s, last_name=%s,
                             username=%s, email=%s, password=%s, is_admin=%s,
-                            permissions=%s, updated_at=NOW()
+                            role=%s, permissions=%s, updated_at=NOW()
                         WHERE user_id=%s
                     """
                     cursor.execute(sql, (
                         first_name, middle_name, last_name,
                         username, email, hashed_pw, is_admin,
-                        json.dumps(perm_data), user_id
+                        role, json.dumps(perm_data), user_id
                     ))
                 else:
                     sql = """
                         UPDATE users
                         SET first_name=%s, middle_name=%s, last_name=%s,
                             username=%s, email=%s, is_admin=%s,
-                            permissions=%s, updated_at=NOW()
+                            role=%s, permissions=%s, updated_at=NOW()
                         WHERE user_id=%s
                     """
                     cursor.execute(sql, (
                         first_name, middle_name, last_name,
                         username, email, is_admin,
-                        json.dumps(perm_data), user_id
+                        role, json.dumps(perm_data), user_id
                     ))
 
             else:  # Add new user
                 hashed_pw = generate_password_hash(password)
                 sql = """
                     INSERT INTO users 
-                    (first_name, middle_name, last_name, username, email, password, is_admin, permissions, is_active, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, NOW(), NOW())
+                    (first_name, middle_name, last_name, username, email, password, is_admin, role, permissions, is_active, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1, NOW(), NOW())
                 """
                 cursor.execute(sql, (
                     first_name, middle_name, last_name,
                     username, email, hashed_pw,
-                    is_admin, json.dumps(perm_data)
+                    is_admin, role, json.dumps(perm_data)
                 ))
 
         conn.commit()

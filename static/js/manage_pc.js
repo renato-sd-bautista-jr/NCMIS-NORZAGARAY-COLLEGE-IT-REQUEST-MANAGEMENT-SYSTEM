@@ -997,7 +997,7 @@ function renderPcDesktopRows(pcs, canEdit) {
             <i data-lucide="pencil" class="w-3 h-3"></i> Edit
           </button>
           <button type="button" onclick="openDeleteModal('/delete-pc/${encodeURIComponent(pc.pcid)}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">
-            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+            <i data-lucide="trash-2" class="w-3 h-3"></i> Archive
           </button>
           ${markCheckedButton}
           <button onclick="openMaintenanceLog(${Number(pc.pcid)}, 'PC')" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded-lg text-xs shadow whitespace-nowrap flex items-center gap-1">

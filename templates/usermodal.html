@@ -246,10 +246,12 @@
         <!-- Role -->
         <div>
           <label class="block text-gray-700 text-sm font-medium mb-1">Role</label>
-          <select name="is_admin" id="is_admin"
+          <select name="role" id="role"
                   class="border border-gray-300 rounded-xl px-4 py-3 w-full bg-white text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-            <option value="0">Staff</option>
-            <option value="1">Admin</option>
+            <option value="staff">Staff</option>
+            <option value="technician">Technician</option>
+            <option value="dept_head">Department Head</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
 
@@ -305,6 +307,24 @@
               </div>
             </div>
 
+            <!-- Stock Room -->
+            <div class="flex justify-between items-center border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="archive" class="w-6 h-6 text-stone-600"></i>
+                <span class="font-semibold text-gray-700">Stock Room</span>
+              </div>
+              <div class="flex gap-6">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="stock_room_view" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  View
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="stock_room_edit" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  Edit
+                </label>
+              </div>
+            </div>
+
             <!-- QR List -->
             <div class="flex justify-between items-center border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition">
               <div class="flex items-center gap-3">
@@ -319,6 +339,42 @@
                 <label class="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="permissions" value="qrlist_edit" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
                   Edit
+                </label>
+              </div>
+            </div>
+
+            <!-- Transactions -->
+            <div class="flex justify-between items-center border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="repeat" class="w-6 h-6 text-pink-600"></i>
+                <span class="font-semibold text-gray-700">Transactions</span>
+              </div>
+              <div class="flex gap-6">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="transaction_view" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  View
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="transaction_add" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  Add
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Ticket -->
+            <div class="flex justify-between items-center border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="edit-3" class="w-6 h-6 text-rose-600"></i>
+                <span class="font-semibold text-gray-700">Submit Ticket</span>
+              </div>
+              <div class="flex gap-6">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="submit_ticket_view" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  View
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="permissions" value="submit_ticket_add" class="permCheckbox w-5 h-5 text-blue-600 border-gray-300 rounded">
+                  Add
                 </label>
               </div>
             </div>
@@ -522,7 +578,9 @@ function openUserModal(mode = 'add', user = null) {
     document.getElementById('middleName').value = user.middle_name || '';
     document.getElementById('username').value = user.username || '';
     document.getElementById('email').value = user.email || '';
-    document.getElementById('is_admin').value = user.is_admin || '0';
+  // Set role (falls back to is_admin for older rows)
+  const roleEl = document.getElementById('role');
+  if (roleEl) roleEl.value = user.role || (user.is_admin ? 'admin' : 'staff');
 
     // Clear password fields
     document.getElementById('new_password').value = '';
@@ -532,15 +590,14 @@ function openUserModal(mode = 'add', user = null) {
     if (user.permissions) {
       try {
         const perms = typeof user.permissions === "string" ? JSON.parse(user.permissions) : user.permissions;
-        Object.keys(perms).forEach(section => {
-          if (perms[section].view) {
-            const cb = document.querySelector(`.permCheckbox[value="${section}_view"]`);
-            if (cb) cb.checked = true;
-          }
-          if (perms[section].edit) {
-            const cb = document.querySelector(`.permCheckbox[value="${section}_edit"]`);
-            if (cb) cb.checked = true;
-          }
+        Object.keys(perms || {}).forEach((section) => {
+          const actionMap = perms[section] || {};
+          Object.keys(actionMap).forEach((action) => {
+            if (actionMap[action]) {
+              const cb = document.querySelector(`.permCheckbox[value="${section}_${action}"]`);
+              if (cb) cb.checked = true;
+            }
+          });
         });
         selectAllCheckbox.checked = Array.from(permissionCheckboxes).every(cb => cb.checked);
       } catch (e) {

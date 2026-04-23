@@ -1333,10 +1333,7 @@ def replace_pc_part():
             new_tokens = set()
             for f in parts_to_check:
                 try:
-                    part_value = replacements.get(f)
-                    if isinstance(part_value, dict):
-                        part_value = part_value.get('label')
-                    new_tokens.update(_parse_tokens(part_value))
+                    new_tokens.update(_parse_tokens(replacements.get(f)))
                 except Exception:
                     pass
 
@@ -1350,31 +1347,14 @@ def replace_pc_part():
                 except Exception:
                     pass
 
-           # Build UPDATE statement for all replacements (STORE display label text)
+            # Build UPDATE statement for all replacements
             set_clauses = []
             params = []
-
-            for part, part_data in replacements.items():
-
-                # ✅ support both new (dict) and old (string)
-                if isinstance(part_data, dict):
-                    new_value = part_data.get('label')
-                    new_accession_id = part_data.get('accession_id')
-                else:
-                    new_value = part_data
-                    new_accession_id = None
-
-                old_value_raw = row.get(part)
-                try:
-                    old_value_id = int(old_value_raw) if old_value_raw else None
-                except Exception:
-                    old_value_id = None
-
-                # Skip if nothing changed by label or by accession id
-                if str(old_value_raw) == str(new_value) or (old_value_id is not None and str(old_value_id) == str(new_accession_id)):
+            for part, new_value in replacements.items():
+                # Skip if new value equals current value to avoid no-op
+                old_value = row.get(part)
+                if (old_value is None and (new_value is None or new_value == '')) or str(old_value) == str(new_value):
                     continue
-
-                # ✅ store the selected part name/label in the PC row
                 set_clauses.append(f"{part} = %s")
                 params.append(new_value)
 
@@ -1383,63 +1363,22 @@ def replace_pc_part():
                 params.append(pcid)
                 cur.execute(sql, params)
 
-
-            # 🔥 AUDIT + STATUS UPDATE + HISTORY (ID-BASED)
-            for part, part_data in replacements.items():
-
-                if isinstance(part_data, dict):
-                    new_value = part_data.get('label')
-                    new_accession_id = part_data.get('accession_id')
-                else:
-                    new_value = part_data
-                    new_accession_id = None
-
+            # Audit and mark new values as IN USE
+            for part, new_value in replacements.items():
                 old_value = row.get(part)
                 try:
-                    old_value = int(old_value) if old_value else None # should be accession_id already
+                    if str(old_value) != str(new_value):
+                        try:
+                            log_inventory_action('PC', pcid, 'UPDATE', part, old_value, new_value, performed_by)
+                        except Exception:
+                            pass
                 except Exception:
-                    old_value = None
+                    pass
 
-                # ✅ ONLY if changed
-                if str(old_value) != str(new_accession_id):
-
-                    # 🔥 INSERT HISTORY USING IDs
-                    cur.execute("""
-                        INSERT INTO pc_part_replacements 
-                        (pcid, part_name, old_accession_id, new_accession_id, replaced_by)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, (
-                        pcid,
-                        part,
-                        old_value,           # old accession_id
-                        new_accession_id,    # new accession_id
-                        performed_by
-                    ))
-
-                    # Optional audit log (keep)
-                    try:
-                        log_inventory_action('PC', pcid, 'UPDATE', part, old_value, new_accession_id, performed_by)
-                    except Exception:
-                        pass
-
-                    # 🔥 UPDATE STATUS ONLY (IMPORTANT)
-
-                    # OLD part → Damaged
-                    if old_value:
-                        cur.execute("""
-                            UPDATE devices_full
-                            SET status = 'Damaged'
-                            WHERE accession_id = %s
-                        """, (old_value,))
-
-                    # NEW part → In Use
-                    if new_accession_id:
-                        cur.execute("""
-                            UPDATE devices_full
-                            SET status = 'In Use'
-                            WHERE accession_id = %s
-                        """, (new_accession_id,))
-                            
+                try:
+                    _mark_device_values_in_use(cur, new_value, performed_by)
+                except Exception:
+                    pass
 
             conn.commit()
         return jsonify({"success": True, "message": "Part(s) replaced successfully."})

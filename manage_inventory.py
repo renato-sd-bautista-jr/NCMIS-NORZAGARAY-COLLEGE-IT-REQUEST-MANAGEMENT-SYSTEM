@@ -596,10 +596,7 @@ def part_suggestions():
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
             params = []
-            where_clauses = [
-                "COALESCE(df.is_archived, 0) = 0",
-                "df.status = 'Available'"   # ✅ ADD THIS
-            ]
+            where_clauses = ["COALESCE(df.is_archived, 0) = 0"]
             search_clauses = []
 
             if part:
@@ -633,7 +630,6 @@ def part_suggestions():
 
             results = []
             for r in rows:
-                
                 name = (r.get('item_name') or '').strip()
                 brand = (r.get('brand_model') or '').strip()
                 label = name or str(r.get('accession_id'))

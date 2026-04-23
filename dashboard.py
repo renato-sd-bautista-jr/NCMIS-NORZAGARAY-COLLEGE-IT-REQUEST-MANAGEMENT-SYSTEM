@@ -1112,6 +1112,56 @@ def dashboard_load():
             action_queue.sort(key=lambda item: (item['priority_rank'], item['queue_type'], item['title']))
             action_queue = action_queue[:12]
 
+            # 🔹 Ticket/Concern status summary counts
+            # Prefer counts from the `tickets` table (admin queue) when it exists.
+            pending_tickets = 0
+            inprogress_tickets = 0
+            resolved_tickets = 0
+            unresolved_tickets = 0
+            invalid_tickets = 0
+            try:
+                # Check if `tickets` table exists in the current database
+                cur.execute("SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tickets'")
+                has_tickets = bool(cur.fetchone().get('cnt'))
+
+                if has_tickets:
+                    # Use tickets table counts only to match the admin view
+                    cur.execute("SELECT LOWER(COALESCE(status, '')) AS s, COUNT(*) AS cnt FROM tickets GROUP BY s")
+                    rows = cur.fetchall() or []
+                    for r in rows:
+                        s = (r.get('s') or '').strip()
+                        cnt = int(r.get('cnt') or 0)
+                        if s in ('open', 'pending'):
+                            pending_tickets += cnt
+                        elif s in ('ongoing', 'accepted', 'in progress', 'processing', 'assigned', 'in-progress', 'inprogress'):
+                            inprogress_tickets += cnt
+                        elif s in ('closed', 'resolved'):
+                            resolved_tickets += cnt
+                        elif s in ('declined', 'rejected', 'invalid'):
+                            invalid_tickets += cnt
+                        elif s == 'unresolved':
+                            unresolved_tickets += cnt
+                else:
+                    # Fallback to legacy `concerns` table if tickets not present
+                    cur.execute("SELECT LOWER(COALESCE(status, '')) AS s, COUNT(*) AS cnt FROM concerns GROUP BY s")
+                    rows = cur.fetchall() or []
+                    for r in rows:
+                        s = (r.get('s') or '').strip()
+                        cnt = int(r.get('cnt') or 0)
+                        if s in ('open', 'pending'):
+                            pending_tickets += cnt
+                        elif s in ('ongoing', 'accepted', 'in progress', 'processing', 'assigned', 'in-progress', 'inprogress'):
+                            inprogress_tickets += cnt
+                        elif s in ('closed', 'resolved'):
+                            resolved_tickets += cnt
+                        elif s in ('declined', 'rejected', 'invalid'):
+                            invalid_tickets += cnt
+                        elif s == 'unresolved':
+                            unresolved_tickets += cnt
+            except Exception as e:
+                # Tables might not exist or other DB issue; don't break dashboard
+                print('Dashboard ticket counts error:', e)
+
             
 
     except Exception as e:
@@ -1135,7 +1185,12 @@ def dashboard_load():
             low_stock_alerts=[],
             zero_stock_alerts=[],
             overstocked_alerts=[],
-            action_queue=[]
+            action_queue=[],
+            pending_tickets=0,
+            inprogress_tickets=0,
+            resolved_tickets=0,
+            unresolved_tickets=0,
+            invalid_tickets=0
         )
     finally:
         conn.close()
@@ -1160,4 +1215,10 @@ def dashboard_load():
         zero_stock_alerts=zero_stock_alerts,
         overstocked_alerts=overstocked_alerts,
         action_queue=action_queue
+        ,
+        pending_tickets=pending_tickets,
+        inprogress_tickets=inprogress_tickets,
+        resolved_tickets=resolved_tickets,
+        unresolved_tickets=unresolved_tickets,
+        invalid_tickets=invalid_tickets
     )

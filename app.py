@@ -1,9 +1,8 @@
-from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint, g
+from flask import render_template, request, redirect, url_for, session, Flask, flash, Blueprint,g
 import json
 import os
 
 from login import login_bp
-from utils.auth import init_auth
 from userborrow import userborrow_bp
 from qr_functions import qrcode_bp
 from manage_user import manage_user_bp
@@ -22,6 +21,10 @@ from damage_report import damage_report_bp
 from receive_item import receive_item_bp
 from stock_room import stock
 from transaction import transaction_bp
+from submit_ticket import submit_ticket_bp
+from admin_tickets import admin_tickets_bp
+from concern import concern_bp
+from ticket_reports import ticket_reports_bp
 from activity_log import activity_log_bp
 from utils.user_activity import log_user_activity
 
@@ -32,7 +35,6 @@ app.secret_key = 'a2f1e4f8f60b4f81a8d32dd0b3c2ce90'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.jinja_env.auto_reload = True
-init_auth(app)
 app.register_blueprint(login_bp)
 app.register_blueprint(report_bp)
 app.register_blueprint(userborrow_bp)
@@ -50,6 +52,10 @@ app.register_blueprint(damage_report_bp)
 app.register_blueprint(receive_item_bp)
 app.register_blueprint(stock, url_prefix='/stock_room')
 app.register_blueprint(transaction_bp)
+app.register_blueprint(submit_ticket_bp)
+app.register_blueprint(admin_tickets_bp)
+app.register_blueprint(concern_bp)
+app.register_blueprint(ticket_reports_bp)
 app.register_blueprint(activity_log_bp, url_prefix='/activity-log')
 # ...existing code...
 app.register_blueprint(archive_bp)
@@ -71,7 +77,8 @@ def inject_user_permissions():
     if user:
         return {
             'permissions': user.get('permissions', {}),
-            'is_admin': user.get('is_admin', 0)
+            'is_admin': user.get('is_admin', 0),
+            'role': user.get('role', 'staff')
         }
     return {'permissions': {}, 'is_admin': 0}
 @app.before_request

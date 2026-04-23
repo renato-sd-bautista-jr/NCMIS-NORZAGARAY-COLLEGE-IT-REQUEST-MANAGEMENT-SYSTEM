@@ -107,10 +107,13 @@ def use_consumable():
             (accession_id,)
         )
         item = cursor.fetchone()
-
+        # If a devices_full row exists but its quantity is zero or missing,
+        # prefer the non-zero quantity from the legacy `consumables` table.
+        # Conversely, if `devices_full` has a larger quantity, keep it.
         if item:
-            current_stock = _safe_int(item.get("quantity")) or 0
-            if current_stock == 0:
+            df_qty = _safe_int(item.get('quantity')) or 0
+            # Attempt to read legacy consumables quantity to reconcile
+            try:
                 cursor.execute(
                     """
                     SELECT item_name, quantity
@@ -120,24 +123,25 @@ def use_consumable():
                     (accession_id,)
                 )
                 legacy_item = cursor.fetchone()
+            except Exception:
+                legacy_item = None
 
-                if legacy_item:
-                    legacy_name = _normalize_item_name(legacy_item.get("item_name")) or f"Item {accession_id}"
-                    legacy_qty = _safe_int(legacy_item.get("quantity")) or 0
-                    if legacy_qty > current_stock:
-                        current_stock = legacy_qty
-                        cursor.execute(
-                            """
-                            UPDATE devices_full
-                            SET quantity=%s, item_name=%s
-                            WHERE accession_id=%s
-                            """,
-                            (current_stock, legacy_name, accession_id),
-                        )
-                        item["quantity"] = current_stock
-                        item["item_name"] = legacy_name
+            legacy_qty = _safe_int(legacy_item.get('quantity')) or 0 if legacy_item else 0
+            # Use the larger of the two quantities so we don't underreport stock
+            chosen_qty = df_qty if df_qty >= legacy_qty else legacy_qty
+            # If we chose the legacy qty and devices_full had a lower value, update
+            # the item object so downstream logic uses the reconciled quantity.
+            if chosen_qty != df_qty:
+                # mutate the fetched item dict if possible
+                try:
+                    item['quantity'] = chosen_qty
+                    if legacy_item and legacy_item.get('item_name'):
+                        item['item_name'] = legacy_item.get('item_name')
+                except Exception:
+                    pass
 
-        if not item:
+        else:
+            # No devices_full row; try to bootstrap from consumables (legacy)
             cursor.execute(
                 """
                 SELECT item_name, quantity
@@ -296,7 +300,7 @@ def use_consumable():
 
                 transaction = {
                     'id': row.get('transaction_id'),
-                    'type': 'receive' if action_value == 'RECEIVE' else 'use',
+                    'type': 'receive' if action_value == 'RECEIVE' else 'return',
                     'item_name': row.get('item_name'),
                     'quantity_change': row.get('quantity'),
                     'performed_by': row.get('username'),

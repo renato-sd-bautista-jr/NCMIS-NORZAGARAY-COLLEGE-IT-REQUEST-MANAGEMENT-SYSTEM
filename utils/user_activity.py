@@ -147,7 +147,12 @@ def log_user_activity(*, user, action, module=None, details=None):
     if not username:
         return
 
-    role = 'Admin' if bool(user.get('is_admin')) else 'Staff'
+    # Prefer explicit role string when available, else fallback to is_admin
+    raw_role = (user.get('role') or '').strip()
+    if raw_role:
+        role = raw_role.replace('_', ' ').title()
+    else:
+        role = 'Admin' if bool(user.get('is_admin')) else 'Staff'
 
     conn = get_db_connection()
     try:

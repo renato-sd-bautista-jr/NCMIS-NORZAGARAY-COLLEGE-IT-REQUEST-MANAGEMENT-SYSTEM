@@ -653,10 +653,19 @@ def get_transactions_api():
             rows = cursor.fetchall()
 
         else:
-            # Default/backwards-compat: return all transactions from consumable_transactions
-            base_query = """
+            # Default/backwards-compat: return all transactions. Include both
+            # legacy `consumable_transactions` and the dedicated
+            # `consumable_usage` (newer returns) so "All" shows recent
+            # returns as well as receives.
+            try:
+                _ensure_consumable_usage_table(cursor)
+            except Exception:
+                pass
+
+            # Subquery for legacy consumable_transactions
+            recv_sub = """
                 SELECT
-                    t.transaction_id,
+                    t.transaction_id AS transaction_id,
                     t.accession_id,
                     t.item_name,
                     t.action,
@@ -673,24 +682,55 @@ def get_transactions_api():
                 LEFT JOIN users u ON u.user_id = t.performed_by
                 LEFT JOIN devices_full df ON df.accession_id = t.accession_id
                 LEFT JOIN departments d ON d.department_id = df.department_id
+                WHERE 1=1
             """
 
-            if date_from:
-                base_query += " WHERE DATE(t.created_at) >= %s"
-                params.append(date_from)
-                if date_to:
-                    base_query += " AND DATE(t.created_at) <= %s"
-                    params.append(date_to)
-            elif date_to:
-                base_query += " WHERE DATE(t.created_at) <= %s"
-                params.append(date_to)
+            # Subquery for dedicated usage/return rows
+            return_sub = """
+                SELECT
+                    u.id AS transaction_id,
+                    u.accession_id,
+                    u.item_name,
+                    'RETURN' AS action,
+                    u.quantity,
+                    u.previous_stock,
+                    u.new_stock,
+                    u.reason,
+                    u.notes,
+                    u.created_at,
+                    usr.username,
+                    COALESCE(d.department_name, '') AS department_name,
+                    COALESCE(d.category, '') AS department_category
+                FROM consumable_usage u
+                LEFT JOIN users usr ON usr.user_id = u.performed_by
+                LEFT JOIN devices_full df ON df.accession_id = u.accession_id
+                LEFT JOIN departments d ON d.department_id = u.department_id
+                WHERE 1=1
+            """
 
+            # Apply date filters to both subqueries and build params in order
+            recv_params = []
+            return_params = []
+            if date_from:
+                recv_sub += " AND DATE(t.created_at) >= %s"
+                recv_params.append(date_from)
+                return_sub += " AND DATE(u.created_at) >= %s"
+                return_params.append(date_from)
+            if date_to:
+                recv_sub += " AND DATE(t.created_at) <= %s"
+                recv_params.append(date_to)
+                return_sub += " AND DATE(u.created_at) <= %s"
+                return_params.append(date_to)
+
+            base_query = f"({recv_sub}) UNION ALL ({return_sub})"
+
+            params_for_count = recv_params + return_params
             count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as count_table"
-            cursor.execute(count_query, params)
+            cursor.execute(count_query, params_for_count)
             total = cursor.fetchone()["total"]
 
-            query = base_query + " ORDER BY t.created_at DESC LIMIT %s OFFSET %s"
-            params_with_pagination = params + [per_page, offset]
+            query = base_query + " ORDER BY created_at DESC LIMIT %s OFFSET %s"
+            params_with_pagination = params_for_count + [per_page, offset]
             cursor.execute(query, params_with_pagination)
             rows = cursor.fetchall()
 

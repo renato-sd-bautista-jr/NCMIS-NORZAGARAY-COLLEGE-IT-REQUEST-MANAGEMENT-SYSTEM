@@ -1,5 +1,11 @@
 <!-- templates/partials/sidebar.html -->
 <style>
+  :root { --ui-radius: 10px; --ui-radius-pill: 9999px; }
+
+  /* Unify corner radius across the app (override Tailwind utility classes where used) */
+  .rounded-xl, .rounded-lg, .rounded-md, .rounded-2xl, .rounded { border-radius: var(--ui-radius) !important; }
+  .card-radius { border-radius: var(--ui-radius) !important; }
+
   .sidebar-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -27,7 +33,7 @@
 
   .logout-modal-card {
     border: 1px solid #dbeafe;
-    border-radius: 1.2rem;
+    border-radius: var(--ui-radius);
     background: linear-gradient(180deg, #f8fbff 0%, #ffffff 28%, #ffffff 100%);
     box-shadow: 0 28px 64px rgba(2, 6, 23, 0.36);
     padding: 1.4rem 1.2rem 1.15rem;
@@ -68,7 +74,7 @@
   }
 
   .logout-modal-btn {
-    border-radius: 0.7rem;
+    border-radius: var(--ui-radius);
     padding: 0.6rem 0.95rem;
     font-size: 0.88rem;
     font-weight: 600;
@@ -164,7 +170,7 @@
       grid-template-columns: 1fr;
     }
   }
-  /* Consumable Usage nav special styles */
+  /* Usage Log nav special styles */
   .nav-usage .usage-badge {
     margin-left: auto;
     padding: .15rem .5rem;
@@ -286,7 +292,7 @@
                {% endif %}">
     <i data-lucide="package-check" class="h-4 w-4"></i>
   </span>
-  <span class="leading-tight">Consumable Usage</span>  
+  <span class="leading-tight">Usage Log</span>  
 </a>
 {% endif %}
 
@@ -375,6 +381,64 @@
   </span>
   <span class="leading-tight">Manage Office and Facility</span>
 </a>
+{% endif %}
+
+{% if is_admin == 1 or permissions.get('submit_ticket', {}).get('view', False) %}
+{% set is_admin_tickets_active = current_endpoint == 'admin_tickets_bp.admin_tickets_page' %}
+<a href="{{ url_for('admin_tickets_bp.admin_tickets_page') }}"
+   class="group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200
+          {% if is_admin_tickets_active %}
+            border-blue-300/40 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-950/45
+          {% else %}
+            border-transparent text-slate-200 hover:border-white/15 hover:bg-white/10 hover:text-white
+          {% endif %}">
+  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 transition-all duration-200
+               {% if is_admin_tickets_active %}
+                 bg-white/15 text-white ring-white/30
+               {% else %}
+                 bg-white/5 text-blue-200 ring-white/10 group-hover:bg-blue-500/20 group-hover:text-white group-hover:ring-blue-300/25
+               {% endif %}">
+    <i data-lucide="inbox" class="h-4 w-4"></i>
+  </span>
+  <span class="leading-tight">Ticket Queue</span>
+</a>
+  {% set is_ticket_history_active = current_endpoint == 'ticket_reports_bp.ticket_history' %}
+  <a href="{{ url_for('ticket_reports_bp.ticket_history') }}"
+     class="group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200
+            {% if is_ticket_history_active %}
+              border-blue-300/40 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-950/45
+            {% else %}
+              border-transparent text-slate-200 hover:border-white/15 hover:bg-white/10 hover:text-white
+            {% endif %}">
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 transition-all duration-200
+                 {% if is_ticket_history_active %}
+                   bg-white/15 text-white ring-white/30
+                 {% else %}
+                   bg-white/5 text-blue-200 ring-white/10 group-hover:bg-blue-500/20 group-hover:text-white group-hover:ring-blue-300/25
+                 {% endif %}">
+      <i data-lucide="clock" class="h-4 w-4"></i>
+    </span>
+    <span class="leading-tight">Ticket History</span>
+  </a>
+
+  {% set is_ticket_report_active = current_endpoint == 'ticket_reports_bp.ticket_report' %}
+  <a href="{{ url_for('ticket_reports_bp.ticket_report') }}"
+     class="group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200
+            {% if is_ticket_report_active %}
+              border-blue-300/40 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-950/45
+            {% else %}
+              border-transparent text-slate-200 hover:border-white/15 hover:bg-white/10 hover:text-white
+            {% endif %}">
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 transition-all duration-200
+                 {% if is_ticket_report_active %}
+                   bg-white/15 text-white ring-white/30
+                 {% else %}
+                   bg-white/5 text-blue-200 ring-white/10 group-hover:bg-blue-500/20 group-hover:text-white group-hover:ring-blue-300/25
+                 {% endif %}">
+      <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+    </span>
+    <span class="leading-tight">Ticket Report</span>
+  </a>
 {% endif %}
 
 {% if session.get('user') and permissions.get('activity_log', {'view': True}).get('view', True) %}

@@ -305,6 +305,14 @@
               value="1"
               class="filter-field w-16 px-2 py-1 rounded-md text-center text-white placeholder-blue-100 focus:outline-none focus:ring-2 focus:ring-white/40"
             >
+            <label for="batchSizeSelect" class="text-xs text-blue-100 font-medium whitespace-nowrap ml-2">Size</label>
+            <select id="batchSizeSelect" class="filter-field w-24 px-2 py-1 rounded-md text-white bg-white/10 text-sm">
+              <option value="100">100px</option>
+              <option value="150">150px</option>
+              <option value="200" selected>200px</option>
+              <option value="300">300px</option>
+              <option value="400">400px</option>
+            </select>
           </div>
 
           <button id="batchPrintBtn"
@@ -408,6 +416,17 @@ Batch Print QR
         <h3 class="font-bold text-xl text-gray-800 mb-2" id="qrDeviceName">Device Name</h3>
         
         <p class="text-gray-600 text-sm">Scan this QR code to access device information</p>
+        <div class="flex items-center justify-center gap-3 mt-3">
+          <label for="qrSizeSelect" class="text-sm text-gray-600 font-medium">Size</label>
+          <select id="qrSizeSelect" class="filter-field px-3 py-1 rounded-md text-gray-800">
+            <option value="100">100px</option>
+            <option value="150">150px</option>
+            <option value="200" selected>200px</option>
+            <option value="300">300px</option>
+            <option value="400">400px</option>
+            <option value="600">600px</option>
+          </select>
+        </div>
       </div>
       
       <div class="qr-preview bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6">
@@ -469,6 +488,18 @@ Batch Print QR
       <p class="text-sm text-gray-600 mb-3">Enter how many copies you want to print (1-30).</p>
 
       <input id="printCopyInput" type="number" min="1" max="30" value="1" class="print-copy-input w-full rounded-xl px-3 py-2.5 text-sm font-semibold mb-4">
+
+      <div class="mb-3">
+        <label for="printSizeSelect" class="text-xs text-gray-600 font-medium">QR Size (px)</label>
+        <select id="printSizeSelect" class="print-copy-input w-full rounded-xl px-3 py-2.5 text-sm font-semibold mt-1">
+          <option value="100">100</option>
+          <option value="150">150</option>
+          <option value="200">200</option>
+          <option value="300" selected>300</option>
+          <option value="400">400</option>
+          <option value="600">600</option>
+        </select>
+      </div>
 
       <div class="flex items-center justify-end gap-2">
         <button id="printCopyCancelBtn" class="print-copy-cancel px-3.5 py-2 rounded-lg text-sm font-semibold">Cancel</button>
@@ -552,12 +583,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const qrModal = document.getElementById('qrModal');
   const qrImage = document.getElementById('qrImage');
   const qrDeviceName = document.getElementById('qrDeviceName');
+  const qrSizeSelect = document.getElementById('qrSizeSelect');
   const closeQRModal = document.getElementById('closeQRModal');
   const pagination = document.getElementById('pagination');
   const downloadQR = document.getElementById('downloadQR');
   const printQR = document.getElementById('printQR');
   const batchPrintBtn = document.getElementById('batchPrintBtn');
   const batchCopiesInput = document.getElementById('batchCopiesInput');
+  const batchSizeSelect = document.getElementById('batchSizeSelect');
 
   const scanModal = document.getElementById('scanModal');
   const scanQRBtn = document.getElementById('scanQRBtn');
@@ -587,6 +620,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const printCopyToast = document.getElementById('printCopyToast');
   const printCopyToastClose = document.getElementById('printCopyToastClose');
   const printCopyInput = document.getElementById('printCopyInput');
+  const printSizeSelect = document.getElementById('printSizeSelect');
   const printCopyCancelBtn = document.getElementById('printCopyCancelBtn');
   const printCopyConfirmBtn = document.getElementById('printCopyConfirmBtn');
 
@@ -662,6 +696,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function openPrintCopyToast(pcid) {
     selectedPrintPcid = pcid;
     printCopyInput.value = '1';
+    if (printSizeSelect) printSizeSelect.value = '300';
     printCopyToastWrap.classList.remove('hidden');
     requestAnimationFrame(() => {
       printCopyToast.classList.add('show');
@@ -704,8 +739,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const pcidToPrint = selectedPrintPcid;
+    // Get selected print size (px)
+    let size = parseInt((printSizeSelect && printSizeSelect.value) ? printSizeSelect.value : '300', 10);
+    if (Number.isNaN(size)) size = 300;
+    size = Math.max(32, Math.min(size, 2000));
+
     closePrintCopyToast();
-    await printPcLabels([pcidToPrint], copies);
+    await printPcLabels([pcidToPrint], copies, size);
   });
 
   printCopyInput.addEventListener('keydown', async (event) => {
@@ -873,7 +913,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       row.addEventListener('click', () => {
         qrDeviceName.textContent = device.pcname;
-        qrImage.src = `/pc_qr/${device.pcid}`;
+        // Include currently selected size when showing QR
+        const selectedSize = (qrSizeSelect && qrSizeSelect.value) ? qrSizeSelect.value : '200';
+        qrImage.src = `/pc_qr/${device.pcid}?size=${selectedSize}`;
         qrModal.dataset.device = JSON.stringify(device);
         qrModal.classList.remove('hidden');
       });
@@ -989,6 +1031,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     link.click();
   });
 
+  // Update preview when user changes selected size
+  if (qrSizeSelect) {
+    qrSizeSelect.addEventListener('change', () => {
+      if (!qrModal.classList.contains('hidden') && qrModal.dataset.device) {
+        try {
+          const dev = JSON.parse(qrModal.dataset.device);
+          const size = qrSizeSelect.value || '200';
+          if (dev.pcid) {
+            qrImage.src = `/pc_qr/${dev.pcid}?size=${size}`;
+          } else if (dev.accession_id) {
+            qrImage.src = `/device_qr/${dev.accession_id}?size=${size}`;
+          }
+        } catch (e) {
+          console.error('Invalid device data for size change', e);
+        }
+      }
+    });
+  }
+
   function printableValue(value) {
     return value ? value : 'N/A';
   }
@@ -1004,7 +1065,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return data;
   }
 
-  function buildLabelHtml(data) {
+  function buildLabelHtml(data, size = 300) {
+    const imgSize = (Number(size) && Number(size) > 0) ? Number(size) : 300;
+    // Convert px to millimeters for predictable print sizing (1px = 0.264583333 mm)
+    const imgMm = (imgSize * 0.2645833333).toFixed(2);
     return `
       <div class="label">
         <div class="header">
@@ -1032,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
 
         <div class="qr">
-          <img src="/pc_qr/${data.pcid}" alt="QR Code for PC ${printableValue(data.pcid)}">
+          <img src="/pc_qr/${data.pcid}?size=${imgSize}" alt="QR Code for PC ${printableValue(data.pcid)}" style="width:${imgMm}mm;height:${imgMm}mm;object-fit:contain;display:block;margin:0 auto;">
         </div>
       </div>
     `;
@@ -1052,52 +1116,50 @@ document.addEventListener('DOMContentLoaded', async () => {
           <title>${title}</title>
           <style>
             @page {
-              size: A4;
+              size: A4 portrait;
               margin: 8mm;
             }
 
-            body {
+            html, body {
               margin: 0;
               padding: 0;
+              width: 100%;
+              height: 100%;
               font-family: Arial, sans-serif;
+              -webkit-print-color-adjust: exact;
             }
 
             .container {
               display: grid;
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-              gap: 10px;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 6mm;
+              box-sizing: border-box;
+              width: 100%;
             }
 
             .label {
-              border: 1.5px solid black;
-              padding: 8px;
-              font-size: 10px;
-              line-height: 1.35;
+              border: 1.2px solid black;
+              padding: 4mm;
+              font-size: 9pt;
+              line-height: 1.25;
+              box-sizing: border-box;
               break-inside: avoid;
               page-break-inside: avoid;
+              min-height: 30mm;
             }
 
             .header {
               text-align: center;
               font-size: 10px;
               font-weight: bold;
-              margin-bottom: 6px;
+              margin-bottom: 4px;
             }
 
-            .section {
-              margin-top: 6px;
-            }
+            .section { margin-top: 4px; }
 
-            .qr {
-              margin-top: 8px;
-              text-align: center;
-            }
+            .qr { margin-top: 6px; text-align: center; }
 
-            .qr img {
-              width: 82px;
-              height: 82px;
-              object-fit: contain;
-            }
+            .qr img { display:block; margin:0 auto; max-width:100%; height:auto; }
           </style>
         </head>
         <body onload="window.print()">
@@ -1110,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     printWindow.document.close();
   }
 
-  async function printPcLabels(pcIds, copiesPerPc = 1) {
+  async function printPcLabels(pcIds, copiesPerPc = 1, qrSize = 300) {
     const validPcIds = (pcIds || []).filter(Boolean);
 
     if (!validPcIds.length) {
@@ -1126,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const data = await fetchPcForPrint(pcid);
         for (let i = 0; i < copyCount; i++) {
-          labels.push(buildLabelHtml(data));
+          labels.push(buildLabelHtml(data, qrSize));
         }
       } catch (error) {
         console.error(`Error loading PC ${pcid}:`, error);
@@ -1175,7 +1237,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      await printPcLabels(ids, copies);
+      // Determine requested size for batch print
+      let batchSize = parseInt((batchSizeSelect && batchSizeSelect.value) ? batchSizeSelect.value : '300', 10);
+      if (Number.isNaN(batchSize)) batchSize = 300;
+      batchSize = Math.max(32, Math.min(batchSize, 2000));
+
+      await printPcLabels(ids, copies, batchSize);
     });
   }
 
@@ -1374,7 +1441,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Show the device QR modal
         qrDeviceName.textContent = device.pcname;
-        qrImage.src = `/pc_qr/${device.pcid}`;
+        const selectedSize2 = (qrSizeSelect && qrSizeSelect.value) ? qrSizeSelect.value : '200';
+        qrImage.src = `/pc_qr/${device.pcid}?size=${selectedSize2}`;
         qrModal.dataset.device = JSON.stringify(device);
         qrModal.classList.remove('hidden');
       } else {

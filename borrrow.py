@@ -17,12 +17,12 @@ def approve_borrow_request(borrow_id):
 
 
 def decline_borrow_request(borrow_id):
-    """Mark a borrow request as Declined"""
+    """Mark a borrow request as Invalid"""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "UPDATE borrow_requests SET status = 'Declined' WHERE borrow_id = %s",
+                "UPDATE borrow_requests SET status = 'Invalid' WHERE borrow_id = %s",
                 (borrow_id,)
             )
         conn.commit()
